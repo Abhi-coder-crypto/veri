@@ -1,0 +1,244 @@
+chunk-UZOKQUDP.js?v=b9a7715b:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+queryClient.ts:13  POST https://976d2c0f-e850-47a9-a71f-8f0a28169d1c-00-2gigdhxohooe4.riker.replit.dev/api/candidates/search 404 (Not Found)
+apiRequest @ queryClient.ts:13
+handleSendOTP @ VerificationPage.tsx:133
+callCallback2 @ chunk-UZOKQUDP.js?v=b9a7715b:3674
+invokeGuardedCallbackDev @ chunk-UZOKQUDP.js?v=b9a7715b:3699
+invokeGuardedCallback @ chunk-UZOKQUDP.js?v=b9a7715b:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-UZOKQUDP.js?v=b9a7715b:3736
+executeDispatch @ chunk-UZOKQUDP.js?v=b9a7715b:7014
+processDispatchQueueItemsInOrder @ chunk-UZOKQUDP.js?v=b9a7715b:7034
+processDispatchQueue @ chunk-UZOKQUDP.js?v=b9a7715b:7043
+dispatchEventsForPlugins @ chunk-UZOKQUDP.js?v=b9a7715b:7051
+(anonymous) @ chunk-UZOKQUDP.js?v=b9a7715b:7174
+batchedUpdates$1 @ chunk-UZOKQUDP.js?v=b9a7715b:18913
+batchedUpdates @ chunk-UZOKQUDP.js?v=b9a7715b:3579
+dispatchEventForPluginEventSystem @ chunk-UZOKQUDP.js?v=b9a7715b:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-UZOKQUDP.js?v=b9a7715b:5478
+dispatchEvent @ chunk-UZOKQUDP.js?v=b9a7715b:5472
+dispatchDiscreteEvent @ chunk-UZOKQUDP.js?v=b9a7715b:5449
+ocrService.ts:47 Processing Aadhar document with OCR...
+ocrService.ts:140 Starting OCR processing...
+ocrService.ts:144 OCR Progress: {status: 'loading tesseract core', progress: 0, userJobId: 'Job-0-dd723'}
+ocrService.ts:144 OCR Progress: {status: 'loading tesseract core', progress: 1, userJobId: 'Job-0-dd723'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', status: 'initializing tesseract', progress: 0, userJobId: 'Job-0-dd723'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', status: 'initializing tesseract', progress: 1, userJobId: 'Job-0-dd723'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', status: 'loading language traineddata', progress: 0, userJobId: 'Job-1-2fac9'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', status: 'loading language traineddata', progress: 0.25, userJobId: 'Job-1-2fac9'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', status: 'loading language traineddata', progress: 0.5, userJobId: 'Job-1-2fac9'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', status: 'loading language traineddata', progress: 0.75, userJobId: 'Job-1-2fac9'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', status: 'loading language traineddata', progress: 1, userJobId: 'Job-1-2fac9'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', status: 'initializing api', progress: 0, userJobId: 'Job-2-21551'}
+tesseract-core-simd-lstm.wasm.js:31 Warning: Parameter not found: classify_misfit_junk_penalty
+Zg @ tesseract-core-simd-lstm.wasm.js:31
+write @ tesseract-core-simd-lstm.wasm.js:30
+write @ tesseract-core-simd-lstm.wasm.js:57
+n @ tesseract-core-simd-lstm.wasm.js:104
+$func2854 @ 00af4146:0x1a199a
+$func1661 @ 00af4146:0x1092cd
+$func724 @ 00af4146:0x52c53
+$func53 @ 00af4146:0x3098
+$func1479 @ 00af4146:0xfc149
+$func1306 @ 00af4146:0xca117
+$ed @ 00af4146:0x184637
+b._emscripten_bind_TessBaseAPI_Init_3 @ tesseract-core-simd-lstm.wasm.js:154
+V.Init @ tesseract-core-simd-lstm.wasm.js:246
+(anonymous) @ index.js:264
+p @ index.js:2
+(anonymous) @ index.js:2
+(anonymous) @ index.js:2
+f @ index.js:2
+a @ index.js:2
+(anonymous) @ index.js:2
+(anonymous) @ index.js:2
+(anonymous) @ index.js:232
+e.dispatchHandlers @ index.js:529
+(anonymous) @ index.js:22
+tesseract-core-simd-lstm.wasm.js:31 Warning: Parameter not found: merge_fragments_in_matrix
+Zg @ tesseract-core-simd-lstm.wasm.js:31
+write @ tesseract-core-simd-lstm.wasm.js:30
+write @ tesseract-core-simd-lstm.wasm.js:57
+n @ tesseract-core-simd-lstm.wasm.js:104
+$func2854 @ 00af4146:0x1a199a
+$func1661 @ 00af4146:0x1092cd
+$func724 @ 00af4146:0x52c53
+$func53 @ 00af4146:0x3098
+$func1479 @ 00af4146:0xfc149
+$func1306 @ 00af4146:0xca117
+$ed @ 00af4146:0x184637
+b._emscripten_bind_TessBaseAPI_Init_3 @ tesseract-core-simd-lstm.wasm.js:154
+V.Init @ tesseract-core-simd-lstm.wasm.js:246
+(anonymous) @ index.js:264
+p @ index.js:2
+(anonymous) @ index.js:2
+(anonymous) @ index.js:2
+f @ index.js:2
+a @ index.js:2
+(anonymous) @ index.js:2
+(anonymous) @ index.js:2
+(anonymous) @ index.js:232
+e.dispatchHandlers @ index.js:529
+(anonymous) @ index.js:22
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', status: 'initializing api', progress: 1, userJobId: 'Job-2-21551'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.014285714285714285, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.02857142857142857, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.04285714285714286, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.05714285714285714, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.07142857142857142, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.08571428571428572, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.1, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.11428571428571428, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.14285714285714285, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.15714285714285714, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.17142857142857143, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.18571428571428572, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.2, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.21428571428571427, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.22857142857142856, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.24285714285714285, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.2571428571428571, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.2857142857142857, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.3, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.3142857142857143, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.32857142857142857, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.34285714285714286, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.35714285714285715, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.37142857142857144, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.38571428571428573, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.4, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.42857142857142855, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.44285714285714284, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.45714285714285713, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.4714285714285714, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.4857142857142857, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.5, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.5142857142857142, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.5285714285714286, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.5428571428571428, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.5714285714285714, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.5857142857142857, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.6, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.6142857142857143, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.6285714285714286, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.6428571428571429, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.6571428571428571, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.6714285714285714, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 0.6857142857142857, userJobId: 'Job-3-15eeb'}
+ocrService.ts:144 OCR Progress: {workerId: 'Worker-0-26016', jobId: 'Job-0-dd723', status: 'recognizing text', progress: 1, userJobId: 'Job-3-15eeb'}
+ocrService.ts:147 OCR completed. Raw text: Hel Shi
+Government of India
+भारतीय विशिष्ट ओकुख प्राधिकरण
+Unique Identification Authority of India
+नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422
+To
+अभिजीत राजेश सिंह
+Abhijeet Rajesh Singh
+KHANNA COMPOUND CHAWL NO. 8/1, ,
+VITTHALWADI ROAD,
+NR. HANUMAN MANDIR, ULHASNAGAR 3,
+VTC: Ulhasnagar,
+PO: Ulhasnagar-2,
+= Sub District: Ulhasnagar, District: Thane,
+2 State: Maharashtra,
+& PIN Code: 421002, RRS
+5 Mobile: 8600126395 Lae
+DO 2
+MG373224988F1 Tats
+—
+आपत्रा आधार क्रमांक / Your Aadhaar No. :
+माझे आधार, माझी ओत्उख
+OES — जसक न
+4 “Government of India" av
+ol “5 अभिजीत राजेश सिंह
+b= Abhijeet Rajesh Singh
+S 2 जन्म तारीख / DOB : 18/01/2001
+हद पुरुष / Male
+=
+8 i
+2
+4670 7551 4446
+माझे आधार, माझी aE
+
+ocrService.ts:148 OCR confidence: 74
+ocrService.ts:54 Raw OCR text: Hel Shi
+Government of India
+भारतीय विशिष्ट ओकुख प्राधिकरण
+Unique Identification Authority of India
+नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422
+To
+अभिजीत राजेश सिंह
+Abhijeet Rajesh Singh
+KHANNA COMPOUND CHAWL NO. 8/1, ,
+VITTHALWADI ROAD,
+NR. HANUMAN MANDIR, ULHASNAGAR 3,
+VTC: Ulhasnagar,
+PO: Ulhasnagar-2,
+= Sub District: Ulhasnagar, District: Thane,
+2 State: Maharashtra,
+& PIN Code: 421002, RRS
+5 Mobile: 8600126395 Lae
+DO 2
+MG373224988F1 Tats
+—
+आपत्रा आधार क्रमांक / Your Aadhaar No. :
+माझे आधार, माझी ओत्उख
+OES — जसक न
+4 “Government of India" av
+ol “5 अभिजीत राजेश सिंह
+b= Abhijeet Rajesh Singh
+S 2 जन्म तारीख / DOB : 18/01/2001
+हद पुरुष / Male
+=
+8 i
+2
+4670 7551 4446
+माझे आधार, माझी aE
+
+ocrService.ts:259 Raw OCR Text: Hel Shi
+Government of India
+भारतीय विशिष्ट ओकुख प्राधिकरण
+Unique Identification Authority of India
+नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422
+To
+अभिजीत राजेश सिंह
+Abhijeet Rajesh Singh
+KHANNA COMPOUND CHAWL NO. 8/1, ,
+VITTHALWADI ROAD,
+NR. HANUMAN MANDIR, ULHASNAGAR 3,
+VTC: Ulhasnagar,
+PO: Ulhasnagar-2,
+= Sub District: Ulhasnagar, District: Thane,
+2 State: Maharashtra,
+& PIN Code: 421002, RRS
+5 Mobile: 8600126395 Lae
+DO 2
+MG373224988F1 Tats
+—
+आपत्रा आधार क्रमांक / Your Aadhaar No. :
+माझे आधार, माझी ओत्उख
+OES — जसक न
+4 “Government of India" av
+ol “5 अभिजीत राजेश सिंह
+b= Abhijeet Rajesh Singh
+S 2 जन्म तारीख / DOB : 18/01/2001
+हद पुरुष / Male
+=
+8 i
+2
+4670 7551 4446
+माझे आधार, माझी aE
+
+ocrService.ts:260 ==================================================
+ocrService.ts:248 Valid Aadhar card detected with 7 indicators
+ocrService.ts:273 Text lines: (29) ['Hel Shi', 'Government of India', 'भारतीय विशिष्ट ओकुख प्राधिकरण', 'Unique Identification Authority of India', 'नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422', 'अभिजीत राजेश सिंह', 'Abhijeet Rajesh Singh', 'KHANNA COMPOUND CHAWL NO. 8/1, ,', 'VITTHALWADI ROAD,', 'NR. HANUMAN MANDIR, ULHASNAGAR 3,', 'VTC: Ulhasnagar,', 'PO: Ulhasnagar-2,', '= Sub District: Ulhasnagar, District: Thane,', '2 State: Maharashtra,', '& PIN Code: 421002, RRS', '5 Mobile: 8600126395 Lae', 'DO 2', 'MG373224988F1 Tats', 'आपत्रा आधार क्रमांक / Your Aadhaar No. :', 'माझे आधार, माझी ओत्उख', 'OES — जसक न', '4 “Government of India" av', 'ol “5 अभिजीत राजेश सिंह', 'b= Abhijeet Rajesh Singh', 'S 2 जन्म तारीख / DOB : 18/01/2001', 'हद पुरुष / Male', '8 i', '4670 7551 4446', 'माझे आधार, माझी aE']
+ocrService.ts:281 Top section: Hel Shi Government of India भारतीय विशिष्ट ओकुख प्राधिकरण Unique Identification Authority of India नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422 अभिजीत राजेश सिंह Abhijeet Rajesh Singh KHANNA COMPOUND CHAWL NO. 8/1, , VITTHALWADI ROAD, NR. HANUMAN MANDIR, ULHASNAGAR 3, VTC: Ulhasnagar, PO: Ulhasnagar-2, = Sub District: Ulhasnagar, District: Thane, 2 State: Maharashtra,
+ocrService.ts:282 Bottom section: & PIN Code: 421002, RRS 5 Mobile: 8600126395 Lae DO 2 MG373224988F1 Tats आपत्रा आधार क्रमांक / Your Aadhaar No. : माझे आधार, माझी ओत्उख OES — जसक न 4 “Government of India" av ol “5 अभिजीत राजेश सिंह b= Abhijeet Rajesh Singh S 2 जन्म तारीख / DOB : 18/01/2001 हद पुरुष / Male 8 i 4670 7551 4446 माझे आधार, माझी aE
+ocrService.ts:541 Extracted data: {name: 'Abhijeet Rajesh Singh', dob: '', aadhar: '467075514446', gender: 'Male'}
+ocrService.ts:548 === FINAL VALIDATION RESULTS ===
+ocrService.ts:549 ✓ Name extracted: ✅ Abhijeet Rajesh Singh
+ocrService.ts:550 ✓ Aadhar extracted: ✅ 467075514446
+ocrService.ts:551 ✓ DOB extracted: ❌ 
+ocrService.ts:552 ✓ Gender extracted: Male
+ocrService.ts:564 ❌ OCR extraction FAILED - Missing essential data
+ocrService.ts:567    - DOB extraction failed or invalid
