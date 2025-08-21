@@ -22,11 +22,15 @@ Successfully migrated from Replit Agent to standard Replit environment. MongoDB 
 
 ### Key Features
 1. **Mobile Verification**: OTP-based phone verification with SMS demo
-2. **Document Processing**: Aadhar card OCR simulation 
-3. **Candidate Registration**: Complete enrollment with training programs
-4. **Status Checking**: Search by Aadhar or mobile number
-5. **Admin Dashboard**: Secure admin login with candidate management, search, and CSV export
-6. **Training Management**: Track completion status and programs
+2. **Document Processing**: Aadhar card OCR simulation with advanced data extraction
+3. **Profile Image Upload**: Candidates can upload profile photos with validation (max 5MB)
+4. **Candidate Registration**: Complete enrollment with training programs and photo upload
+5. **Duplicate Prevention**: Enhanced system prevents re-registration of existing candidates
+6. **Admin Dashboard**: Tabbed interface with Dashboard and Status Check sections
+7. **Advanced Search**: Powerful search and filtering for large candidate datasets
+8. **Status Checking**: Integrated into admin panel for better data management
+9. **Training Management**: Track completion status and programs with export functionality
+10. **Data Export**: CSV export capability for candidate data with comprehensive information
 
 ## API Endpoints
 - `GET /api/candidates` - Get all candidates
@@ -78,10 +82,16 @@ export interface Candidate {
 **NOTE FOR FUTURE DEPLOYMENTS**: Always set MONGODB_URI secret first before running the application.
 
 ## Recent Changes
-- **2025-08-21**: MIGRATION COMPLETED - Successfully migrated project with enhanced UI
-- **2025-08-21**: Logo enhanced to 24x24 size with better visibility and styling using only TRA circular design
-- **2025-08-21**: Background images removed from all pages, replaced with clean solid color gradients
-- **2025-08-21**: Separate admin dashboard route created with improved navigation structure
+- **2025-08-21**: MAJOR FEATURE UPDATE - Added comprehensive new features and improvements
+- **2025-08-21**: Logo replaced with large graduation cap emoji (🎓) without background as requested
+- **2025-08-21**: Status Check moved from main navigation to Admin panel as separate tab for better organization
+- **2025-08-21**: Added Profile Image Upload feature in registration with 5MB limit and image validation
+- **2025-08-21**: Enhanced duplicate prevention - users already registered cannot re-register
+- **2025-08-21**: Updated database schema to include profileImage field for candidate photos
+- **2025-08-21**: Admin panel enhanced with tabbed interface (Dashboard/Status Check)
+- **2025-08-21**: Improved search functionality in admin panel for large datasets
+- **2025-08-21**: Background images completely removed, replaced with clean gradient themes
+- **2025-08-21**: Navigation streamlined to 3 main sections (Verification, Registration, Admin)
 - **2025-08-21**: All JSX syntax errors resolved and project fully functional
 - **2025-08-14**: MongoDB fully integrated and working
 - **2025-08-14**: Documented critical MongoDB configuration for future deployments

@@ -15,7 +15,7 @@ function App() {
           <Route path="/" component={VerificationPage} />
           <Route path="/verification" component={VerificationPage} />
           <Route path="/registration" component={RegistrationPage} />
-          <Route path="/status" component={StatusPage} />
+
           <Route path="/admin" component={AdminPage} />
         </main>
       </div>

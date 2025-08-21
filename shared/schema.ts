@@ -16,6 +16,7 @@ export const candidates = pgTable("candidates", {
   duration: text("duration"),
   trained: boolean("trained").notNull().default(false),
   status: text("status").notNull().default('Not Enrolled'),
+  profileImage: text("profile_image"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

@@ -8,7 +8,6 @@ const Navigation = () => {
   const navItems = [
     { path: '/verification', label: 'Verification', icon: UserCheck },
     { path: '/registration', label: 'Registration', icon: UserPlus },
-    { path: '/status', label: 'Status Check', icon: Search },
     { path: '/admin', label: 'Admin Dashboard', icon: GraduationCap }
   ];
 
@@ -18,9 +17,7 @@ const Navigation = () => {
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center py-4">
           <div className="mb-4 lg:mb-0 flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-xl border-4 border-blue-300">
-                <span className="text-3xl">🎓</span>
-              </div>
+              <span className="text-6xl">🎓</span>
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Training Academy Portal

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useMutation } from '@tanstack/react-query';
-import { UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
+import { UserPlus, CheckCircle, AlertCircle, Camera, Upload, User } from 'lucide-react';
 import { useCandidateContext } from '../context/CandidateContext';
 import { apiRequest, queryClient } from '../lib/queryClient';
 
@@ -23,6 +23,8 @@ const RegistrationPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [candidateId, setCandidateId] = useState('');
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
   const programs = [
     { id: 'category1', name: 'Category 1', duration: '3 months' },
@@ -74,6 +76,35 @@ const RegistrationPage = () => {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload a valid image file');
+      return;
+    }
+
+    setImageUploading(true);
+    setError('');
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setProfileImage(event.target?.result as string);
+      setImageUploading(false);
+    };
+    reader.onerror = () => {
+      setError('Failed to read image file');
+      setImageUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Registration mutation
   const registerMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -82,6 +113,7 @@ const RegistrationPage = () => {
         method: 'POST',
         body: JSON.stringify({
           ...data,
+          profileImage,
           trained: false,
           status: 'Enrolled'
         })
@@ -221,6 +253,53 @@ const RegistrationPage = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
+              </div>
+
+              {/* Profile Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Profile Photo
+                </label>
+                <div className="flex items-center space-x-4">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden">
+                    {profileImage ? (
+                      <img 
+                        src={profileImage} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-8 h-8 text-gray-400" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="profile-upload"
+                      disabled={imageUploading}
+                    />
+                    <label
+                      htmlFor="profile-upload"
+                      className="cursor-pointer inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200 text-sm"
+                    >
+                      {imageUploading ? (
+                        <>
+                          <Upload className="w-4 h-4 mr-2 animate-pulse" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Camera className="w-4 h-4 mr-2" />
+                          Choose Photo
+                        </>
+                      )}
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">Max 5MB, JPG/PNG only</p>
+                  </div>
+                </div>
               </div>
             </div>
 

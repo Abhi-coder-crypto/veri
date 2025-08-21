@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Shield, User, Eye, EyeOff, LogIn, Search, Download, Filter, Users, RefreshCw, Trash2, AlertTriangle } from 'lucide-react';
+import { Shield, User, Eye, EyeOff, LogIn, Search, Download, Filter, Users, RefreshCw, Trash2, AlertTriangle, Camera } from 'lucide-react';
 import { apiRequest } from '../lib/queryClient';
 import type { Candidate } from '@shared/schema';
 
@@ -12,6 +12,11 @@ const AdminPage = () => {
   const [searchFilter, setSearchFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [statusSearchTerm, setStatusSearchTerm] = useState('');
+  const [statusSearchResult, setStatusSearchResult] = useState<Candidate | null>(null);
+  const [statusSearchLoading, setStatusSearchLoading] = useState(false);
+  const [statusSearchError, setStatusSearchError] = useState('');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'status'>('dashboard');
 
   const queryClient = useQueryClient();
 
@@ -112,6 +117,33 @@ const AdminPage = () => {
   const confirmDelete = () => {
     if (deleteConfirm) {
       deleteMutation.mutate(deleteConfirm);
+    }
+  };
+
+  const handleStatusSearch = async () => {
+    if (!statusSearchTerm.trim()) return;
+    
+    setStatusSearchLoading(true);
+    setStatusSearchError('');
+    setStatusSearchResult(null);
+
+    try {
+      const response = await fetch('/api/candidates/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ searchTerm: statusSearchTerm.trim() })
+      });
+      
+      if (response.ok) {
+        const candidate = await response.json();
+        setStatusSearchResult(candidate);
+      } else {
+        setStatusSearchError('Candidate not found with this Aadhar number or mobile number');
+      }
+    } catch (error) {
+      setStatusSearchError('Error searching for candidate. Please try again.');
+    } finally {
+      setStatusSearchLoading(false);
     }
   };
 
@@ -261,6 +293,28 @@ const AdminPage = () => {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                    activeTab === 'dashboard' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => setActiveTab('status')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                    activeTab === 'status' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Status Check
+                </button>
+              </div>
               <button
                 onClick={() => refetch()}
                 disabled={isLoading}
@@ -287,7 +341,10 @@ const AdminPage = () => {
             </div>
           </div>
 
-          {/* Stats */}
+          {/* Tab Content */}
+          {activeTab === 'dashboard' && (
+            <>
+              {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
               <div className="flex items-center justify-between">
@@ -424,6 +481,98 @@ const AdminPage = () => {
               </div>
             )}
           </div>
+            </>
+          )}
+
+          {/* Status Check Tab */}
+          {activeTab === 'status' && (
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <Search className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Status Check</h2>
+                <p className="text-gray-600">Search for candidates by Aadhar number or mobile number</p>
+              </div>
+
+              <div className="max-w-md mx-auto mb-8">
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={statusSearchTerm}
+                    onChange={(e) => setStatusSearchTerm(e.target.value)}
+                    placeholder="Enter Aadhar number or mobile number"
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onKeyPress={(e) => e.key === 'Enter' && handleStatusSearch()}
+                  />
+                  <button
+                    onClick={handleStatusSearch}
+                    disabled={statusSearchLoading || !statusSearchTerm.trim()}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center"
+                  >
+                    {statusSearchLoading ? (
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Search className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {statusSearchError && (
+                <div className="max-w-md mx-auto mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  {statusSearchError}
+                </div>
+              )}
+
+              {statusSearchResult && (
+                <div className="max-w-2xl mx-auto bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6">
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                      <User className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-800">{statusSearchResult.name}</h3>
+                      <p className="text-sm text-gray-600">ID: {statusSearchResult.candidateId}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Date of Birth</p>
+                      <p className="font-medium text-gray-800">{statusSearchResult.dob}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Mobile</p>
+                      <p className="font-medium text-gray-800">{statusSearchResult.mobile}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Aadhar</p>
+                      <p className="font-medium text-gray-800">{statusSearchResult.aadhar}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Status</p>
+                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(statusSearchResult.status)}`}>
+                        {statusSearchResult.status}
+                      </span>
+                    </div>
+                    {statusSearchResult.program && (
+                      <div>
+                        <p className="text-sm text-gray-600">Program</p>
+                        <p className="font-medium text-gray-800">{statusSearchResult.program}</p>
+                      </div>
+                    )}
+                    {statusSearchResult.center && (
+                      <div>
+                        <p className="text-sm text-gray-600">Training Center</p>
+                        <p className="font-medium text-gray-800">{statusSearchResult.center}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Delete Confirmation Modal */}
           {deleteConfirm && (
