@@ -11,7 +11,7 @@ import type { AadharData } from '../services/ocrService';
 
 const VerificationPage = () => {
   const [, setLocation] = useLocation();
-  const { setCurrentCandidate } = useCandidateContext();
+  const { setCurrentCandidate, setIsVerified, setVerifiedMobile } = useCandidateContext();
   
   const [mobile, setMobile] = useState('');
   const [otp, setOtp] = useState('');
@@ -49,6 +49,8 @@ const VerificationPage = () => {
         setSuccess('');
       } else {
         // No duplicate found, proceed to registration
+        setIsVerified(true);
+        setVerifiedMobile(mobile);
         setLocation('/registration');
       }
     },
@@ -105,6 +107,8 @@ const VerificationPage = () => {
     },
     onSuccess: () => {
       setOtpVerified(true);
+      setIsVerified(true);
+      setVerifiedMobile(mobile);
       setSuccess('Mobile number verified successfully!');
       setError('');
     },

@@ -22,6 +22,10 @@ interface CandidateContextType {
   addCandidate: (candidate: Candidate) => string;
   findCandidate: (aadhar: string, mobile: string) => Candidate | undefined;
   isAlreadyTrained: (aadhar: string, mobile: string) => boolean;
+  isVerified: boolean;
+  setIsVerified: (verified: boolean) => void;
+  verifiedMobile: string;
+  setVerifiedMobile: (mobile: string) => void;
 }
 
 const CandidateContext = createContext<CandidateContextType | undefined>(undefined);
@@ -75,6 +79,8 @@ const initialCandidates: Candidate[] = [
 export const CandidateProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [candidates, setCandidates] = useState<Candidate[]>(initialCandidates);
   const [currentCandidate, setCurrentCandidate] = useState<Partial<Candidate>>({});
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [verifiedMobile, setVerifiedMobile] = useState<string>('');
 
   const addCandidate = (candidate: Candidate): string => {
     // Check for duplicates before adding
@@ -112,7 +118,11 @@ export const CandidateProvider: React.FC<{ children: ReactNode }> = ({ children 
       setCurrentCandidate,
       addCandidate,
       findCandidate,
-      isAlreadyTrained
+      isAlreadyTrained,
+      isVerified,
+      setIsVerified,
+      verifiedMobile,
+      setVerifiedMobile
     }}>
       {children}
     </CandidateContext.Provider>

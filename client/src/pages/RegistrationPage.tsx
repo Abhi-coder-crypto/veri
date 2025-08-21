@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useMutation } from '@tanstack/react-query';
-import { UserPlus, CheckCircle, AlertCircle, Camera, Upload, User } from 'lucide-react';
+import { UserPlus, CheckCircle, AlertCircle, Camera, Upload, User, ArrowLeft } from 'lucide-react';
 import { useCandidateContext } from '../context/CandidateContext';
 import { apiRequest, queryClient } from '../lib/queryClient';
 
 const RegistrationPage = () => {
   const [, setLocation] = useLocation();
-  const { currentCandidate } = useCandidateContext();
+  const { currentCandidate, verifiedMobile } = useCandidateContext();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -61,11 +61,17 @@ const RegistrationPage = () => {
         ...prev,
         name: currentCandidate.name || '',
         dob: currentCandidate.dob || '',
-        mobile: currentCandidate.mobile || '',
+        mobile: verifiedMobile || currentCandidate.mobile || '',
         aadhar: currentCandidate.aadhar || ''
       }));
+    } else if (verifiedMobile) {
+      // If no extracted data but we have verified mobile, pre-fill it
+      setFormData(prev => ({
+        ...prev,
+        mobile: verifiedMobile
+      }));
     }
-  }, [currentCandidate]);
+  }, [currentCandidate, verifiedMobile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -188,6 +194,17 @@ const RegistrationPage = () => {
     <div className="min-h-screen py-8 bg-gradient-to-br from-indigo-50 to-blue-100">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8">
+          {/* Back Button */}
+          <div className="mb-6">
+            <button
+              onClick={() => setLocation('/verification')}
+              className="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors duration-200"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back to Verification
+            </button>
+          </div>
+          
           <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
             <UserPlus className="w-8 h-8 text-blue-600" />

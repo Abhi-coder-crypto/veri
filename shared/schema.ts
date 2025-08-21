@@ -17,8 +17,8 @@ export const candidates = pgTable("candidates", {
   trained: boolean("trained").notNull().default(false),
   status: text("status").notNull().default('Not Enrolled'),
   profileImage: text("profile_image"),
-  joiningDate: timestamp("joining_date"),
-  completionDate: timestamp("completion_date"),
+  joiningDate: text("joining_date"), // Store as ISO string to avoid date parsing issues
+  completionDate: text("completion_date"),
   progress: text("progress").default('0'), // Progress percentage as string
   currentPhase: text("current_phase").default('Theory'), // Theory, Practical, Road Test
   instructorNotes: text("instructor_notes"),

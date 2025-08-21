@@ -1,0 +1,178 @@
+chunk-UZOKQUDP.js?v=14da7b14:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+api/candidates/search:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ocrService.ts:47 Processing Aadhar document with OCR...
+ocrService.ts:131 Starting OCR processing...
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+VM5:28 Warning: Parameter not found: classify_misfit_junk_penalty
+Zg @ VM5:28
+VM5:28 Warning: Parameter not found: merge_fragments_in_matrix
+Zg @ VM5:28
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:135 OCR Progress: Object
+ocrService.ts:138 OCR completed. Raw text: Hel Shi
+Government of India
+भारतीय विशिष्ट ओकुख प्राधिकरण
+Unique Identification Authority of India
+नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422
+To
+अभिजीत राजेश सिंह
+Abhijeet Rajesh Singh
+KHANNA COMPOUND CHAWL NO. 8/1, ,
+VITTHALWADI ROAD,
+NR. HANUMAN MANDIR, ULHASNAGAR 3,
+VTC: Ulhasnagar,
+PO: Ulhasnagar-2,
+= Sub District: Ulhasnagar, District: Thane,
+2 State: Maharashtra,
+& PIN Code: 421002, RRS
+5 Mobile: 8600126395 Lae
+DO 2
+MG373224988F1 Tats
+—
+आपत्रा आधार क्रमांक / Your Aadhaar No. :
+माझे आधार, माझी ओत्उख
+OES — जसक न
+4 “Government of India" av
+ol “5 अभिजीत राजेश सिंह
+b= Abhijeet Rajesh Singh
+S 2 जन्म तारीख / DOB : 18/01/2001
+हद पुरुष / Male
+=
+8 i
+2
+4670 7551 4446
+माझे आधार, माझी aE
+
+ocrService.ts:54 Raw OCR text: Hel Shi
+Government of India
+भारतीय विशिष्ट ओकुख प्राधिकरण
+Unique Identification Authority of India
+नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422
+To
+अभिजीत राजेश सिंह
+Abhijeet Rajesh Singh
+KHANNA COMPOUND CHAWL NO. 8/1, ,
+VITTHALWADI ROAD,
+NR. HANUMAN MANDIR, ULHASNAGAR 3,
+VTC: Ulhasnagar,
+PO: Ulhasnagar-2,
+= Sub District: Ulhasnagar, District: Thane,
+2 State: Maharashtra,
+& PIN Code: 421002, RRS
+5 Mobile: 8600126395 Lae
+DO 2
+MG373224988F1 Tats
+—
+आपत्रा आधार क्रमांक / Your Aadhaar No. :
+माझे आधार, माझी ओत्उख
+OES — जसक न
+4 “Government of India" av
+ol “5 अभिजीत राजेश सिंह
+b= Abhijeet Rajesh Singh
+S 2 जन्म तारीख / DOB : 18/01/2001
+हद पुरुष / Male
+=
+8 i
+2
+4670 7551 4446
+माझे आधार, माझी aE
+
+ocrService.ts:155 Raw OCR Text: Hel Shi
+Government of India
+भारतीय विशिष्ट ओकुख प्राधिकरण
+Unique Identification Authority of India
+नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422
+To
+अभिजीत राजेश सिंह
+Abhijeet Rajesh Singh
+KHANNA COMPOUND CHAWL NO. 8/1, ,
+VITTHALWADI ROAD,
+NR. HANUMAN MANDIR, ULHASNAGAR 3,
+VTC: Ulhasnagar,
+PO: Ulhasnagar-2,
+= Sub District: Ulhasnagar, District: Thane,
+2 State: Maharashtra,
+& PIN Code: 421002, RRS
+5 Mobile: 8600126395 Lae
+DO 2
+MG373224988F1 Tats
+—
+आपत्रा आधार क्रमांक / Your Aadhaar No. :
+माझे आधार, माझी ओत्उख
+OES — जसक न
+4 “Government of India" av
+ol “5 अभिजीत राजेश सिंह
+b= Abhijeet Rajesh Singh
+S 2 जन्म तारीख / DOB : 18/01/2001
+हद पुरुष / Male
+=
+8 i
+2
+4670 7551 4446
+माझे आधार, माझी aE
+
+ocrService.ts:156 ==================================================
+ocrService.ts:163 Text lines: Array(29)
+ocrService.ts:171 Top section: Hel Shi Government of India भारतीय विशिष्ट ओकुख प्राधिकरण Unique Identification Authority of India नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422 अभिजीत राजेश सिंह Abhijeet Rajesh Singh KHANNA COMPOUND CHAWL NO. 8/1, , VITTHALWADI ROAD, NR. HANUMAN MANDIR, ULHASNAGAR 3, VTC: Ulhasnagar, PO: Ulhasnagar-2, = Sub District: Ulhasnagar, District: Thane, 2 State: Maharashtra,
+ocrService.ts:172 Bottom section: & PIN Code: 421002, RRS 5 Mobile: 8600126395 Lae DO 2 MG373224988F1 Tats आपत्रा आधार क्रमांक / Your Aadhaar No. : माझे आधार, माझी ओत्उख OES — जसक न 4 “Government of India" av ol “5 अभिजीत राजेश सिंह b= Abhijeet Rajesh Singh S 2 जन्म तारीख / DOB : 18/01/2001 हद पुरुष / Male 8 i 4670 7551 4446 माझे आधार, माझी aE
+ocrService.ts:395 Extracted data: Object
+ocrService.ts:60 Successfully extracted: Object
+api/candidates/search:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+RegistrationPage.tsx:115 Sending registration data: Object
+api/candidates:1  Failed to load resource: the server responded with a status of 400 (Bad Request)
+RegistrationPage.tsx:115 Sending registration data: Object
+api/candidates:1  Failed to load resource: the server responded with a status of 413 (Request Entity Too Large)

@@ -95,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           smsResult = { success: true, message: "OTP sent via Twilio SMS", provider: "Twilio" };
-        } catch (twilioError) {
+        } catch (twilioError: any) {
           console.log('Twilio failed, trying Textbelt...', twilioError.message);
         }
       }
@@ -115,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             })
           });
           
-          const textbeltResult = await textbeltResponse.json();
+          const textbeltResult: any = await textbeltResponse.json();
           
           if (textbeltResult.success) {
             smsResult = { 
@@ -127,7 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             throw new Error(textbeltResult.error || 'Textbelt service failed');
           }
-        } catch (textbeltError) {
+        } catch (textbeltError: any) {
           console.log('Textbelt failed, using demo mode...', textbeltError.message);
         }
       }
@@ -282,201 +282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete candidate - NEW ADMIN FUNCTIONALITY
-  app.delete("/api/candidates/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid candidate ID" });
-      }
 
-      const success = await activeStorage.deleteCandidate(id);
-      
-      if (!success) {
-        return res.status(404).json({ error: "Candidate not found" });
-      }
-
-      res.json({ success: true, message: "Candidate deleted successfully" });
-    } catch (error) {
-      console.error('Delete candidate error:', error);
-      res.status(500).json({ error: "Failed to delete candidate" });
-    }
-  });
-
-  // Update candidate
-  app.put("/api/candidates/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid candidate ID" });
-      }
-
-      const updates = req.body;
-      const candidate = await activeStorage.updateCandidate(id, updates);
-
-      if (!candidate) {
-        return res.status(404).json({ error: "Candidate not found" });
-      }
-
-      res.json(candidate);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to update candidate" });
-    }
-  });
-
-  // Delete candidate
-  app.delete("/api/candidates/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: "Invalid candidate ID" });
-      }
-
-      const success = await activeStorage.deleteCandidate(id);
-
-      if (!success) {
-        return res.status(404).json({ error: "Candidate not found" });
-      }
-
-      res.json({ message: "Candidate deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete candidate" });
-    }
-  });
-
-  // Send OTP via SMS
-  app.post("/api/send-otp", async (req, res) => {
-    try {
-      const { phoneNumber } = req.body;
-      
-      if (!phoneNumber) {
-        return res.status(400).json({ error: "Phone number is required" });
-      }
-
-      // Generate 4-digit OTP
-      const otp = Math.floor(1000 + Math.random() * 9000).toString();
-      
-      // Store OTP in memory (in production, use Redis or database)
-      const otpData = {
-        otp,
-        phoneNumber,
-        timestamp: Date.now(),
-        attempts: 0
-      };
-      
-      // Store in app instance for now
-      if (!app.locals.otpStorage) {
-        app.locals.otpStorage = new Map();
-      }
-      app.locals.otpStorage.set(phoneNumber, otpData);
-      
-      // Clear OTP after 5 minutes
-      setTimeout(() => {
-        app.locals.otpStorage?.delete(phoneNumber);
-      }, 5 * 60 * 1000);
-
-      // Try multiple SMS options
-      let smsResult = { success: false, message: "SMS not sent" };
-      
-      try {
-        // Option 1: Try Textbelt (Free)
-        const textbeltResponse = await fetch('https://textbelt.com/text', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            phone: phoneNumber,
-            message: `Your training portal OTP is: ${otp}. Valid for 5 minutes.`,
-            key: 'textbelt'
-          })
-        });
-
-        const textbeltData = await textbeltResponse.json();
-        
-        if (textbeltData.success) {
-          smsResult = { success: true, message: "OTP sent via Textbelt" };
-        }
-      } catch (error) {
-        console.log("Textbelt failed, trying backup method");
-      }
-
-      // If Textbelt fails, show OTP in demo mode
-      if (!smsResult.success) {
-        console.log(`📱 Demo Mode: OTP ${otp} for ${phoneNumber}`);
-        smsResult = { 
-          success: true, 
-          message: `Demo Mode: Your OTP is ${otp}. In production, this would be sent via SMS.`
-        };
-      }
-
-      res.json({
-        success: true,
-        message: smsResult.message,
-        demoOtp: smsResult.success ? otp : undefined // Only for demo/testing
-      });
-
-    } catch (error) {
-      console.error('SMS sending failed:', error);
-      res.status(500).json({ error: "Failed to send OTP" });
-    }
-  });
-
-  // Verify OTP
-  app.post("/api/verify-otp", async (req, res) => {
-    try {
-      const { phoneNumber, otp } = req.body;
-      
-      if (!phoneNumber || !otp) {
-        return res.status(400).json({ error: "Phone number and OTP are required" });
-      }
-
-      const otpStorage = app.locals.otpStorage;
-      if (!otpStorage) {
-        return res.status(400).json({ error: "No OTP found. Please request a new OTP." });
-      }
-
-      const otpData = otpStorage.get(phoneNumber);
-      if (!otpData) {
-        return res.status(400).json({ error: "OTP not found or expired. Please request a new OTP." });
-      }
-
-      // Check if OTP has expired (5 minutes)
-      const now = Date.now();
-      const otpAge = now - otpData.timestamp;
-      const maxAge = 5 * 60 * 1000; // 5 minutes
-
-      if (otpAge > maxAge) {
-        otpStorage.delete(phoneNumber);
-        return res.status(400).json({ error: "OTP has expired. Please request a new OTP." });
-      }
-
-      // Increment attempts
-      otpData.attempts++;
-
-      // Check max attempts (3)
-      if (otpData.attempts > 3) {
-        otpStorage.delete(phoneNumber);
-        return res.status(400).json({ error: "Maximum attempts exceeded. Please request a new OTP." });
-      }
-
-      // Validate OTP
-      if (otpData.otp === otp) {
-        otpStorage.delete(phoneNumber);
-        res.json({ success: true, message: "OTP verified successfully!" });
-      } else {
-        const attemptsLeft = 3 - otpData.attempts;
-        res.status(400).json({ 
-          error: `Invalid OTP. ${attemptsLeft} attempts remaining.`,
-          attemptsLeft 
-        });
-      }
-
-    } catch (error) {
-      console.error('OTP verification failed:', error);
-      res.status(500).json({ error: "Failed to verify OTP" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;
