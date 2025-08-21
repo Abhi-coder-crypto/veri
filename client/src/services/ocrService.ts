@@ -171,21 +171,38 @@ export class OCRService {
     console.log('Top section:', topSection);
     console.log('Bottom section:', bottomSection);
 
-    // Extract Aadhar number (12 digits with optional spacing)
+    // Extract Aadhar number - Enhanced for all card formats
     let aadharNumber = '';
     const aadharPatterns = [
+      // Standard patterns
       /\b(\d{4})\s*(\d{4})\s*(\d{4})\b/g,
-      /आधार\s*(?:संख्या|नंबर)?\s*:?\s*(\d{4})\s*(\d{4})\s*(\d{4})/i,
-      /AADHAAR\s*(?:NO|NUMBER)?\s*:?\s*(\d{4})\s*(\d{4})\s*(\d{4})/i
+      // Hyphen/dot separated
+      /\b(\d{4})[-\.](\d{4})[-\.](\d{4})\b/g,
+      // Continuous 12 digits
+      /\b(\d{12})\b/g,
+      // Hindi/English with labels
+      /आधार\s*(?:संख्या|नंबर|No|NUMBER)?\s*:?\s*(\d{4})\s*(\d{4})\s*(\d{4})/gi,
+      /AADHAAR\s*(?:NO|NUMBER|संख्या)?\s*:?\s*(\d{4})\s*(\d{4})\s*(\d{4})/gi,
+      /UID\s*(?:NO|NUMBER)?\s*:?\s*(\d{4})\s*(\d{4})\s*(\d{4})/gi,
+      // QR code extracted numbers
+      /(?:Aadhaar|आधार)\s+(\d{4})\s+(\d{4})\s+(\d{4})/gi
     ];
 
     for (const pattern of aadharPatterns) {
       let match;
       const regex = new RegExp(pattern.source, pattern.flags);
       while ((match = regex.exec(fullText)) !== null) {
-        if (match[1] && match[2] && match[3]) {
-          const number = match[1] + match[2] + match[3];
-          if (number.length === 12 && !number.match(/^(.)\1+$/)) {
+        if (match[1]) {
+          let number = '';
+          if (match[2] && match[3]) {
+            // Three part number
+            number = match[1] + match[2] + match[3];
+          } else if (match[1].length === 12) {
+            // Single 12-digit number
+            number = match[1];
+          }
+          
+          if (number.length === 12 && !number.match(/^(.)\1+$/) && /^\d{12}$/.test(number)) {
             aadharNumber = number;
             break;
           }

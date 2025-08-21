@@ -198,8 +198,7 @@ const AdminPage = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen py-8 bg-gradient-to-br from-slate-50 to-gray-100 flex items-center justify-center relative" style={{backgroundImage: 'url(/images/Verification.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
-        <div className="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+      <div className="min-h-screen py-8 flex items-center justify-center relative" style={{backgroundImage: 'url(/images/Verification.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
         <div className="w-full max-w-md mx-auto px-4 relative z-10">
           <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-8">
             <div className="text-center mb-8">
@@ -283,8 +282,7 @@ const AdminPage = () => {
   }
 
   return (
-    <div className="min-h-screen py-8 bg-gradient-to-br from-slate-50 to-gray-100 relative" style={{backgroundImage: 'url(/images/Verification.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
-      <div className="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+    <div className="min-h-screen py-8 relative" style={{backgroundImage: 'url(/images/Verification.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
       <div className="container mx-auto px-4 relative z-10">
         <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-6">
           
@@ -460,11 +458,11 @@ const AdminPage = () => {
                               <img 
                                 src={candidate.profileImage} 
                                 alt={candidate.name}
-                                className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 shadow-sm"
+                                className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 shadow-sm"
                               />
                             ) : (
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center border-2 border-gray-200">
-                                <User className="w-6 h-6 text-green-600" />
+                              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center border-2 border-gray-200">
+                                <User className="w-10 h-10 text-green-600" />
                               </div>
                             )}
                           </div>

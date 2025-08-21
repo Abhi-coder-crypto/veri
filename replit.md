@@ -82,11 +82,21 @@ export interface Candidate {
 **NOTE FOR FUTURE DEPLOYMENTS**: Always set MONGODB_URI secret first before running the application.
 
 ## Recent Changes
-- **2025-08-21**: BACKGROUND IMAGES ADDED - All pages now use custom background images with overlay effects:
-  - Verification page: Verification.jpg background
-  - Registration page: Registration.jpg background  
-  - About page: Aboutus.jpg background
-  - Admin panel: Verification.jpg background with enhanced transparency
+- **2025-08-21**: BACKGROUND IMAGES FULLY VISIBLE - All overlay colors removed for complete image visibility:
+  - All pages now show background images without any color overlays
+  - Verification page: Verification.jpg background fully visible
+  - Registration page: Registration.jpg background fully visible  
+  - About page: Aboutus.jpg background fully visible
+  - Admin panel: Verification.jpg background fully visible
+- **2025-08-21**: ADMIN PANEL CANDIDATE PHOTOS ENLARGED - Profile images increased from 12x12 to 20x20 for better visibility
+- **2025-08-21**: ENHANCED AADHAR OCR SUPPORT - Improved OCR service for all Aadhar card formats:
+  - Support for small card, full size, and 2-page Aadhar cards
+  - Enhanced patterns for hyphen/dot separated numbers
+  - Support for continuous 12-digit numbers
+  - Multilingual support (Hindi/English labels)
+  - QR code extracted number recognition
+  - Better date format handling (DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, DDMMYYYY)
+  - Enhanced name extraction for various card layouts
 - **2025-08-21**: ADMIN PANEL ENHANCEMENT - Changed color scheme to light green gradients and added candidate photo display
 - **2025-08-21**: CANDIDATE PHOTO DISPLAY - Added profile photos in admin dashboard table with default green gradient avatars
 - **2025-08-21**: CRITICAL USER EXPERIENCE IMPROVEMENTS - Removed registration from navigation and enhanced OCR validation
