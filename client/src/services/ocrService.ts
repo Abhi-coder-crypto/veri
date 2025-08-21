@@ -489,14 +489,16 @@ export class OCRService {
     // Extract DOB from bottom section (where it usually appears)
     let dob = '';
     const dobPatterns = [
-      // PRIORITY: Direct format from examples: "DOB: 23/02/2001" or "जन्म तिथि/DOB: 23/03/2001"
-      /(?:DOB|Date of Birth|जन्म\s*तिथि)\s*[\/:]?\s*(\d{1,2})[\/>](\d{1,2})[\/>](\d{4})/gi,
-      // Hindi patterns
-      /जन्म.*?दिनांक\s*:?\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/gi,
-      // Date followed by gender (common pattern)
-      /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?=\s*(?:Male|Female|पुरुष|महिला))/gi,
-      // General date patterns
-      /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})\b/g,
+      // PRIORITY: Direct format - "DOB: 18/01/2001" or "जन्म तारीख / DOB : 18/01/2001"
+      /(?:DOB|Date of Birth|जन्म\s*तारीख|जन्म\s*तिथि)\s*[\/:]?\s*(\d{1,2})[\/](\d{1,2})[\/](\d{4})/gi,
+      // Hindi patterns - जन्म दिनांक
+      /जन्म.*?(?:दिनांक|तारीख)\s*:?\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/gi,
+      // Date followed by gender (common pattern in your card)
+      /(\d{1,2})[\/](\d{1,2})[\/](\d{4})(?=\s*(?:Male|Female|पुरुष|महिला))/gi,
+      // General date patterns for DD/MM/YYYY format
+      /\b(\d{1,2})[\/](\d{1,2})[\/](\d{4})\b/g,
+      // Dash separated dates
+      /\b(\d{1,2})[-](\d{1,2})[-](\d{4})\b/g,
       // Year only fallback
       /Year of Birth\s*:?\s*(\d{4})/i
     ];
@@ -507,13 +509,17 @@ export class OCRService {
       if (match) {
         if (match[3]) { // Full date
           const year = parseInt(match[3]);
-          if (year >= 1920 && year <= 2010) {
+          const month = parseInt(match[2]);
+          const day = parseInt(match[1]);
+          
+          // Validate realistic date ranges
+          if (year >= 1920 && year <= 2025 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
             dob = `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`;
             break;
           }
         } else if (match[1] && pattern.source.includes('Year')) { // Year only
           const year = parseInt(match[1]);
-          if (year >= 1920 && year <= 2010) {
+          if (year >= 1920 && year <= 2025) {
             dob = `${year}-01-01`;
             break;
           }
