@@ -66,7 +66,7 @@ export class OCRService {
       
       return {
         success: false,
-        error: 'Could not extract Aadhar information clearly. Please ensure the document is well-lit and all text is readable.'
+        error: 'This does not appear to be a valid Aadhar card or the document is not clear enough to read. Please upload a clear, high-quality photo of your Aadhar card only.'
       };
 
     } catch (error) {
@@ -201,6 +201,54 @@ export class OCRService {
     return false;
   }
 
+  private isValidAadharCard(text: string): boolean {
+    const normalizedText = text.toUpperCase().replace(/\s+/g, ' ');
+    
+    // Check for essential Aadhar card indicators
+    const aadharIndicators = [
+      // Government of India text
+      /GOVERNMENT\s*OF\s*INDIA/,
+      /भारत\s*सरकार/,
+      // UIDAI text
+      /UNIQUE\s*IDENTIFICATION\s*AUTHORITY/,
+      /UIDAI/,
+      // Aadhar specific text
+      /AADHAAR/,
+      /आधार/,
+      // Card specific indicators
+      /ENROLMENT\s*NO/,
+      /VID/,
+      // Combined patterns
+      /(GOVERNMENT|भारत).*(INDIA|सरकार)/,
+      /(UNIQUE|UIDAI).*(IDENTIFICATION|AUTHORITY)/
+    ];
+    
+    // Must have at least 2 strong Aadhar indicators
+    const foundIndicators = aadharIndicators.filter(pattern => pattern.test(normalizedText));
+    
+    if (foundIndicators.length < 2) {
+      console.log('Insufficient Aadhar card indicators found:', foundIndicators.length);
+      return false;
+    }
+    
+    // Must contain a 12-digit number pattern (Aadhar number)
+    const hasAadharNumber = /\b\d{4}[\s\-\.]*\d{4}[\s\-\.]*\d{4}\b|\b\d{12}\b/.test(normalizedText);
+    if (!hasAadharNumber) {
+      console.log('No valid Aadhar number pattern found');
+      return false;
+    }
+    
+    // Must contain date pattern (DOB)
+    const hasDatePattern = /\b\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4}\b/.test(normalizedText);
+    if (!hasDatePattern) {
+      console.log('No date pattern found (required for DOB)');
+      return false;
+    }
+    
+    console.log('Valid Aadhar card detected with', foundIndicators.length, 'indicators');
+    return true;
+  }
+
 
 
   private extractAadharInfo(text: string): AadharData | null {
@@ -210,6 +258,12 @@ export class OCRService {
 
     console.log('Raw OCR Text:', text);
     console.log('='.repeat(50));
+
+    // FIRST: Check if this is actually an Aadhar card
+    if (!this.isValidAadharCard(text)) {
+      console.log('Not an Aadhar card - validation failed');
+      return null;
+    }
 
     // Split text into lines and clean them
     const lines = text.split(/\n|\r/)
@@ -467,28 +521,27 @@ export class OCRService {
     const extractedData = { name, dob, aadhar: aadharNumber, gender };
     console.log('Extracted data:', extractedData);
 
-    // Enhanced validation - be more lenient but still validate
-    const hasValidName = name && name.length >= 5 && name.match(/^[A-Za-z\s]+$/);
-    const hasValidAadhar = aadharNumber && aadharNumber.length === 12;
+    // STRICT validation - ALL essential fields must be present and valid
+    const hasValidName = name && name.length >= 5 && name.match(/^[A-Za-z\s]+$/) && !name.includes('OCR could not');
+    const hasValidAadhar = aadharNumber && aadharNumber.length === 12 && /^\d{12}$/.test(aadharNumber);
     const hasValidDob = dob && dob.match(/^\d{4}-\d{2}-\d{2}$/);
     
-    // If we have either a name OR aadhar number, consider it successful
-    if (hasValidName || hasValidAadhar) {
+    console.log('Validation results:');
+    console.log('- Valid name:', hasValidName, name);
+    console.log('- Valid Aadhar:', hasValidAadhar, aadharNumber);
+    console.log('- Valid DOB:', hasValidDob, dob);
+    
+    // ALL essential fields must be successfully extracted - NO fallback data
+    if (hasValidName && hasValidAadhar && hasValidDob) {
       return {
-        name: name || 'Name extraction failed',
-        dob: dob || '1990-01-01',
-        aadhar: aadharNumber || this.generateUniqueAadhar(),
+        name,
+        dob,
+        aadhar: aadharNumber,
         gender: gender || 'Not specified'
       };
     } else {
-      console.log('OCR extraction failed - no reliable data found');
-      // Return fallback data that's clearly marked as failed extraction
-      return {
-        name: 'OCR could not extract name clearly',
-        dob: '1990-01-01',
-        aadhar: this.generateUniqueAadhar(),
-        gender: 'Not specified'
-      };
+      console.log('OCR extraction failed - missing essential data');
+      return null; // Return null instead of generating fake data
     }
   }
 }
