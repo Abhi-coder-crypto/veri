@@ -202,10 +202,10 @@ const AdminPage = () => {
         <div className="w-full max-w-md mx-auto px-4">
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
             <div className="text-center mb-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-600 to-red-800 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Shield className="w-10 h-10 text-white" />
               </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-600 to-slate-800 bg-clip-text text-transparent mb-2">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent mb-2">
                 Admin Panel
               </h1>
               <p className="text-gray-600">Secure access to candidate management</p>
@@ -222,7 +222,7 @@ const AdminPage = () => {
                     type="text"
                     value={loginForm.username}
                     onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="Enter username"
                     required
                   />
@@ -239,7 +239,7 @@ const AdminPage = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={loginForm.password}
                     onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="Enter password"
                     required
                   />
@@ -261,7 +261,7 @@ const AdminPage = () => {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-slate-600 to-slate-800 hover:from-slate-700 hover:to-slate-900 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
+                className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
               >
                 <LogIn className="w-5 h-5 mr-2" />
                 Login to Admin Panel
@@ -290,11 +290,11 @@ const AdminPage = () => {
           <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-8 pb-6 border-b border-gray-200">
             <div className="mb-4 lg:mb-0">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-800 rounded-full flex items-center justify-center shadow-lg">
                   <Users className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-slate-600 to-slate-800 bg-clip-text text-transparent">
+                  <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">
                     Admin Dashboard
                   </h1>
                   <p className="text-gray-600">Manage candidates and training programs</p>
@@ -441,6 +441,7 @@ const AdminPage = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program</th>
@@ -451,6 +452,21 @@ const AdminPage = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredCandidates.map((candidate) => (
                       <tr key={candidate.id} className="hover:bg-gray-50 transition-colors duration-200">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-center">
+                            {candidate.profileImage ? (
+                              <img 
+                                src={candidate.profileImage} 
+                                alt={candidate.name}
+                                className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 shadow-sm"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center border-2 border-gray-200">
+                                <User className="w-6 h-6 text-red-600" />
+                              </div>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-6 py-4">
                           <div>
                             <div className="font-medium text-gray-900">{candidate.name}</div>
@@ -507,7 +523,7 @@ const AdminPage = () => {
           {activeTab === 'status' && (
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <Search className="w-8 h-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Status Check</h2>
@@ -521,13 +537,13 @@ const AdminPage = () => {
                     value={statusSearchTerm}
                     onChange={(e) => setStatusSearchTerm(e.target.value)}
                     placeholder="Enter Aadhar number or mobile number"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     onKeyPress={(e) => e.key === 'Enter' && handleStatusSearch()}
                   />
                   <button
                     onClick={handleStatusSearch}
                     disabled={statusSearchLoading || !statusSearchTerm.trim()}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center"
+                    className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 disabled:opacity-50 flex items-center"
                   >
                     {statusSearchLoading ? (
                       <RefreshCw className="w-5 h-5 animate-spin" />
@@ -547,9 +563,17 @@ const AdminPage = () => {
               {statusSearchResult && (
                 <div className="max-w-2xl mx-auto bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl p-6">
                   <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                      <User className="w-6 h-6 text-green-600" />
-                    </div>
+                    {statusSearchResult.profileImage ? (
+                      <img 
+                        src={statusSearchResult.profileImage} 
+                        alt={statusSearchResult.name}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-green-200 shadow-sm mr-4"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                        <User className="w-6 h-6 text-green-600" />
+                      </div>
+                    )}
                     <div>
                       <h3 className="text-xl font-semibold text-gray-800">{statusSearchResult.name}</h3>
                       <p className="text-sm text-gray-600">ID: {statusSearchResult.candidateId}</p>
