@@ -51,6 +51,10 @@ const ImageCropper = ({ isOpen, onClose, onCropComplete, imageUrl }: ImageCroppe
     canvas.width = pixelCrop.width;
     canvas.height = pixelCrop.height;
 
+    // Fill canvas with white background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     // Draw the cropped image
     ctx.drawImage(
       image,
