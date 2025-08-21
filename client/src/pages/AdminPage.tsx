@@ -31,18 +31,27 @@ const AdminPage = () => {
     gcTime: 0 // Don't cache data
   });
 
-  // Load mock data automatically on component mount
+  // Load mock data immediately - force sync loading
   useEffect(() => {
-    if (mockCandidates.length === 0) {
-      console.log('Loading mock candidates automatically...');
+    console.log('=== FORCING MOCK DATA LOAD ===');
+    console.log('Current mockCandidates length:', mockCandidates.length);
+    console.log('useMockData:', useMockData);
+    
+    if (useMockData && mockCandidates.length === 0) {
+      console.log('Loading 50,000 mock candidates...');
       const mockData = getMockCandidates();
       setMockCandidates(mockData);
-      console.log(`Loaded ${mockData.length} mock candidates`);
+      console.log(`✅ Successfully loaded ${mockData.length} mock candidates`);
+      console.log('First few candidates:', mockData.slice(0, 3));
     }
-  }, []);
+  }, [mockCandidates.length, useMockData]);
 
-  // Combine real and mock data
-  const allCandidates = useMockData ? [...candidates, ...mockCandidates] : candidates;
+  // PRIORITIZE mock data - ensure it's always included
+  const allCandidates = useMockData 
+    ? mockCandidates.length > 0 
+      ? [...mockCandidates, ...candidates]  // Mock data first
+      : candidates
+    : candidates;
 
   // Initialize search results with all candidates when data is loaded
   useEffect(() => {
@@ -52,13 +61,17 @@ const AdminPage = () => {
 
   // Note: Auto-refresh is handled by React Query's refetchInterval
 
-  // Debug logging
+  // Enhanced debug logging
   useEffect(() => {
-    console.log('Admin Dashboard - Candidates loaded:', candidates.length);
-    console.log('Admin Dashboard - Raw candidates data:', candidates);
-    console.log('Admin Dashboard - Query error:', queryError);
-    console.log('Admin Dashboard - Is loading:', isLoading);
-  }, [candidates, queryError, isLoading]);
+    console.log('=== ADMIN DASHBOARD DEBUG ===');
+    console.log('Real candidates from API:', candidates.length);
+    console.log('Mock candidates loaded:', mockCandidates.length);
+    console.log('All candidates total:', allCandidates.length);
+    console.log('useMockData:', useMockData);
+    console.log('Query error:', queryError);
+    console.log('Is loading:', isLoading);
+    console.log('================================');
+  }, [candidates, mockCandidates, allCandidates, queryError, isLoading]);
 
   // Search mutation for individual candidates
   const searchMutation = useMutation({
@@ -86,6 +99,14 @@ const AdminPage = () => {
 
     if (loginForm.username === ADMIN_USERNAME && loginForm.password === ADMIN_PASSWORD) {
       setIsLoggedIn(true);
+      
+      // 🔥 FORCE IMMEDIATE MOCK DATA LOADING ON LOGIN
+      console.log('🔥 Admin login successful - forcing mock data load');
+      if (useMockData && mockCandidates.length === 0) {
+        const mockData = getMockCandidates();
+        setMockCandidates(mockData);
+        console.log(`🔥 LOADED ${mockData.length} MOCK CANDIDATES ON LOGIN!`);
+      }
     } else {
       setLoginError('Invalid username or password');
     }
