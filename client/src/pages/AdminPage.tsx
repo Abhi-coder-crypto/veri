@@ -13,7 +13,7 @@ const AdminPage = () => {
   const [searchFilter, setSearchFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Candidate[]>([]);
-  const [useMockData, setUseMockData] = useState(false);
+  const [useMockData, setUseMockData] = useState(true);
   const [mockCandidates, setMockCandidates] = useState<Candidate[]>([]);
 
   // Fetch all candidates when logged in with auto-refresh
@@ -31,15 +31,15 @@ const AdminPage = () => {
     gcTime: 0 // Don't cache data
   });
 
-  // Load mock data when enabled
+  // Load mock data automatically on component mount
   useEffect(() => {
-    if (useMockData && mockCandidates.length === 0) {
-      console.log('Loading mock candidates...');
+    if (mockCandidates.length === 0) {
+      console.log('Loading mock candidates automatically...');
       const mockData = getMockCandidates();
       setMockCandidates(mockData);
       console.log(`Loaded ${mockData.length} mock candidates`);
     }
-  }, [useMockData, mockCandidates.length]);
+  }, []);
 
   // Combine real and mock data
   const allCandidates = useMockData ? [...candidates, ...mockCandidates] : candidates;
