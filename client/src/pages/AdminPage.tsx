@@ -14,7 +14,13 @@ const AdminPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Candidate[]>([]);
   const [useMockData, setUseMockData] = useState(true);
-  const [mockCandidates, setMockCandidates] = useState<Candidate[]>([]);
+  const [mockCandidates, setMockCandidates] = useState<Candidate[]>(() => {
+    // 🔥 IMMEDIATE LOADING: Load mock data synchronously on component init
+    console.log('🔥 LOADING 50,000 CANDIDATES IMMEDIATELY ON COMPONENT INIT');
+    const mockData = getMockCandidates();
+    console.log(`🔥 LOADED ${mockData.length} CANDIDATES SYNCHRONOUSLY!`);
+    return mockData;
+  });
 
   // Fetch all candidates when logged in with auto-refresh
   const { data: candidates = [], isLoading, error: queryError, refetch } = useQuery<Candidate[]>({
@@ -31,20 +37,18 @@ const AdminPage = () => {
     gcTime: 0 // Don't cache data
   });
 
-  // Load mock data immediately - force sync loading
+  // Backup loading (should not be needed now)
   useEffect(() => {
-    console.log('=== FORCING MOCK DATA LOAD ===');
+    console.log('=== BACKUP MOCK DATA CHECK ===');
     console.log('Current mockCandidates length:', mockCandidates.length);
-    console.log('useMockData:', useMockData);
     
-    if (useMockData && mockCandidates.length === 0) {
-      console.log('Loading 50,000 mock candidates...');
+    if (mockCandidates.length === 0) {
+      console.log('🚨 BACKUP: Loading mock candidates as fallback');
       const mockData = getMockCandidates();
       setMockCandidates(mockData);
-      console.log(`✅ Successfully loaded ${mockData.length} mock candidates`);
-      console.log('First few candidates:', mockData.slice(0, 3));
+      console.log(`✅ BACKUP: Loaded ${mockData.length} candidates`);
     }
-  }, [mockCandidates.length, useMockData]);
+  }, []);
 
   // PRIORITIZE mock data - ensure it's always included
   const allCandidates = useMockData 
