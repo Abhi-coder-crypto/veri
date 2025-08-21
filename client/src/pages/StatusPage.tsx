@@ -78,17 +78,29 @@ const StatusPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-            <Search className="w-8 h-8 text-blue-600" />
+    <div 
+      className="min-h-screen py-8 relative"
+      style={{
+        backgroundImage: `url('https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      <div className="absolute inset-0 bg-green-900/20 backdrop-blur-sm"></div>
+      <div className="max-w-4xl mx-auto relative z-10">
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-6 sm:p-8">
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <Search className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
+              Training Status Check
+            </h2>
+            <p className="text-gray-600 text-lg">Search by Aadhar number or mobile number to check training status</p>
           </div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">Training Status Check</h2>
-          <p className="text-gray-600">Search by Aadhar number or mobile number to check training status</p>
-        </div>
 
-        {/* Search Form */}
+          {/* Search Form */}
         <div className="bg-gray-50 rounded-lg p-6 mb-8">
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -223,6 +235,7 @@ const StatusPage: React.FC = () => {
               <div>Enter your 10-digit mobile number used during registration</div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

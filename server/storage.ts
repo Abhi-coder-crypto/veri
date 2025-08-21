@@ -7,6 +7,7 @@ export interface IStorage {
   getCandidateByMobile(mobile: string): Promise<Candidate | undefined>;
   createCandidate(candidate: InsertCandidate, candidateId: string): Promise<Candidate>;
   updateCandidate(id: number, updates: Partial<InsertCandidate>): Promise<Candidate | undefined>;
+  deleteCandidate(id: number): Promise<boolean>;
   getAllCandidates(): Promise<Candidate[]>;
 }
 
@@ -68,6 +69,10 @@ export class MemStorage implements IStorage {
     const updated: Candidate = { ...candidate, ...updates };
     this.candidates.set(id, updated);
     return updated;
+  }
+
+  async deleteCandidate(id: number): Promise<boolean> {
+    return this.candidates.delete(id);
   }
 
   async getAllCandidates(): Promise<Candidate[]> {

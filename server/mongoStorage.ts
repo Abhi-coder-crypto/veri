@@ -62,6 +62,11 @@ export class MongoStorage implements IStorage {
     return result || undefined;
   }
 
+  async deleteCandidate(id: number): Promise<boolean> {
+    const result = await this.collection.deleteOne({ id });
+    return result.deletedCount > 0;
+  }
+
   async getAllCandidates(): Promise<Candidate[]> {
     return await this.collection.find({}).toArray();
   }
