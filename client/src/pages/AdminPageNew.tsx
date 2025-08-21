@@ -4,7 +4,7 @@ import { Shield, User, Eye, EyeOff, LogIn, Search, Download, Filter, Users, Refr
 import { apiRequest } from '../lib/queryClient';
 import type { Candidate } from '@shared/schema';
 
-const AdminPageNew = () => {
+const AdminPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -156,18 +156,9 @@ const AdminPageNew = () => {
 
   if (!isLoggedIn) {
     return (
-      <div 
-        className="min-h-screen py-8 relative flex items-center justify-center"
-        style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1497486751825-1233686d5d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed'
-        }}
-      >
-        <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"></div>
-        <div className="relative z-10 w-full max-w-md mx-auto px-4">
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8">
+      <div className="min-h-screen py-8 bg-gradient-to-br from-slate-50 to-gray-100 flex items-center justify-center">
+        <div className="w-full max-w-md mx-auto px-4">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
             <div className="text-center mb-8">
               <div className="w-20 h-20 bg-gradient-to-br from-slate-600 to-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Shield className="w-10 h-10 text-white" />
@@ -249,18 +240,9 @@ const AdminPageNew = () => {
   }
 
   return (
-    <div 
-      className="min-h-screen py-8 relative"
-      style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1497486751825-1233686d5d80?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm"></div>
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-6">
+    <div className="min-h-screen py-8 bg-gradient-to-br from-slate-50 to-gray-100">
+      <div className="container mx-auto px-4">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
           
           {/* Header */}
           <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-8 pb-6 border-b border-gray-200">
@@ -485,4 +467,4 @@ const AdminPageNew = () => {
   );
 };
 
-export default AdminPageNew;
+export default AdminPage;

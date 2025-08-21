@@ -149,9 +149,10 @@ const RegistrationPage = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
-        <div className="text-center mb-8">
+    <div className="min-h-screen py-8 bg-gradient-to-br from-indigo-50 to-blue-100">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8">
+          <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
             <UserPlus className="w-8 h-8 text-blue-600" />
           </div>
@@ -315,6 +316,7 @@ const RegistrationPage = () => {
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

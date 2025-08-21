@@ -9,7 +9,7 @@ const Navigation = () => {
     { path: '/verification', label: 'Verification', icon: UserCheck },
     { path: '/registration', label: 'Registration', icon: UserPlus },
     { path: '/status', label: 'Status Check', icon: Search },
-    { path: '/admin', label: 'Admin Panel', icon: GraduationCap }
+    { path: '/admin', label: 'Admin Dashboard', icon: GraduationCap }
   ];
 
   return (
@@ -21,7 +21,7 @@ const Navigation = () => {
               <img 
                 src={logoImage} 
                 alt="Training Academy Logo" 
-                className="w-12 h-12 rounded-full shadow-md border-2 border-blue-200"
+                className="w-16 h-16 rounded-full shadow-lg border-2 border-blue-300 object-cover"
               />
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">

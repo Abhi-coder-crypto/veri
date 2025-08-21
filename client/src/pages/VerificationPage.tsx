@@ -243,18 +243,9 @@ const VerificationPage = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen py-8 relative"
-      style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      <div className="absolute inset-0 bg-blue-900/20 backdrop-blur-sm"></div>
-      <div className="max-w-2xl mx-auto relative z-10">
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-6 sm:p-8">
+    <div className="min-h-screen py-8 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="max-w-2xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8">
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Shield className="w-10 h-10 text-white" />
