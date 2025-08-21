@@ -21,7 +21,7 @@ const Navigation = () => {
               <img 
                 src={logoImage} 
                 alt="TRA Logo" 
-                className="w-20 h-20 rounded-full shadow-lg border-3 border-blue-400 object-cover bg-white p-1"
+                className="w-24 h-24 rounded-full shadow-xl border-4 border-blue-500 object-cover bg-white p-2"
               />
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
