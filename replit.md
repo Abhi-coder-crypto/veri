@@ -82,6 +82,9 @@ export interface Candidate {
 **NOTE FOR FUTURE DEPLOYMENTS**: Always set MONGODB_URI secret first before running the application.
 
 ## Recent Changes
+- **2025-08-21**: CRITICAL USER EXPERIENCE IMPROVEMENTS - Removed registration from navigation and enhanced OCR validation
+- **2025-08-21**: OCR Data Quality Enforcement - Users cannot proceed if document extraction fails with proper error messages
+- **2025-08-21**: Registration Page Hidden - Only accessible after successful verification, removed from navigation bar
 - **2025-08-21**: MAJOR DRIVING TRAINING PORTAL UPDATE - Enhanced for comprehensive candidate management
 - **2025-08-21**: Added About Us and Contact Us sections specifically tailored for driving training
 - **2025-08-21**: Enhanced database schema with detailed training progress tracking fields

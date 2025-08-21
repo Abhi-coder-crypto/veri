@@ -7,7 +7,6 @@ const Navigation = () => {
 
   const navItems = [
     { path: '/verification', label: 'Verification', icon: UserCheck },
-    { path: '/registration', label: 'Registration', icon: UserPlus },
     { path: '/about', label: 'About Us', icon: Users },
     { path: '/contact', label: 'Contact', icon: Phone },
     { path: '/admin', label: 'Admin Dashboard', icon: GraduationCap }

@@ -203,8 +203,29 @@ const VerificationPage = () => {
   };
 
   const handleProceed = () => {
-    if (!extractedAadharData) {
+    if (!otpVerified) {
+      setError('Please complete mobile verification first.');
+      return;
+    }
+
+    if (!aadharUploaded || !extractedAadharData) {
       setError('Please upload and verify your Aadhar document first.');
+      return;
+    }
+
+    // Validate extracted data quality
+    if (!extractedAadharData.name || extractedAadharData.name.trim().length < 3) {
+      setError('OCR could not extract your name properly from the Aadhar document. Please upload a clearer image.');
+      return;
+    }
+
+    if (!extractedAadharData.dob || extractedAadharData.dob.length < 8) {
+      setError('OCR could not extract your date of birth properly. Please upload a clearer image.');
+      return;
+    }
+
+    if (!extractedAadharData.aadhar || extractedAadharData.aadhar.replace(/\D/g, '').length !== 12) {
+      setError('OCR could not extract your Aadhar number properly. Please upload a clearer image.');
       return;
     }
 
