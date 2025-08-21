@@ -15,11 +15,17 @@ const AdminPage = () => {
   const [searchResults, setSearchResults] = useState<Candidate[]>([]);
   const [useMockData, setUseMockData] = useState(true);
   const [mockCandidates, setMockCandidates] = useState<Candidate[]>(() => {
-    // 🔥 IMMEDIATE LOADING: Load mock data synchronously on component init
-    console.log('🔥 LOADING 50,000 CANDIDATES IMMEDIATELY ON COMPONENT INIT');
-    const mockData = getMockCandidates();
-    console.log(`🔥 LOADED ${mockData.length} CANDIDATES SYNCHRONOUSLY!`);
-    return mockData;
+    try {
+      // 🔥 IMMEDIATE LOADING: Load mock data synchronously on component init
+      console.log('🔥 LOADING 50,000 CANDIDATES IMMEDIATELY ON COMPONENT INIT');
+      const mockData = getMockCandidates();
+      console.log(`🔥 LOADED ${mockData.length} CANDIDATES SYNCHRONOUSLY!`);
+      console.log('First candidate sample:', mockData[0]);
+      return mockData;
+    } catch (error) {
+      console.error('❌ Error loading mock data:', error);
+      return [];
+    }
   });
 
   // Fetch all candidates when logged in with auto-refresh
@@ -37,17 +43,36 @@ const AdminPage = () => {
     gcTime: 0 // Don't cache data
   });
 
-  // Backup loading (should not be needed now)
+  // EMERGENCY MOCK DATA LOADING - Multiple attempts  
   useEffect(() => {
-    console.log('=== BACKUP MOCK DATA CHECK ===');
+    console.log('🚨 EMERGENCY MOCK DATA LOADING');
     console.log('Current mockCandidates length:', mockCandidates.length);
     
-    if (mockCandidates.length === 0) {
-      console.log('🚨 BACKUP: Loading mock candidates as fallback');
-      const mockData = getMockCandidates();
-      setMockCandidates(mockData);
-      console.log(`✅ BACKUP: Loaded ${mockData.length} candidates`);
-    }
+    // Force loading every time component mounts
+    const attemptLoading = () => {
+      try {
+        console.log('Attempting to load mock candidates...');
+        const mockData = getMockCandidates();
+        if (mockData && mockData.length > 0) {
+          setMockCandidates(mockData);
+          console.log(`✅ SUCCESS: Loaded ${mockData.length} candidates`);
+          console.log('Sample candidate:', mockData[0]);
+        } else {
+          console.error('❌ Mock data is empty or null');
+        }
+      } catch (error) {
+        console.error('❌ Error in attemptLoading:', error);
+      }
+    };
+    
+    // Try immediately
+    attemptLoading();
+    
+    // Try again after 100ms
+    setTimeout(attemptLoading, 100);
+    
+    // Try again after 500ms  
+    setTimeout(attemptLoading, 500);
   }, []);
 
   // PRIORITIZE mock data - ensure it's always included
@@ -65,17 +90,25 @@ const AdminPage = () => {
 
   // Note: Auto-refresh is handled by React Query's refetchInterval
 
-  // Enhanced debug logging
+  // Enhanced debug logging with detailed info
   useEffect(() => {
     console.log('=== ADMIN DASHBOARD DEBUG ===');
     console.log('Real candidates from API:', candidates.length);
     console.log('Mock candidates loaded:', mockCandidates.length);
     console.log('All candidates total:', allCandidates.length);
-    console.log('useMockData:', useMockData);
+    console.log('useMockData flag:', useMockData);
+    console.log('Search results length:', searchResults.length);
     console.log('Query error:', queryError);
     console.log('Is loading:', isLoading);
+    console.log('Mock candidates sample:', mockCandidates.slice(0, 2));
     console.log('================================');
-  }, [candidates, mockCandidates, allCandidates, queryError, isLoading]);
+    
+    // Force update if mock data exists but search results are empty
+    if (mockCandidates.length > 0 && searchResults.length === 0) {
+      console.log('🔥 FORCING SEARCH RESULTS UPDATE WITH MOCK DATA');
+      setSearchResults(mockCandidates);
+    }
+  }, [candidates, mockCandidates, allCandidates, queryError, isLoading, searchResults]);
 
   // Search mutation for individual candidates
   const searchMutation = useMutation({
@@ -319,7 +352,14 @@ const AdminPage = () => {
             <div className="flex items-center">
               <Users className="w-8 h-8 text-blue-600" />
               <div className="ml-4">
-                <h3 className="text-2xl font-bold text-blue-800">{allCandidates.length.toLocaleString()}</h3>
+                <h3 className="text-2xl font-bold text-blue-800">
+                  {(() => {
+                    const total = allCandidates.length;
+                    console.log('🔢 STATISTICS: Total candidates being displayed:', total);
+                    console.log('🔢 allCandidates array:', allCandidates.slice(0, 2));
+                    return total.toLocaleString();
+                  })()}
+                </h3>
                 <p className="text-blue-600">Total Candidates</p>
               </div>
             </div>
