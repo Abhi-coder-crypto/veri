@@ -282,7 +282,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete candidate
+  app.delete("/api/candidates/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid candidate ID" });
+      }
 
+      const success = await activeStorage.deleteCandidate(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      res.json({ success: true, message: "Candidate deleted successfully" });
+    } catch (error) {
+      console.error('Delete candidate error:', error);
+      res.status(500).json({ error: "Failed to delete candidate" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

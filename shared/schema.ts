@@ -22,7 +22,6 @@ export const candidates = pgTable("candidates", {
   progress: text("progress").default('0'), // Progress percentage as string
   currentPhase: text("current_phase").default('Theory'), // Theory, Practical, Road Test
   instructorNotes: text("instructor_notes"),
-  emergencyContact: text("emergency_contact"),
   medicalCertificate: boolean("medical_certificate").default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

@@ -130,20 +130,28 @@ const AdminPage = () => {
     setStatusSearchResult(null);
 
     try {
-      const response = await fetch('/api/candidates/search', {
+      const searchValue = statusSearchTerm.trim();
+      
+      // Determine if it's Aadhar (12 digits) or mobile (10 digits)
+      const isAadhar = /^\d{12}$/.test(searchValue);
+      const isMobile = /^\d{10}$/.test(searchValue);
+      
+      const searchBody = isAadhar ? { aadhar: searchValue } : 
+                        isMobile ? { mobile: searchValue } :
+                        { aadhar: searchValue }; // Default to aadhar search for any other format
+      
+      const response = await apiRequest('/api/candidates/search', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ searchTerm: statusSearchTerm.trim() })
+        body: JSON.stringify(searchBody)
       });
       
-      if (response.ok) {
-        const candidate = await response.json();
-        setStatusSearchResult(candidate);
-      } else {
+      setStatusSearchResult(response);
+    } catch (error: any) {
+      if (error.message?.includes('not found') || error.message?.includes('404')) {
         setStatusSearchError('Candidate not found with this Aadhar number or mobile number');
+      } else {
+        setStatusSearchError('Error searching for candidate. Please try again.');
       }
-    } catch (error) {
-      setStatusSearchError('Error searching for candidate. Please try again.');
     } finally {
       setStatusSearchLoading(false);
     }

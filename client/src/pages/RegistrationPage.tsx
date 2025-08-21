@@ -19,7 +19,7 @@ const RegistrationPage = () => {
     center: '',
     trainer: '',
     duration: '',
-    emergencyContact: '',
+
     joiningDate: new Date().toISOString().split('T')[0], // Today's date as default
     currentPhase: 'Theory',
     progress: '0'
@@ -178,12 +178,7 @@ const RegistrationPage = () => {
             >
               Register Another Candidate
             </button>
-            <button
-              onClick={() => setLocation('/status')}
-              className="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-            >
-              Check Status
-            </button>
+
           </div>
         </div>
       </div>
@@ -397,19 +392,7 @@ const RegistrationPage = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Emergency Contact
-                </label>
-                <input
-                  type="tel"
-                  name="emergencyContact"
-                  value={formData.emergencyContact}
-                  onChange={handleInputChange}
-                  placeholder="Emergency contact number"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

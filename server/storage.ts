@@ -56,7 +56,14 @@ export class MemStorage implements IStorage {
       trainer: insertCandidate.trainer ?? null,
       duration: insertCandidate.duration ?? null,
       trained: insertCandidate.trained ?? false,
-      status: insertCandidate.status ?? 'Not Enrolled'
+      status: insertCandidate.status ?? 'Not Enrolled',
+      profileImage: insertCandidate.profileImage ?? null,
+      joiningDate: insertCandidate.joiningDate ?? null,
+      completionDate: insertCandidate.completionDate ?? null,
+      progress: insertCandidate.progress ?? '0',
+      currentPhase: insertCandidate.currentPhase ?? 'Theory',
+      instructorNotes: insertCandidate.instructorNotes ?? null,
+      medicalCertificate: insertCandidate.medicalCertificate ?? false
     };
     this.candidates.set(id, candidate);
     return candidate;
