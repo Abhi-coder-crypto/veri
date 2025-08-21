@@ -1,0 +1,181 @@
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+api/candidates/search:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ Processing Aadhar document with OCR...
+ Starting OCR processing...
+ OCR Progress: Object
+ OCR Progress: Object
+ OCR Progress: Object
+ OCR Progress: Object
+ OCR Progress: Object
+ OCR Progress: Object
+ OCR Progress: Object
+ OCR Progress: Object
+ OCR Progress: Object
+ OCR Progress: Object
+ Warning: Parameter not found: classify_misfit_junk_penalty
+Zg @ cdn.jsdelivr.net/npm…imd-lstm.wasm.js:31
+ Warning: Parameter not found: merge_fragments_in_matrix
+Zg @ cdn.jsdelivr.net/npm…imd-lstm.wasm.js:31
+ OCR Progress: Object
+ OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:144 OCR Progress: Object
+ocrService.ts:147 OCR completed. Raw text: Hel Shi
+Government of India
+भारतीय विशिष्ट ओकुख प्राधिकरण
+Unique Identification Authority of India
+नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422
+To
+अभिजीत राजेश सिंह
+Abhijeet Rajesh Singh
+KHANNA COMPOUND CHAWL NO. 8/1, ,
+VITTHALWADI ROAD,
+NR. HANUMAN MANDIR, ULHASNAGAR 3,
+VTC: Ulhasnagar,
+PO: Ulhasnagar-2,
+= Sub District: Ulhasnagar, District: Thane,
+2 State: Maharashtra,
+& PIN Code: 421002, RRS
+5 Mobile: 8600126395 Lae
+DO 2
+MG373224988F1 Tats
+—
+आपत्रा आधार क्रमांक / Your Aadhaar No. :
+माझे आधार, माझी ओत्उख
+OES — जसक न
+4 “Government of India" av
+ol “5 अभिजीत राजेश सिंह
+b= Abhijeet Rajesh Singh
+S 2 जन्म तारीख / DOB : 18/01/2001
+हद पुरुष / Male
+=
+8 i
+2
+4670 7551 4446
+माझे आधार, माझी aE
+
+ocrService.ts:148 OCR confidence: 74
+ocrService.ts:54 Raw OCR text: Hel Shi
+Government of India
+भारतीय विशिष्ट ओकुख प्राधिकरण
+Unique Identification Authority of India
+नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422
+To
+अभिजीत राजेश सिंह
+Abhijeet Rajesh Singh
+KHANNA COMPOUND CHAWL NO. 8/1, ,
+VITTHALWADI ROAD,
+NR. HANUMAN MANDIR, ULHASNAGAR 3,
+VTC: Ulhasnagar,
+PO: Ulhasnagar-2,
+= Sub District: Ulhasnagar, District: Thane,
+2 State: Maharashtra,
+& PIN Code: 421002, RRS
+5 Mobile: 8600126395 Lae
+DO 2
+MG373224988F1 Tats
+—
+आपत्रा आधार क्रमांक / Your Aadhaar No. :
+माझे आधार, माझी ओत्उख
+OES — जसक न
+4 “Government of India" av
+ol “5 अभिजीत राजेश सिंह
+b= Abhijeet Rajesh Singh
+S 2 जन्म तारीख / DOB : 18/01/2001
+हद पुरुष / Male
+=
+8 i
+2
+4670 7551 4446
+माझे आधार, माझी aE
+
+ocrService.ts:259 Raw OCR Text: Hel Shi
+Government of India
+भारतीय विशिष्ट ओकुख प्राधिकरण
+Unique Identification Authority of India
+नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422
+To
+अभिजीत राजेश सिंह
+Abhijeet Rajesh Singh
+KHANNA COMPOUND CHAWL NO. 8/1, ,
+VITTHALWADI ROAD,
+NR. HANUMAN MANDIR, ULHASNAGAR 3,
+VTC: Ulhasnagar,
+PO: Ulhasnagar-2,
+= Sub District: Ulhasnagar, District: Thane,
+2 State: Maharashtra,
+& PIN Code: 421002, RRS
+5 Mobile: 8600126395 Lae
+DO 2
+MG373224988F1 Tats
+—
+आपत्रा आधार क्रमांक / Your Aadhaar No. :
+माझे आधार, माझी ओत्उख
+OES — जसक न
+4 “Government of India" av
+ol “5 अभिजीत राजेश सिंह
+b= Abhijeet Rajesh Singh
+S 2 जन्म तारीख / DOB : 18/01/2001
+हद पुरुष / Male
+=
+8 i
+2
+4670 7551 4446
+माझे आधार, माझी aE
+
+ocrService.ts:260 ==================================================
+ocrService.ts:248 Valid Aadhar card detected with 7 indicators
+ocrService.ts:273 Text lines: Array(29)
+ocrService.ts:281 Top section: Hel Shi Government of India भारतीय विशिष्ट ओकुख प्राधिकरण Unique Identification Authority of India नॉदणी क्रमांक / Enrolment No.: 2821/42143/05422 अभिजीत राजेश सिंह Abhijeet Rajesh Singh KHANNA COMPOUND CHAWL NO. 8/1, , VITTHALWADI ROAD, NR. HANUMAN MANDIR, ULHASNAGAR 3, VTC: Ulhasnagar, PO: Ulhasnagar-2, = Sub District: Ulhasnagar, District: Thane, 2 State: Maharashtra,
+ocrService.ts:282 Bottom section: & PIN Code: 421002, RRS 5 Mobile: 8600126395 Lae DO 2 MG373224988F1 Tats आपत्रा आधार क्रमांक / Your Aadhaar No. : माझे आधार, माझी ओत्उख OES — जसक न 4 “Government of India" av ol “5 अभिजीत राजेश सिंह b= Abhijeet Rajesh Singh S 2 जन्म तारीख / DOB : 18/01/2001 हद पुरुष / Male 8 i 4670 7551 4446 माझे आधार, माझी aE
+ocrService.ts:539 Extracted data: Object
+ocrService.ts:546 === FINAL VALIDATION RESULTS ===
+ocrService.ts:547 ✓ Name extracted: ✅ Abhijeet Rajesh Singh
+ocrService.ts:548 ✓ Aadhar extracted: ✅ 467075514446
+ocrService.ts:549 ✓ DOB extracted: ❌ 
+ocrService.ts:550 ✓ Gender extracted: Male
+ocrService.ts:562 ❌ OCR extraction FAILED - Missing essential data
+ocrService.ts:565    - DOB extraction failed or invalid

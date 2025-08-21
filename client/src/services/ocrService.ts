@@ -489,13 +489,15 @@ export class OCRService {
     // Extract DOB from bottom section (where it usually appears)
     let dob = '';
     const dobPatterns = [
-      // PRIORITY: Direct format - "DOB: 18/01/2001" or "जन्म तारीख / DOB : 18/01/2001"
-      /(?:DOB|Date of Birth|जन्म\s*तारीख|जन्म\s*तिथि)\s*[\/:]?\s*(\d{1,2})[\/](\d{1,2})[\/](\d{4})/gi,
-      // Hindi patterns - जन्म दिनांक
-      /जन्म.*?(?:दिनांक|तारीख)\s*:?\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/gi,
+      // PRIORITY: Exact format from your card - "जन्म तारीख / DOB : 18/01/2001"
+      /(?:जन्म\s*तारीख.*?DOB|DOB|Date of Birth|जन्म\s*तारीख|जन्म\s*तिथि)\s*[\/:]?\s*(\d{1,2})[\/](\d{1,2})[\/](\d{4})/gi,
+      // More flexible DOB pattern with extra spacing
+      /DOB\s*:\s*(\d{1,2})[\/](\d{1,2})[\/](\d{4})/gi,
+      // Hindi patterns - जन्म दिनांक/तारीख
+      /जन्म.*?(?:दिनांक|तारीख).*?(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/gi,
       // Date followed by gender (common pattern in your card)
       /(\d{1,2})[\/](\d{1,2})[\/](\d{4})(?=\s*(?:Male|Female|पुरुष|महिला))/gi,
-      // General date patterns for DD/MM/YYYY format
+      // General date patterns for DD/MM/YYYY format (anywhere in text)
       /\b(\d{1,2})[\/](\d{1,2})[\/](\d{4})\b/g,
       // Dash separated dates
       /\b(\d{1,2})[-](\d{1,2})[-](\d{4})\b/g,
@@ -503,9 +505,9 @@ export class OCRService {
       /Year of Birth\s*:?\s*(\d{4})/i
     ];
 
-    // Search in bottom section first
+    // Search in full text first, then bottom section
     for (const pattern of dobPatterns) {
-      const match = bottomSection.match(pattern);
+      const match = fullText.match(pattern) || bottomSection.match(pattern);
       if (match) {
         if (match[3]) { // Full date
           const year = parseInt(match[3]);
