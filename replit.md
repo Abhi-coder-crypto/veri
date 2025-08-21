@@ -89,6 +89,14 @@ export interface Candidate {
   - About page: Aboutus.jpg background fully visible
   - Admin panel: Verification.jpg background fully visible
 - **2025-08-21**: ADMIN PANEL CANDIDATE PHOTOS ENLARGED - Profile images increased from 12x12 to 20x20 for better visibility
+- **2025-08-21**: IMAGE CROPPING FUNCTIONALITY ADDED - Profile picture upload now includes cropping:
+  - Interactive image cropper with drag-to-adjust functionality
+  - Square crop area that fits perfectly in circular profile frames
+  - Real-time preview of crop selection
+  - Apply/Cancel options for crop confirmation
+  - Maintains image quality during cropping process
+- **2025-08-21**: WHITE TEXT ON ABOUT PAGE - Changed heading and description text to white for better visibility
+- **2025-08-21**: ADMIN LOGIN BACKGROUND UPDATED - Changed from Verification.jpg to dedicated Adminlogin.jpg background
 - **2025-08-21**: ENHANCED AADHAR OCR SUPPORT - Improved OCR service for all Aadhar card formats:
   - Support for small card, full size, and 2-page Aadhar cards
   - Enhanced patterns for hyphen/dot separated numbers

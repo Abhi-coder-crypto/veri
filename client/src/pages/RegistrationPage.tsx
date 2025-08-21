@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { UserPlus, CheckCircle, AlertCircle, Camera, Upload, User, ArrowLeft } from 'lucide-react';
 import { useCandidateContext } from '../context/CandidateContext';
 import { apiRequest, queryClient } from '../lib/queryClient';
+import ImageCropper from '../components/ImageCropper';
 
 const RegistrationPage = () => {
   const [, setLocation] = useLocation();
@@ -29,6 +30,8 @@ const RegistrationPage = () => {
   const [candidateId, setCandidateId] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string>('');
 
   const programs = [
     { id: 'category1', name: 'Category 1', duration: '3 months' },
@@ -105,7 +108,9 @@ const RegistrationPage = () => {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      setProfileImage(event.target?.result as string);
+      const imageUrl = event.target?.result as string;
+      setOriginalImageUrl(imageUrl);
+      setShowImageCropper(true);
       setImageUploading(false);
     };
     reader.onerror = () => {
@@ -113,6 +118,11 @@ const RegistrationPage = () => {
       setImageUploading(false);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = (croppedImageUrl: string) => {
+    setProfileImage(croppedImageUrl);
+    setShowImageCropper(false);
   };
 
   // Registration mutation
@@ -428,6 +438,14 @@ const RegistrationPage = () => {
         </form>
         </div>
       </div>
+      
+      {/* Image Cropper Modal */}
+      <ImageCropper
+        isOpen={showImageCropper}
+        onClose={() => setShowImageCropper(false)}
+        onCropComplete={handleCropComplete}
+        imageUrl={originalImageUrl}
+      />
     </div>
   );
 };
