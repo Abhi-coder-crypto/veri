@@ -198,9 +198,10 @@ const AdminPage = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen py-8 bg-gradient-to-br from-slate-50 to-gray-100 flex items-center justify-center">
-        <div className="w-full max-w-md mx-auto px-4">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+      <div className="min-h-screen py-8 bg-gradient-to-br from-slate-50 to-gray-100 flex items-center justify-center relative" style={{backgroundImage: 'url(/images/Verification.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
+        <div className="absolute inset-0 bg-white/85 backdrop-blur-sm"></div>
+        <div className="w-full max-w-md mx-auto px-4 relative z-10">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-8">
             <div className="text-center mb-8">
               <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Shield className="w-10 h-10 text-white" />
@@ -282,9 +283,10 @@ const AdminPage = () => {
   }
 
   return (
-    <div className="min-h-screen py-8 bg-gradient-to-br from-slate-50 to-gray-100">
-      <div className="container mx-auto px-4">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+    <div className="min-h-screen py-8 bg-gradient-to-br from-slate-50 to-gray-100 relative" style={{backgroundImage: 'url(/images/Verification.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
+      <div className="absolute inset-0 bg-white/85 backdrop-blur-sm"></div>
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-6">
           
           {/* Header */}
           <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-8 pb-6 border-b border-gray-200">

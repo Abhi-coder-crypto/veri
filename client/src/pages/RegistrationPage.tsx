@@ -186,9 +186,10 @@ const RegistrationPage = () => {
   }
 
   return (
-    <div className="min-h-screen py-8 bg-gradient-to-br from-indigo-50 to-blue-100">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8">
+    <div className="min-h-screen py-8 bg-gradient-to-br from-indigo-50 to-blue-100 relative" style={{backgroundImage: 'url(/images/Registration.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
+      <div className="absolute inset-0 bg-white/80 backdrop-blur-sm"></div>
+      <div className="max-w-4xl mx-auto relative z-10">
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8">
           {/* Back Button */}
           <div className="mb-6">
             <button
