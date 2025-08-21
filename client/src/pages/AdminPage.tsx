@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Shield, User, Eye, EyeOff, LogIn, Search, Download, Filter, Users, RefreshCw } from 'lucide-react';
+import { Shield, User, Eye, EyeOff, LogIn, Search, Download, Filter, Users, RefreshCw, Database } from 'lucide-react';
 import { apiRequest } from '../lib/queryClient';
 import type { Candidate } from '@shared/schema';
+import { getMockCandidates, MOCK_CANDIDATES_COUNT } from '../data/mockCandidates';
 
 const AdminPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -12,6 +13,8 @@ const AdminPage = () => {
   const [searchFilter, setSearchFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Candidate[]>([]);
+  const [useMockData, setUseMockData] = useState(false);
+  const [mockCandidates, setMockCandidates] = useState<Candidate[]>([]);
 
   // Fetch all candidates when logged in with auto-refresh
   const { data: candidates = [], isLoading, error: queryError, refetch } = useQuery<Candidate[]>({
@@ -28,11 +31,24 @@ const AdminPage = () => {
     gcTime: 0 // Don't cache data
   });
 
+  // Load mock data when enabled
+  useEffect(() => {
+    if (useMockData && mockCandidates.length === 0) {
+      console.log('Loading mock candidates...');
+      const mockData = getMockCandidates();
+      setMockCandidates(mockData);
+      console.log(`Loaded ${mockData.length} mock candidates`);
+    }
+  }, [useMockData, mockCandidates.length]);
+
+  // Combine real and mock data
+  const allCandidates = useMockData ? [...candidates, ...mockCandidates] : candidates;
+
   // Initialize search results with all candidates when data is loaded
   useEffect(() => {
-    console.log('Setting search results, candidates count:', candidates.length);
-    setSearchResults(candidates);
-  }, [candidates]);
+    console.log('Setting search results, candidates count:', allCandidates.length);
+    setSearchResults(allCandidates);
+  }, [allCandidates]);
 
   // Note: Auto-refresh is handled by React Query's refetchInterval
 
@@ -79,17 +95,19 @@ const AdminPage = () => {
     e.preventDefault();
     
     if (!searchTerm.trim()) {
-      setSearchResults(candidates);
+      setSearchResults(allCandidates);
       return;
     }
 
-    if (searchFilter === 'aadhar') {
+    if (searchFilter === 'aadhar' && !useMockData) {
+      // Only use API search for real data
       searchMutation.mutate({ aadhar: searchTerm });
-    } else if (searchFilter === 'mobile') {
+    } else if (searchFilter === 'mobile' && !useMockData) {
+      // Only use API search for real data  
       searchMutation.mutate({ mobile: searchTerm });
     } else {
-      // Search all fields locally
-      const results = candidates.filter((candidate: Candidate) => 
+      // Search all fields locally (works for both real and mock data)
+      const results = allCandidates.filter((candidate: Candidate) => 
         candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         candidate.aadhar.includes(searchTerm) ||
         candidate.mobile.includes(searchTerm) ||
@@ -226,9 +244,24 @@ const AdminPage = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-3xl font-bold text-gray-800 mb-2">Admin Dashboard</h2>
-            <p className="text-gray-600">Manage candidates and view training status</p>
+            <p className="text-gray-600">
+              Manage candidates and view training status 
+              {useMockData && <span className="text-purple-600 font-medium ml-2">(Including {MOCK_CANDIDATES_COUNT.toLocaleString()} mock entries)</span>}
+            </p>
           </div>
           <div className="flex space-x-4">
+            <button
+              onClick={() => setUseMockData(!useMockData)}
+              className={`font-semibold py-2 px-4 rounded-lg transition-colors duration-200 ${
+                useMockData 
+                  ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+              }`}
+              data-testid="button-toggle-mock-data"
+            >
+              <Database className="w-4 h-4 mr-2 inline" />
+              {useMockData ? `Hide Mock Data (${MOCK_CANDIDATES_COUNT})` : `Load Mock Data (${MOCK_CANDIDATES_COUNT})`}
+            </button>
             <button
               onClick={() => refetch()}
               disabled={isLoading}
