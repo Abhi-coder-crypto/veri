@@ -198,7 +198,7 @@ const AdminPage = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen py-8 flex items-center justify-center relative" style={{backgroundImage: 'url(/images/Verification.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
+      <div className="min-h-screen py-8 flex items-center justify-center relative" style={{backgroundImage: 'url(/images/Adminlogin.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
         <div className="w-full max-w-md mx-auto px-4 relative z-10">
           <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-8">
             <div className="text-center mb-8">

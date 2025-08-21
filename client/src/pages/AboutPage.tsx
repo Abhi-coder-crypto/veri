@@ -39,8 +39,8 @@ const AboutPage = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
             <Users className="w-10 h-10 text-blue-600" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">About Our Training Portal</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <h1 className="text-4xl font-bold text-white mb-4">About Our Training Portal</h1>
+          <p className="text-xl text-white max-w-3xl mx-auto">
             India's leading digital platform for driving training verification and enrollment, 
             committed to creating safe and skilled drivers for our roads.
           </p>
