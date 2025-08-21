@@ -71,9 +71,18 @@ export class OCRService {
 
     } catch (error) {
       console.error('OCR processing error:', error);
+      
+      // Check if it's a blur detection error
+      if ((error as Error).message === 'BLUR_DETECTED') {
+        return {
+          success: false,
+          error: 'The uploaded image appears to be blurry or of low quality. Please upload a clear, high-quality photo of your Aadhar card with all text clearly readable.'
+        };
+      }
+      
       return {
         success: false,
-        error: 'Failed to process document. Please try again with a clearer image.'
+        error: 'Failed to process document. Please try again with a clearer, better quality image.'
       };
     }
   }
@@ -130,19 +139,66 @@ export class OCRService {
 
       console.log('Starting OCR processing...');
       
-      // Use Tesseract.js for actual OCR processing
+      // Use Tesseract.js for actual OCR processing with enhanced options
       const result = await Tesseract.recognize(blob, 'eng+hin', {
         logger: m => console.log('OCR Progress:', m)
       });
 
       console.log('OCR completed. Raw text:', result.data.text);
+      console.log('OCR confidence:', result.data.confidence);
+      
+      // Check for blur or low quality based on confidence and text characteristics
+      if (this.isImageTooBlurOrLowQuality(result)) {
+        throw new Error('BLUR_DETECTED');
+      }
+      
       return result.data.text;
       
     } catch (error) {
       console.error('OCR processing failed:', error);
+      if ((error as Error).message === 'BLUR_DETECTED') {
+        throw error; // Re-throw blur detection error
+      }
       // Fallback - return empty string to trigger error handling
       return '';
     }
+  }
+
+  private isImageTooBlurOrLowQuality(result: any): boolean {
+    const { text, confidence, words } = result.data;
+    
+    // Check 1: Very low overall confidence (below 30%)
+    if (confidence < 30) {
+      console.log('Low confidence detected:', confidence);
+      return true;
+    }
+    
+    // Check 2: Very little text extracted (likely blur)
+    const cleanText = text.replace(/\s+/g, '').trim();
+    if (cleanText.length < 10) {
+      console.log('Too little text extracted:', cleanText.length);
+      return true;
+    }
+    
+    // Check 3: Too many low-confidence words
+    if (words && words.length > 0) {
+      const lowConfidenceWords = words.filter((word: any) => word.confidence < 25);
+      const lowConfidenceRatio = lowConfidenceWords.length / words.length;
+      
+      if (lowConfidenceRatio > 0.7) {
+        console.log('Too many low confidence words:', lowConfidenceRatio);
+        return true;
+      }
+    }
+    
+    // Check 4: Text contains too many unrecognizable characters
+    const unrecognizableChars = text.match(/[^a-zA-Z0-9\s\/\-\.,:()\[\]]/g);
+    if (unrecognizableChars && unrecognizableChars.length > text.length * 0.3) {
+      console.log('Too many unrecognizable characters');
+      return true;
+    }
+    
+    return false;
   }
 
 
