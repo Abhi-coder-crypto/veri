@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { X, Save, Calendar, User, Phone, Award, CheckCircle, Clock } from 'lucide-react';
+import { X, Save, Calendar, User, Phone, Award, CheckCircle, Clock, Camera, Upload } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '../lib/queryClient';
+import ImageCropper from './ImageCropper';
 import type { Candidate } from '../../../shared/schema';
 
 interface CandidateEditModalProps {
@@ -26,11 +27,15 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
     emergencyContact: candidate.emergencyContact || '',
     medicalCertificate: candidate.medicalCertificate || false,
     joiningDate: candidate.joiningDate ? new Date(candidate.joiningDate).toISOString().split('T')[0] : '',
-    completionDate: candidate.completionDate ? new Date(candidate.completionDate).toISOString().split('T')[0] : ''
+    completionDate: candidate.completionDate ? new Date(candidate.completionDate).toISOString().split('T')[0] : '',
+    profileImage: candidate.profileImage || null
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [imageUploading, setImageUploading] = useState(false);
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string>('');
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -60,6 +65,42 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
     }));
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload a valid image file');
+      return;
+    }
+
+    setImageUploading(true);
+    setError('');
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imageUrl = event.target?.result as string;
+      setOriginalImageUrl(imageUrl);
+      setShowImageCropper(true);
+      setImageUploading(false);
+    };
+    reader.onerror = () => {
+      setError('Failed to read image file');
+      setImageUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = (croppedImageUrl: string) => {
+    setFormData(prev => ({ ...prev, profileImage: croppedImageUrl }));
+    setShowImageCropper(false);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -81,8 +122,8 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
   ];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[95vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -101,7 +142,8 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
+          <form onSubmit={handleSubmit} className="h-full">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-600">{error}</p>
@@ -109,6 +151,51 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Profile Image Section */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2 mb-4">Profile Photo</h3>
+              <div className="flex items-center space-x-6">
+                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden shadow-sm">
+                  {formData.profileImage ? (
+                    <img 
+                      src={formData.profileImage} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-10 h-10 text-gray-400" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="profile-upload-edit"
+                    disabled={imageUploading}
+                  />
+                  <label
+                    htmlFor="profile-upload-edit"
+                    className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors duration-200 text-sm font-medium"
+                  >
+                    {imageUploading ? (
+                      <>
+                        <Upload className="w-4 h-4 mr-2 animate-pulse" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="w-4 h-4 mr-2" />
+                        Change Photo
+                      </>
+                    )}
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">Max 5MB, JPG/PNG only</p>
+                </div>
+              </div>
+            </div>
+
             {/* Personal Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Personal Information</h3>
@@ -312,24 +399,33 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
             </div>
           </div>
 
-          <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center space-x-2"
-            >
-              <Save className="w-4 h-4" />
-              <span>{loading ? 'Saving...' : 'Save Changes'}</span>
-            </button>
-          </div>
-        </form>
+            <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center space-x-2"
+              >
+                <Save className="w-4 h-4" />
+                <span>{loading ? 'Saving...' : 'Save Changes'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Image Cropper Modal */}
+        <ImageCropper
+          isOpen={showImageCropper}
+          onClose={() => setShowImageCropper(false)}
+          onCropComplete={handleCropComplete}
+          imageUrl={originalImageUrl}
+        />
       </div>
     </div>
   );
