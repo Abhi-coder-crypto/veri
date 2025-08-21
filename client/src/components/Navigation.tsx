@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter';
-import { UserCheck, UserPlus, Users, Phone, GraduationCap } from 'lucide-react';
+import { UserCheck, UserPlus, Users, Phone, Truck } from 'lucide-react';
 
 
 const Navigation = () => {
@@ -9,7 +9,7 @@ const Navigation = () => {
     { path: '/verification', label: 'Verification', icon: UserCheck },
     { path: '/about', label: 'About Us', icon: Users },
     { path: '/contact', label: 'Contact', icon: Phone },
-    { path: '/admin', label: 'Admin Dashboard', icon: GraduationCap }
+    { path: '/admin', label: 'Admin Dashboard', icon: Truck }
   ];
 
   return (
@@ -18,10 +18,10 @@ const Navigation = () => {
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center py-4">
           <div className="mb-4 lg:mb-0 flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <span className="text-6xl">🎓</span>
+              <span className="text-6xl">🚛</span>
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  Training Academy Portal
+                  DB Skills Portal
                 </h1>
                 <p className="text-sm text-gray-600 font-medium">Professional Verification & Enrollment System</p>
               </div>
