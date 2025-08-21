@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'wouter';
 import { UserCheck, UserPlus, Search, GraduationCap } from 'lucide-react';
-import logoImage from '@assets/generated_images/Training_academy_logo_icon_dcc614dd.png';
+
 
 const Navigation = () => {
   const [location] = useLocation();
@@ -18,11 +18,9 @@ const Navigation = () => {
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center py-4">
           <div className="mb-4 lg:mb-0 flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              <img 
-                src={logoImage} 
-                alt="TRA Logo" 
-                className="w-24 h-24 rounded-full shadow-xl border-4 border-blue-500 object-cover bg-white p-2"
-              />
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-xl border-4 border-blue-300">
+                <span className="text-3xl">🎓</span>
+              </div>
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Training Academy Portal
