@@ -249,18 +249,18 @@ const AdminPage = () => {
               {useMockData && <span className="text-purple-600 font-medium ml-2">(Including {MOCK_CANDIDATES_COUNT.toLocaleString()} mock entries)</span>}
             </p>
           </div>
-          <div className="flex space-x-4">
+          <div className="flex flex-wrap gap-2 lg:gap-4">
             <button
               onClick={() => setUseMockData(!useMockData)}
               className={`font-semibold py-2 px-4 rounded-lg transition-colors duration-200 ${
                 useMockData 
                   ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  : 'bg-orange-500 hover:bg-orange-600 text-white'
               }`}
               data-testid="button-toggle-mock-data"
             >
               <Database className="w-4 h-4 mr-2 inline" />
-              {useMockData ? `Hide Mock Data (${MOCK_CANDIDATES_COUNT})` : `Load Mock Data (${MOCK_CANDIDATES_COUNT})`}
+              {useMockData ? `Hide Mock Data (${MOCK_CANDIDATES_COUNT.toLocaleString()})` : `Load Mock Data (${MOCK_CANDIDATES_COUNT.toLocaleString()})`}
             </button>
             <button
               onClick={() => refetch()}
@@ -294,7 +294,7 @@ const AdminPage = () => {
             <div className="flex items-center">
               <Users className="w-8 h-8 text-blue-600" />
               <div className="ml-4">
-                <h3 className="text-2xl font-bold text-blue-800">{candidates.length}</h3>
+                <h3 className="text-2xl font-bold text-blue-800">{allCandidates.length.toLocaleString()}</h3>
                 <p className="text-blue-600">Total Candidates</p>
               </div>
             </div>
@@ -304,7 +304,7 @@ const AdminPage = () => {
               <Users className="w-8 h-8 text-green-600" />
               <div className="ml-4">
                 <h3 className="text-2xl font-bold text-green-800">
-                  {candidates.filter(c => c.status === 'Completed').length}
+                  {allCandidates.filter(c => c.status === 'Completed').length.toLocaleString()}
                 </h3>
                 <p className="text-green-600">Completed</p>
               </div>
@@ -315,7 +315,7 @@ const AdminPage = () => {
               <Users className="w-8 h-8 text-yellow-600" />
               <div className="ml-4">
                 <h3 className="text-2xl font-bold text-yellow-800">
-                  {candidates.filter(c => c.status === 'Enrolled').length}
+                  {allCandidates.filter(c => c.status === 'Enrolled').length.toLocaleString()}
                 </h3>
                 <p className="text-yellow-600">Enrolled</p>
               </div>
@@ -326,7 +326,7 @@ const AdminPage = () => {
               <Users className="w-8 h-8 text-gray-600" />
               <div className="ml-4">
                 <h3 className="text-2xl font-bold text-gray-800">
-                  {candidates.filter(c => c.status === 'Not Enrolled').length}
+                  {allCandidates.filter(c => c.status === 'Not Enrolled').length.toLocaleString()}
                 </h3>
                 <p className="text-gray-600">Not Enrolled</p>
               </div>
