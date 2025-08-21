@@ -20,8 +20,8 @@ const Navigation = () => {
             <div className="flex items-center space-x-3">
               <img 
                 src={logoImage} 
-                alt="Training Academy Logo" 
-                className="w-16 h-16 rounded-full shadow-lg border-2 border-blue-300 object-cover"
+                alt="TRA Logo" 
+                className="w-20 h-20 rounded-full shadow-lg border-3 border-blue-400 object-cover bg-white p-1"
               />
               <div>
                 <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
