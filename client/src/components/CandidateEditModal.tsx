@@ -24,7 +24,7 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
     progress: candidate.progress || '0',
     currentPhase: candidate.currentPhase || 'Theory',
     instructorNotes: candidate.instructorNotes || '',
-    emergencyContact: candidate.emergencyContact || '',
+    emergencyContact: (candidate as any).emergencyContact || '',
     medicalCertificate: candidate.medicalCertificate || false,
     joiningDate: candidate.joiningDate ? new Date(candidate.joiningDate).toISOString().split('T')[0] : '',
     completionDate: candidate.completionDate ? new Date(candidate.completionDate).toISOString().split('T')[0] : '',

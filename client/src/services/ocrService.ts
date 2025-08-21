@@ -281,21 +281,25 @@ export class OCRService {
     console.log('Top section:', topSection);
     console.log('Bottom section:', bottomSection);
 
-    // Extract Aadhar number - Enhanced for all card formats
+    // Extract Aadhar number - Enhanced for formats from your examples (4015 9329 2039)
     let aadharNumber = '';
     const aadharPatterns = [
-      // Standard patterns
+      // PRIORITY: Most common format from examples: "4015 9329 2039"
+      /\b(\d{4})\s+(\d{4})\s+(\d{4})\b/g,
+      // Standard patterns with minimal spacing
       /\b(\d{4})\s*(\d{4})\s*(\d{4})\b/g,
+      // With "Your Aadhaar No." label (common in cards)
+      /Your\s+Aadhaar\s+No\.?\s*:?\s*(\d{4})\s+(\d{4})\s+(\d{4})/gi,
       // Hyphen/dot separated
       /\b(\d{4})[-\.](\d{4})[-\.](\d{4})\b/g,
-      // Continuous 12 digits
-      /\b(\d{12})\b/g,
       // Hindi/English with labels
-      /आधार\s*(?:संख्या|नंबर|No|NUMBER)?\s*:?\s*(\d{4})\s*(\d{4})\s*(\d{4})/gi,
-      /AADHAAR\s*(?:NO|NUMBER|संख्या)?\s*:?\s*(\d{4})\s*(\d{4})\s*(\d{4})/gi,
-      /UID\s*(?:NO|NUMBER)?\s*:?\s*(\d{4})\s*(\d{4})\s*(\d{4})/gi,
-      // QR code extracted numbers
-      /(?:Aadhaar|आधार)\s+(\d{4})\s+(\d{4})\s+(\d{4})/gi
+      /आधार\s*(?:संख्या|नंबर|No|NUMBER)?\s*:?\s*(\d{4})\s+(\d{4})\s+(\d{4})/gi,
+      /AADHAAR\s*(?:NO|NUMBER|संख्या)?\s*:?\s*(\d{4})\s+(\d{4})\s+(\d{4})/gi,
+      /UID\s*(?:NO|NUMBER)?\s*:?\s*(\d{4})\s+(\d{4})\s+(\d{4})/gi,
+      // Bottom section patterns (मेरा आधार, मेरी पहचान)
+      /मेरा\s+आधार[,\s]+मेरी\s+पहचान.*?(\d{4})\s+(\d{4})\s+(\d{4})/gi,
+      // Continuous 12 digits (fallback)
+      /\b(\d{12})\b/g
     ];
 
     for (const pattern of aadharPatterns) {
@@ -485,8 +489,15 @@ export class OCRService {
     // Extract DOB from bottom section (where it usually appears)
     let dob = '';
     const dobPatterns = [
-      /(?:DOB|Date of Birth|जन्म.*?दिनांक)\s*:?\s*(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/i,
-      /(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})(?=\s*(?:Male|Female|पुरुष|महिला))/i,
+      // PRIORITY: Direct format from examples: "DOB: 23/02/2001" or "जन्म तिथि/DOB: 23/03/2001"
+      /(?:DOB|Date of Birth|जन्म\s*तिथि)\s*[\/:]?\s*(\d{1,2})[\/>](\d{1,2})[\/>](\d{4})/gi,
+      // Hindi patterns
+      /जन्म.*?दिनांक\s*:?\s*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/gi,
+      // Date followed by gender (common pattern)
+      /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?=\s*(?:Male|Female|पुरुष|महिला))/gi,
+      // General date patterns
+      /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})\b/g,
+      // Year only fallback
       /Year of Birth\s*:?\s*(\d{4})/i
     ];
 
@@ -523,24 +534,29 @@ export class OCRService {
 
     // STRICT validation - ALL essential fields must be present and valid
     const hasValidName = name && name.length >= 5 && name.match(/^[A-Za-z\s]+$/) && !name.includes('OCR could not');
-    const hasValidAadhar = aadharNumber && aadharNumber.length === 12 && /^\d{12}$/.test(aadharNumber);
+    const hasValidAadhar = aadharNumber && aadharNumber.length === 12 && /^\d{12}$/.test(aadharNumber) && !aadharNumber.match(/^(.)\1+$/);
     const hasValidDob = dob && dob.match(/^\d{4}-\d{2}-\d{2}$/);
     
-    console.log('Validation results:');
-    console.log('- Valid name:', hasValidName, name);
-    console.log('- Valid Aadhar:', hasValidAadhar, aadharNumber);
-    console.log('- Valid DOB:', hasValidDob, dob);
+    console.log('=== FINAL VALIDATION RESULTS ===');
+    console.log('✓ Name extracted:', hasValidName ? '✅' : '❌', name);
+    console.log('✓ Aadhar extracted:', hasValidAadhar ? '✅' : '❌', aadharNumber);
+    console.log('✓ DOB extracted:', hasValidDob ? '✅' : '❌', dob);
+    console.log('✓ Gender extracted:', gender || 'Not specified');
     
     // ALL essential fields must be successfully extracted - NO fallback data
     if (hasValidName && hasValidAadhar && hasValidDob) {
+      console.log('🎉 OCR extraction SUCCESSFUL - All required fields extracted!');
       return {
-        name,
+        name: name.trim(),
         dob,
         aadhar: aadharNumber,
         gender: gender || 'Not specified'
       };
     } else {
-      console.log('OCR extraction failed - missing essential data');
+      console.log('❌ OCR extraction FAILED - Missing essential data');
+      if (!hasValidName) console.log('   - Name extraction failed or invalid');
+      if (!hasValidAadhar) console.log('   - Aadhar number extraction failed or invalid');
+      if (!hasValidDob) console.log('   - DOB extraction failed or invalid');
       return null; // Return null instead of generating fake data
     }
   }
