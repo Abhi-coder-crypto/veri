@@ -517,16 +517,27 @@ export class OCRService {
       console.log(`Testing pattern ${i + 1}:`, pattern);
       const match = fullText.match(pattern) || bottomSection.match(pattern);
       console.log(`Pattern ${i + 1} match:`, match);
+      console.log(`Pattern ${i + 1} match details:`, match ? {
+        fullMatch: match[0],
+        day: match[1], 
+        month: match[2], 
+        year: match[3]
+      } : 'No match');
       if (match) {
-        if (match[3]) { // Full date
-          const year = parseInt(match[3]);
-          const month = parseInt(match[2]);
+        if (match[1] && match[2] && match[3]) { // Full date with all parts
           const day = parseInt(match[1]);
+          const month = parseInt(match[2]);
+          const year = parseInt(match[3]);
+          
+          console.log(`Processing date: day=${day}, month=${month}, year=${year}`);
           
           // Validate realistic date ranges
           if (year >= 1920 && year <= 2025 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-            dob = `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`;
+            dob = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            console.log(`✅ DOB extracted successfully: ${dob}`);
             break;
+          } else {
+            console.log(`❌ Date validation failed: day=${day}, month=${month}, year=${year}`);
           }
         } else if (match[1] && pattern.source.includes('Year')) { // Year only
           const year = parseInt(match[1]);
