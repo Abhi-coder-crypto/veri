@@ -1,0 +1,413 @@
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Shield, User, Eye, EyeOff, LogIn, Search, Download, Filter, Users, RefreshCw } from 'lucide-react';
+import { apiRequest } from '../lib/queryClient';
+import type { Candidate } from '@shared/schema';
+
+const AdminPage = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [searchFilter, setSearchFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<Candidate[]>([]);
+
+  // Fetch all candidates when logged in with auto-refresh
+  const { data: candidates = [], isLoading, error: queryError, refetch } = useQuery<Candidate[]>({
+    queryKey: ['/api/candidates'],
+    queryFn: async () => {
+      return await apiRequest('/api/candidates');
+    },
+    enabled: isLoggedIn,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchInterval: isLoggedIn ? 5000 : false, // Only refresh when logged in
+    staleTime: 0, // Always consider data stale
+    gcTime: 0 // Don't cache data
+  });
+
+  // Initialize search results with all candidates when data is loaded
+  useEffect(() => {
+    console.log('Setting search results, candidates count:', candidates.length);
+    setSearchResults(candidates);
+  }, [candidates]);
+
+  // Note: Auto-refresh is handled by React Query's refetchInterval
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Admin Dashboard - Candidates loaded:', candidates.length);
+    console.log('Admin Dashboard - Raw candidates data:', candidates);
+    console.log('Admin Dashboard - Query error:', queryError);
+    console.log('Admin Dashboard - Is loading:', isLoading);
+  }, [candidates, queryError, isLoading]);
+
+  // Search mutation for individual candidates
+  const searchMutation = useMutation({
+    mutationFn: async ({ aadhar, mobile }: { aadhar?: string; mobile?: string }) => {
+      return await apiRequest('/api/candidates/search', {
+        method: 'POST',
+        body: JSON.stringify({ aadhar, mobile })
+      });
+    },
+    onSuccess: (data) => {
+      setSearchResults([data]);
+    },
+    onError: () => {
+      setSearchResults([]);
+    }
+  });
+
+  // Admin credentials (in production, this would be handled securely)
+  const ADMIN_USERNAME = 'admin';
+  const ADMIN_PASSWORD = 'admin123';
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+
+    if (loginForm.username === ADMIN_USERNAME && loginForm.password === ADMIN_PASSWORD) {
+      setIsLoggedIn(true);
+    } else {
+      setLoginError('Invalid username or password');
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!searchTerm.trim()) {
+      setSearchResults(candidates);
+      return;
+    }
+
+    if (searchFilter === 'aadhar') {
+      searchMutation.mutate({ aadhar: searchTerm });
+    } else if (searchFilter === 'mobile') {
+      searchMutation.mutate({ mobile: searchTerm });
+    } else {
+      // Search all fields locally
+      const results = candidates.filter((candidate: Candidate) => 
+        candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        candidate.aadhar.includes(searchTerm) ||
+        candidate.mobile.includes(searchTerm) ||
+        candidate.candidateId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        candidate.program?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        candidate.center?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setSearchResults(results);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Completed':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'Enrolled':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const exportData = () => {
+    const csvContent = [
+      'Candidate ID,Name,DOB,Mobile,Aadhar,Program,Center,Status,Created',
+      ...searchResults.map(candidate => [
+        candidate.candidateId || '',
+        candidate.name,
+        candidate.dob,
+        candidate.mobile,
+        candidate.aadhar,
+        candidate.program || '',
+        candidate.center || '',
+        candidate.status,
+        candidate.createdAt ? new Date(candidate.createdAt).toLocaleDateString() : ''
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'candidates.csv';
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="max-w-md mx-auto mt-20">
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+              <Shield className="w-8 h-8 text-red-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Admin Login</h2>
+            <p className="text-gray-600">Access admin dashboard</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Username
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  value={loginForm.username}
+                  onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="Enter username"
+                  required
+                  data-testid="input-username"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="Enter password"
+                  required
+                  data-testid="input-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  data-testid="button-toggle-password"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {loginError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                {loginError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+              data-testid="button-login"
+            >
+              <LogIn className="w-5 h-5 mr-2 inline" />
+              Login
+            </button>
+          </form>
+
+          <div className="mt-6 text-center text-sm text-gray-600">
+            <p>Demo credentials:</p>
+            <p><strong>Username:</strong> admin</p>
+            <p><strong>Password:</strong> admin123</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Admin Dashboard</h2>
+            <p className="text-gray-600">Manage candidates and view training status</p>
+          </div>
+          <div className="flex space-x-4">
+            <button
+              onClick={() => refetch()}
+              disabled={isLoading}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 inline ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+            <button
+              onClick={exportData}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+              data-testid="button-export"
+            >
+              <Download className="w-4 h-4 mr-2 inline" />
+              Export CSV
+            </button>
+            <button
+              onClick={() => setIsLoggedIn(false)}
+              className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+              data-testid="button-logout"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+
+        {/* Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-blue-50 p-6 rounded-lg">
+            <div className="flex items-center">
+              <Users className="w-8 h-8 text-blue-600" />
+              <div className="ml-4">
+                <h3 className="text-2xl font-bold text-blue-800">{candidates.length}</h3>
+                <p className="text-blue-600">Total Candidates</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-green-50 p-6 rounded-lg">
+            <div className="flex items-center">
+              <Users className="w-8 h-8 text-green-600" />
+              <div className="ml-4">
+                <h3 className="text-2xl font-bold text-green-800">
+                  {candidates.filter(c => c.status === 'Completed').length}
+                </h3>
+                <p className="text-green-600">Completed</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-yellow-50 p-6 rounded-lg">
+            <div className="flex items-center">
+              <Users className="w-8 h-8 text-yellow-600" />
+              <div className="ml-4">
+                <h3 className="text-2xl font-bold text-yellow-800">
+                  {candidates.filter(c => c.status === 'Enrolled').length}
+                </h3>
+                <p className="text-yellow-600">Enrolled</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-50 p-6 rounded-lg">
+            <div className="flex items-center">
+              <Users className="w-8 h-8 text-gray-600" />
+              <div className="ml-4">
+                <h3 className="text-2xl font-bold text-gray-800">
+                  {candidates.filter(c => c.status === 'Not Enrolled').length}
+                </h3>
+                <p className="text-gray-600">Not Enrolled</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="bg-gray-50 rounded-lg p-6 mb-8">
+          <form onSubmit={handleSearch} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Search Filter
+                </label>
+                <select
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  data-testid="select-filter"
+                >
+                  <option value="all">All Fields</option>
+                  <option value="aadhar">Aadhar Number</option>
+                  <option value="mobile">Mobile Number</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Search Term
+                </label>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search candidates..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  data-testid="input-search"
+                />
+              </div>
+            </div>
+
+            <div className="flex space-x-4">
+              <button
+                type="submit"
+                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+                data-testid="button-search"
+              >
+                <Search className="w-5 h-5 mr-2 inline" />
+                Search
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchTerm('');
+                  setSearchResults(candidates);
+                }}
+                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+                data-testid="button-reset"
+              >
+                Reset
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Results Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="text-left p-4 font-semibold text-gray-700">Candidate ID</th>
+                <th className="text-left p-4 font-semibold text-gray-700">Name</th>
+                <th className="text-left p-4 font-semibold text-gray-700">Mobile</th>
+                <th className="text-left p-4 font-semibold text-gray-700">Aadhar</th>
+                <th className="text-left p-4 font-semibold text-gray-700">Program</th>
+                <th className="text-left p-4 font-semibold text-gray-700">Status</th>
+                <th className="text-left p-4 font-semibold text-gray-700">Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {searchResults.map((candidate) => (
+                <tr key={candidate.id} className="border-b border-gray-200 hover:bg-gray-50" data-testid={`row-candidate-${candidate.id}`}>
+                  <td className="p-4 font-mono text-blue-600" data-testid={`text-candidate-id-${candidate.id}`}>
+                    {candidate.id || 'N/A'}
+                  </td>
+                  <td className="p-4 font-medium" data-testid={`text-name-${candidate.id}`}>{candidate.name}</td>
+                  <td className="p-4" data-testid={`text-mobile-${candidate.id}`}>{candidate.mobile}</td>
+                  <td className="p-4 font-mono" data-testid={`text-aadhar-${candidate.id}`}>
+                    {candidate.aadhar.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3')}
+                  </td>
+                  <td className="p-4" data-testid={`text-program-${candidate.id}`}>{candidate.program || 'Not Assigned'}</td>
+                  <td className="p-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(candidate.status)}`} data-testid={`status-${candidate.id}`}>
+                      {candidate.status}
+                    </span>
+                  </td>
+                  <td className="p-4 text-gray-600" data-testid={`text-created-${candidate.id}`}>
+                    {candidate.createdAt ? new Date(candidate.createdAt).toLocaleDateString() : 'N/A'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {searchResults.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No candidates found matching your search criteria.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminPage;
