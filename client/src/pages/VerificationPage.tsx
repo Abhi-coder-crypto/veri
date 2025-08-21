@@ -269,9 +269,9 @@ const VerificationPage = () => {
 
   return (
     <div className="min-h-screen py-8 bg-gradient-to-br from-blue-50 to-indigo-100 relative" style={{backgroundImage: 'url(/images/Verification.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
-      <div className="absolute inset-0 bg-white/80 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
       <div className="max-w-2xl mx-auto relative z-10">
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8">
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Shield className="w-10 h-10 text-white" />
