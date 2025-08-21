@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter';
-import { UserCheck, UserPlus, Search, GraduationCap } from 'lucide-react';
+import { UserCheck, UserPlus, Users, Phone, GraduationCap } from 'lucide-react';
 
 
 const Navigation = () => {
@@ -8,6 +8,8 @@ const Navigation = () => {
   const navItems = [
     { path: '/verification', label: 'Verification', icon: UserCheck },
     { path: '/registration', label: 'Registration', icon: UserPlus },
+    { path: '/about', label: 'About Us', icon: Users },
+    { path: '/contact', label: 'Contact', icon: Phone },
     { path: '/admin', label: 'Admin Dashboard', icon: GraduationCap }
   ];
 

@@ -18,7 +18,11 @@ const RegistrationPage = () => {
     program: '',
     center: '',
     trainer: '',
-    duration: ''
+    duration: '',
+    emergencyContact: '',
+    joiningDate: new Date().toISOString().split('T')[0], // Today's date as default
+    currentPhase: 'Theory',
+    progress: '0'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -373,6 +377,33 @@ const RegistrationPage = () => {
                   value={formData.duration}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50"
                   readOnly
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Emergency Contact
+                </label>
+                <input
+                  type="tel"
+                  name="emergencyContact"
+                  value={formData.emergencyContact}
+                  onChange={handleInputChange}
+                  placeholder="Emergency contact number"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Joining Date
+                </label>
+                <input
+                  type="date"
+                  name="joiningDate"
+                  value={formData.joiningDate}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>

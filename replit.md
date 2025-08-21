@@ -82,16 +82,17 @@ export interface Candidate {
 **NOTE FOR FUTURE DEPLOYMENTS**: Always set MONGODB_URI secret first before running the application.
 
 ## Recent Changes
-- **2025-08-21**: MAJOR FEATURE UPDATE - Added comprehensive new features and improvements
-- **2025-08-21**: Logo replaced with large graduation cap emoji (🎓) without background as requested
-- **2025-08-21**: Status Check moved from main navigation to Admin panel as separate tab for better organization
-- **2025-08-21**: Added Profile Image Upload feature in registration with 5MB limit and image validation
+- **2025-08-21**: MAJOR DRIVING TRAINING PORTAL UPDATE - Enhanced for comprehensive candidate management
+- **2025-08-21**: Added About Us and Contact Us sections specifically tailored for driving training
+- **2025-08-21**: Enhanced database schema with detailed training progress tracking fields
+- **2025-08-21**: Added editable candidate management in admin panel with CandidateEditModal
+- **2025-08-21**: Extended registration form with emergency contact, joining date, and progress tracking
+- **2025-08-21**: Navigation enhanced with About Us and Contact sections for candidate information
+- **2025-08-21**: Added comprehensive training progress tracking (theory, practical, road test phases)
+- **2025-08-21**: Implemented detailed candidate status management (Not Enrolled, Enrolled, In Progress, Completed, Suspended)
+- **2025-08-21**: Profile Image Upload feature in registration with 5MB limit and image validation
 - **2025-08-21**: Enhanced duplicate prevention - users already registered cannot re-register
-- **2025-08-21**: Updated database schema to include profileImage field for candidate photos
-- **2025-08-21**: Admin panel enhanced with tabbed interface (Dashboard/Status Check)
-- **2025-08-21**: Improved search functionality in admin panel for large datasets
-- **2025-08-21**: Background images completely removed, replaced with clean gradient themes
-- **2025-08-21**: Navigation streamlined to 3 main sections (Verification, Registration, Admin)
+- **2025-08-21**: Admin panel enhanced with tabbed interface (Dashboard/Status Check) and edit functionality
 - **2025-08-21**: All JSX syntax errors resolved and project fully functional
 - **2025-08-14**: MongoDB fully integrated and working
 - **2025-08-14**: Documented critical MongoDB configuration for future deployments

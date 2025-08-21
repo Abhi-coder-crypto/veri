@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Shield, User, Eye, EyeOff, LogIn, Search, Download, Filter, Users, RefreshCw, Trash2, AlertTriangle, Camera } from 'lucide-react';
+import { Shield, User, Eye, EyeOff, LogIn, Search, Download, Filter, Users, RefreshCw, Trash2, AlertTriangle, Camera, Edit, Calendar, Award } from 'lucide-react';
 import { apiRequest } from '../lib/queryClient';
 import type { Candidate } from '@shared/schema';
+import CandidateEditModal from '../components/CandidateEditModal';
 
 const AdminPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -17,6 +18,7 @@ const AdminPage = () => {
   const [statusSearchLoading, setStatusSearchLoading] = useState(false);
   const [statusSearchError, setStatusSearchError] = useState('');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'status'>('dashboard');
+  const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -466,13 +468,22 @@ const AdminPage = () => {
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <button
-                            onClick={() => handleDeleteCandidate(candidate.id)}
-                            className="text-red-600 hover:text-red-900 transition-colors duration-200 p-2 hover:bg-red-50 rounded-lg"
-                            title="Delete Candidate"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => setEditingCandidate(candidate)}
+                              className="text-blue-600 hover:text-blue-900 transition-colors duration-200 p-2 hover:bg-blue-50 rounded-lg"
+                              title="Edit Candidate"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCandidate(candidate.id)}
+                              className="text-red-600 hover:text-red-900 transition-colors duration-200 p-2 hover:bg-red-50 rounded-lg"
+                              title="Delete Candidate"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -612,6 +623,15 @@ const AdminPage = () => {
           )}
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {editingCandidate && (
+        <CandidateEditModal
+          candidate={editingCandidate}
+          isOpen={!!editingCandidate}
+          onClose={() => setEditingCandidate(null)}
+        />
+      )}
     </div>
   );
 };

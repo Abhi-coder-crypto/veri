@@ -257,6 +257,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update candidate
+  app.put("/api/candidates/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid candidate ID" });
+      }
+
+      const updateData = insertCandidateSchema.partial().parse(req.body);
+      const candidate = await activeStorage.updateCandidate(id, updateData);
+      
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      res.json(candidate);
+    } catch (error) {
+      console.error("Update candidate error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid candidate data", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update candidate" });
+    }
+  });
+
   // Delete candidate - NEW ADMIN FUNCTIONALITY
   app.delete("/api/candidates/:id", async (req, res) => {
     try {
