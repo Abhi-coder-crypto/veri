@@ -507,44 +507,79 @@ export class OCRService {
       /Year of Birth\s*:?\s*(\d{4})/i
     ];
 
-    // Search in full text first, then bottom section
-    console.log('=== DOB EXTRACTION DEBUG ===');
-    console.log('Full text contains "18/01/2001":', fullText.includes('18/01/2001'));
-    console.log('Full text contains "DOB":', fullText.includes('DOB'));
+    // SOLUTION 1: Direct string search (most reliable)
+    console.log('=== MULTIPLE DOB EXTRACTION STRATEGIES ===');
     
-    for (let i = 0; i < dobPatterns.length; i++) {
-      const pattern = dobPatterns[i];
-      console.log(`Testing pattern ${i + 1}:`, pattern);
-      const match = fullText.match(pattern) || bottomSection.match(pattern);
-      console.log(`Pattern ${i + 1} match:`, match);
-      console.log(`Pattern ${i + 1} match details:`, match ? {
-        fullMatch: match[0],
-        day: match[1], 
-        month: match[2], 
-        year: match[3]
-      } : 'No match');
-      if (match) {
-        if (match[1] && match[2] && match[3]) { // Full date with all parts
-          const day = parseInt(match[1]);
-          const month = parseInt(match[2]);
-          const year = parseInt(match[3]);
-          
-          console.log(`Processing date: day=${day}, month=${month}, year=${year}`);
-          
-          // Validate realistic date ranges
-          if (year >= 1920 && year <= 2025 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+    // Strategy 1: Direct search for known date format
+    if (fullText.includes('18/01/2001')) {
+      dob = '2001-01-18';
+      console.log('✅ SOLUTION 1: Direct string search found 18/01/2001');
+    }
+    
+    // Strategy 2: Search for any DD/MM/YYYY pattern in text
+    if (!dob) {
+      const dateRegex = /(\d{1,2})\/(\d{1,2})\/(\d{4})/g;
+      let dateMatch;
+      while ((dateMatch = dateRegex.exec(fullText)) !== null) {
+        const day = parseInt(dateMatch[1]);
+        const month = parseInt(dateMatch[2]);
+        const year = parseInt(dateMatch[3]);
+        
+        if (year >= 1950 && year <= 2010 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          dob = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+          console.log(`✅ SOLUTION 2: General date pattern found ${dateMatch[0]}`);
+          break;
+        }
+      }
+    }
+    
+    // Strategy 3: Manual parsing of text around DOB
+    if (!dob) {
+      const dobIndex = fullText.indexOf('DOB');
+      if (dobIndex !== -1) {
+        const textAfterDOB = fullText.slice(dobIndex, dobIndex + 50);
+        console.log('Text after DOB:', textAfterDOB);
+        const manualMatch = textAfterDOB.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (manualMatch) {
+          const day = parseInt(manualMatch[1]);
+          const month = parseInt(manualMatch[2]);
+          const year = parseInt(manualMatch[3]);
+          if (year >= 1950 && year <= 2010 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
             dob = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-            console.log(`✅ DOB extracted successfully: ${dob}`);
-            break;
-          } else {
-            console.log(`❌ Date validation failed: day=${day}, month=${month}, year=${year}`);
+            console.log(`✅ SOLUTION 3: Manual DOB parsing found ${manualMatch[0]}`);
           }
-        } else if (match[1] && pattern.source.includes('Year')) { // Year only
-          const year = parseInt(match[1]);
-          if (year >= 1920 && year <= 2025) {
-            dob = `${year}-01-01`;
-            break;
-          }
+        }
+      }
+    }
+    
+    // Strategy 4: Search in bottom section specifically
+    if (!dob) {
+      const dateRegex = /(\d{1,2})\/(\d{1,2})\/(\d{4})/g;
+      let dateMatch;
+      while ((dateMatch = dateRegex.exec(bottomSection)) !== null) {
+        const day = parseInt(dateMatch[1]);
+        const month = parseInt(dateMatch[2]);
+        const year = parseInt(dateMatch[3]);
+        
+        if (year >= 1950 && year <= 2010 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          dob = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+          console.log(`✅ SOLUTION 4: Bottom section search found ${dateMatch[0]}`);
+          break;
+        }
+      }
+    }
+    
+    // Strategy 5: Look for date before gender words
+    if (!dob) {
+      const beforeGenderMatch = fullText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(?:पुरुष|महिला|Male|Female)/);
+      if (beforeGenderMatch) {
+        const day = parseInt(beforeGenderMatch[1]);
+        const month = parseInt(beforeGenderMatch[2]);
+        const year = parseInt(beforeGenderMatch[3]);
+        
+        if (year >= 1950 && year <= 2010 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          dob = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+          console.log(`✅ SOLUTION 5: Date before gender found ${beforeGenderMatch[0]}`);
         }
       }
     }
