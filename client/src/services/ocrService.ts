@@ -32,7 +32,7 @@ export class OCRService {
       if (!this.isValidFileType(file)) {
         return {
           success: false,
-          error: 'Please upload a valid image (JPG, PNG) or PDF file'
+          error: 'Please upload a valid PDF file (government Aadhar cards only)'
         };
       }
 
@@ -66,7 +66,7 @@ export class OCRService {
       
       return {
         success: false,
-        error: 'This does not appear to be a valid Aadhar card or the document is not clear enough to read. Please upload a clear, high-quality photo of your Aadhar card only.'
+        error: 'This does not appear to be a valid government Aadhar card or the document format is not recognized. Please upload only government-issued Aadhar card PDFs with clear, readable text.'
       };
 
     } catch (error) {
@@ -107,11 +107,9 @@ export class OCRService {
 
   private isValidFileType(file: File): boolean {
     const validTypes = [
-      'image/jpeg',
-      'image/jpg', 
-      'image/png',
-      'application/pdf'
+      'application/pdf'  // Only PDF files accepted
     ];
+    console.log('File type check:', file.type, 'Valid:', validTypes.includes(file.type));
     return validTypes.includes(file.type);
   }
 
@@ -203,23 +201,30 @@ export class OCRService {
 
   private isValidAadharCard(text: string): boolean {
     console.log('🔍 Validating Government Aadhar format...');
+    console.log('Document content sample:', text.substring(0, 500));
     
-    // STRICT validation for government Aadhar cards only
+    // REQUIRED patterns that MUST be present in government Aadhar
     const requiredIndicators = [
       /\b\d{4}\s+\d{4}\s+\d{4}\b/,  // 12-digit number with spaces (MUST HAVE)
       /\d{1,2}\/\d{1,2}\/\d{4}/,     // Date format DD/MM/YYYY (MUST HAVE)
       /(male|female|पुरुष|महिला)/i,  // Gender (MUST HAVE)
     ];
 
+    // Government document indicators (need some of these)
     const governmentIndicators = [
-      /enrolment\s*no/i,
-      /issue\s*date/i,
-      /download\s*date/i,
-      /VID\s*:/i,
-      /government/i,
-      /भारत/,
-      /ज.*म.*ितिथ/,
+      /enrolment.*no/i,              // "Enrolment No."
+      /नोंदणी.*क्रमांक/,                // Hindi "Enrolment No."
+      /issue.*date/i,
+      /download.*date/i,
+      /details.*as.*on/i,            // "Details as on:"
+      /VID\s*:/i,                    // "VID :"
+      /aadhaar.*no.*issued/i,        // "Aadhaar no. issued"
+      /digitally.*signed/i,          // "Digitally signed"
+      /unique.*identification/i,     // "Unique Identification"
+      /जन्म.*तारीख/,                  // Hindi "Date of Birth"
       /DOB/i,
+      /पत्ता/,                       // Hindi "Address"
+      /address/i,
     ];
 
     // Check REQUIRED indicators (all must be present)
@@ -240,8 +245,16 @@ export class OCRService {
       }
     }
 
-    const isValid = requiredCount >= 3 && govCount >= 2;
-    console.log(`Government Aadhar Validation: ${isValid} (Required: ${requiredCount}/3, Gov: ${govCount}/8)`);
+    const isValid = requiredCount >= 3 && govCount >= 3;
+    console.log(`Government Aadhar Validation: ${isValid} (Required: ${requiredCount}/3, Gov: ${govCount}/${governmentIndicators.length})`);
+    
+    if (!isValid) {
+      console.log('❌ VALIDATION FAILED:');
+      console.log(`Missing required patterns: ${3 - requiredCount}`);
+      console.log(`Government indicators found: ${govCount} (need 3+)`);
+    } else {
+      console.log('✅ Government Aadhar format validated successfully');
+    }
     
     return isValid;
   }
