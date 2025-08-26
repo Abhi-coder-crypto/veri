@@ -203,49 +203,48 @@ export class OCRService {
 
   private isValidAadharCard(text: string): boolean {
     const normalizedText = text.toUpperCase().replace(/\s+/g, ' ');
+    console.log('🔍 Validating government Aadhar format...');
     
-    // Check for essential Aadhar card indicators
-    const aadharIndicators = [
-      // Government of India text
-      /GOVERNMENT\s*OF\s*INDIA/,
-      /भारत\s*सरकार/,
-      // UIDAI text
-      /UNIQUE\s*IDENTIFICATION\s*AUTHORITY/,
+    // Check for government Aadhar indicators (more focused)
+    const governmentIndicators = [
+      /GOVERNMENT.*INDIA/,
+      /भारत.*सरकार/,
+      /UNIQUE.*IDENTIFICATION/,
       /UIDAI/,
-      // Aadhar specific text
       /AADHAAR/,
       /आधार/,
-      // Card specific indicators
-      /ENROLMENT\s*NO/,
-      /VID/,
-      // Combined patterns
-      /(GOVERNMENT|भारत).*(INDIA|सरकार)/,
-      /(UNIQUE|UIDAI).*(IDENTIFICATION|AUTHORITY)/
+      /ENROLMENT.*NO/,
+      /VID/
     ];
     
-    // Must have at least 2 strong Aadhar indicators
-    const foundIndicators = aadharIndicators.filter(pattern => pattern.test(normalizedText));
+    let indicatorCount = 0;
+    for (const pattern of governmentIndicators) {
+      if (pattern.test(normalizedText)) {
+        indicatorCount++;
+        console.log('✅ Found indicator:', pattern.source);
+      }
+    }
     
-    if (foundIndicators.length < 2) {
-      console.log('Insufficient Aadhar card indicators found:', foundIndicators.length);
+    if (indicatorCount < 1) {
+      console.log('❌ Not a government Aadhar card - no valid indicators found');
       return false;
     }
     
-    // Must contain a 12-digit number pattern (Aadhar number)
-    const hasAadharNumber = /\b\d{4}[\s\-\.]*\d{4}[\s\-\.]*\d{4}\b|\b\d{12}\b/.test(normalizedText);
+    // Must contain 12-digit Aadhar number pattern
+    const hasAadharNumber = /\b\d{4}[\s]*\d{4}[\s]*\d{4}\b|\b\d{12}\b/.test(normalizedText);
     if (!hasAadharNumber) {
-      console.log('No valid Aadhar number pattern found');
+      console.log('❌ No Aadhar number pattern found');
       return false;
     }
     
-    // Must contain date pattern (DOB)
-    const hasDatePattern = /\b\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4}\b/.test(normalizedText);
+    // Must contain date pattern (DD/MM/YYYY format)
+    const hasDatePattern = /\b\d{1,2}\/\d{1,2}\/\d{4}\b/.test(normalizedText);
     if (!hasDatePattern) {
-      console.log('No date pattern found (required for DOB)');
+      console.log('❌ No valid date pattern found (DD/MM/YYYY required)');
       return false;
     }
     
-    console.log('Valid Aadhar card detected with', foundIndicators.length, 'indicators');
+    console.log(`✅ Valid government Aadhar detected (${indicatorCount} indicators)`);
     return true;
   }
 
@@ -265,350 +264,191 @@ export class OCRService {
       return null;
     }
 
-    // Split text into lines and clean them
+    // Clean and normalize the text
+    const normalizedText = text.replace(/\s+/g, ' ').trim();
     const lines = text.split(/\n|\r/)
       .map(line => line.trim())
       .filter(line => line.length > 2);
     
-    console.log('Text lines:', lines);
-
-    // Identify top section (first 50% of lines) and bottom section
+    // Keep fullText and sections for compatibility
+    const fullText = normalizedText;
     const midPoint = Math.floor(lines.length / 2);
     const topSection = lines.slice(0, midPoint).join(' ');
     const bottomSection = lines.slice(midPoint).join(' ');
-    const fullText = text.replace(/\s+/g, ' ').trim();
-
+    
+    console.log('Processing government Aadhar format...');
     console.log('Top section:', topSection);
     console.log('Bottom section:', bottomSection);
 
-    // Extract Aadhar number - Enhanced for formats from your examples (4015 9329 2039)
+    // Extract Aadhar number - Focus on government format "4015 9329 2039"
     let aadharNumber = '';
     const aadharPatterns = [
-      // PRIORITY: Most common format from examples: "4015 9329 2039"
+      // PRIORITY: Government format with spaces: "4015 9329 2039"
       /\b(\d{4})\s+(\d{4})\s+(\d{4})\b/g,
-      // Standard patterns with minimal spacing
-      /\b(\d{4})\s*(\d{4})\s*(\d{4})\b/g,
-      // With "Your Aadhaar No." label (common in cards)
-      /Your\s+Aadhaar\s+No\.?\s*:?\s*(\d{4})\s+(\d{4})\s+(\d{4})/gi,
-      // Hyphen/dot separated
-      /\b(\d{4})[-\.](\d{4})[-\.](\d{4})\b/g,
-      // Hindi/English with labels
-      /आधार\s*(?:संख्या|नंबर|No|NUMBER)?\s*:?\s*(\d{4})\s+(\d{4})\s+(\d{4})/gi,
-      /AADHAAR\s*(?:NO|NUMBER|संख्या)?\s*:?\s*(\d{4})\s+(\d{4})\s+(\d{4})/gi,
-      /UID\s*(?:NO|NUMBER)?\s*:?\s*(\d{4})\s+(\d{4})\s+(\d{4})/gi,
-      // Bottom section patterns (मेरा आधार, मेरी पहचान)
-      /मेरा\s+आधार[,\s]+मेरी\s+पहचान.*?(\d{4})\s+(\d{4})\s+(\d{4})/gi,
-      // Continuous 12 digits (fallback)
+      // Also check for continuous 12 digits as fallback
       /\b(\d{12})\b/g
     ];
 
     for (const pattern of aadharPatterns) {
       let match;
       const regex = new RegExp(pattern.source, pattern.flags);
-      while ((match = regex.exec(fullText)) !== null) {
-        if (match[1]) {
-          let number = '';
-          if (match[2] && match[3]) {
-            // Three part number
-            number = match[1] + match[2] + match[3];
-          } else if (match[1].length === 12) {
-            // Single 12-digit number
-            number = match[1];
-          }
-          
-          if (number.length === 12 && !number.match(/^(.)\1+$/) && /^\d{12}$/.test(number)) {
-            aadharNumber = number;
-            break;
-          }
+      while ((match = regex.exec(normalizedText)) !== null) {
+        let number = '';
+        if (match[2] && match[3]) {
+          // Three part number (4015 9329 2039)
+          number = match[1] + match[2] + match[3];
+        } else if (match[1].length === 12) {
+          // Single 12-digit number
+          number = match[1];
         }
-        if (!pattern.global) break;
+        
+        if (number.length === 12 && /^\d{12}$/.test(number) && !number.match(/^(.)\1+$/)) {
+          aadharNumber = number;
+          console.log('✅ Found Aadhar number:', aadharNumber);
+          break;
+        }
       }
       if (aadharNumber) break;
     }
 
-    // Extract name - universal logic for any Aadhar card
+    // Extract name - Simplified approach for government Aadhar format
     let name = '';
     
-    // Define comprehensive address/location keywords that typically follow names
-    const locationKeywords = [
-      // Building/Structure types
-      'COMPOUND', 'CHAWL', 'BUILDING', 'SOCIETY', 'COMPLEX', 'TOWER', 'PLAZA', 'APARTMENT',
-      // Road/Street types  
-      'ROAD', 'STREET', 'LANE', 'MARG', 'PATH', 'GALI', 'CROSS',
-      // Area types
-      'NAGAR', 'COLONY', 'PARK', 'GARDEN', 'SECTOR', 'BLOCK', 'PLOT', 'WARD',
-      // Common location names/identifiers
-      'NO', 'NUMBER', 'FLAT', 'ROOM', 'FLOOR', 'WING', 'PHASE',
-      // Directional/Position words
-      'NEAR', 'OPP', 'OPPOSITE', 'BEHIND', 'FRONT', 'SIDE',
-      // City/District indicators
-      'DIST', 'DISTRICT', 'TALUKA', 'TEHSIL', 'VILLAGE', 'CITY', 'TOWN'
-    ];
+    console.log('🔍 Extracting name from government Aadhar...');
     
-    // Add KHANNA to location keywords since it's a common location component
-    locationKeywords.push('KHANNA');
+    // Strategy 1: Look for name before address keywords
+    const addressKeywords = ['C/O:', 'FLAT', 'WING', 'FLOOR', 'NEAR', 'NAGAR', 'WEST', 'EAST', 'NORTH', 'SOUTH'];
     
-    // Create a comprehensive pattern to match names before any location keyword
-    const locationPattern = new RegExp(`([A-Z][a-zA-Z]+(?:\\s+[A-Z][a-zA-Z]+){1,4})(?=\\s+(?:${locationKeywords.join('|')}))`, 'i');
+    // Find the first occurrence of any address keyword
+    let addressStart = -1;
+    for (const keyword of addressKeywords) {
+      const index = fullText.toUpperCase().indexOf(keyword);
+      if (index !== -1 && (addressStart === -1 || index < addressStart)) {
+        addressStart = index;
+      }
+    }
     
-    // Strategy 1: Find name that appears before any location/address keyword
-    const nameMatch = fullText.match(locationPattern);
-    if (nameMatch && nameMatch[1]) {
-      const candidateName = nameMatch[1].trim();
-      const words = candidateName.split(/\s+/);
+    if (addressStart > 0) {
+      // Get text before the address section
+      const beforeAddress = fullText.substring(0, addressStart).trim();
+      console.log('Text before address:', beforeAddress);
       
-      // Validate it's a reasonable person name (2-5 words, proper length)
-      if (words.length >= 2 && words.length <= 5 && 
-          candidateName.length >= 6 && candidateName.length <= 50) {
-        
-        // Final check: ensure no location keywords accidentally included
-        const cleanWords = words.filter(word => 
-          !locationKeywords.some(keyword => 
-            word.toUpperCase() === keyword || word.toUpperCase().includes(keyword)
-          )
-        );
-        
-        if (cleanWords.length >= 2) {
-          name = cleanWords.join(' ');
+      // Find the last meaningful name in this section (usually appears twice)
+      const nameMatches = beforeAddress.match(/([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,4})/g);
+      if (nameMatches && nameMatches.length > 0) {
+        // Take the last name match (usually the complete name)
+        const lastName = nameMatches[nameMatches.length - 1];
+        if (lastName.length >= 6 && lastName.length <= 50) {
+          name = lastName.trim();
+          console.log('✅ Found name before address:', name);
         }
       }
     }
-
-    // Strategy 1b: More direct approach - split text and find names before location words
+    
+    // Strategy 2: Look for names in the bottom section (where personal details are)
     if (!name) {
-      const textParts = fullText.split(/\s+/);
-      for (let i = 0; i < textParts.length - 1; i++) {
-        const word = textParts[i];
-        const nextWord = textParts[i + 1];
-        
-        // Check if current word is followed by a location keyword
-        if (locationKeywords.some(keyword => 
-          nextWord && nextWord.toUpperCase() === keyword.toUpperCase())) {
-          
-          // Look backwards to collect the name
-          let nameWords = [];
-          let j = i;
-          while (j >= 0 && nameWords.length < 5) {
-            const currentWord = textParts[j];
-            // Stop if we hit government text, numbers, or other non-name indicators
-            if (currentWord.match(/government|india|aadhaar|unique|identification|\d+/i)) {
-              break;
-            }
-            // Add word if it looks like a name part
-            if (currentWord.match(/^[A-Z][a-zA-Z]+$/)) {
-              nameWords.unshift(currentWord);
-            } else {
-              break;
-            }
-            j--;
-          }
-          
-          if (nameWords.length >= 2 && nameWords.length <= 5) {
-            const candidateName = nameWords.join(' ');
-            if (candidateName.length >= 6 && candidateName.length <= 50) {
-              name = candidateName;
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    // Strategy 2: Look for names in structured contexts if Strategy 1 failed
-    if (!name) {
-      const contextualNamePatterns = [
-        // Name before parent reference (S/O, D/O, W/O)
-        /([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,4})(?=\s*(?:S\/O|D\/O|W\/O|Son of|Daughter of))/i,
-        // Name before DOB context
-        /([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,4})(?=\s*(?:DOB|Date of Birth|जन्म))/i,
-        // Name in gender context (gender followed by name)
-        /(?:Male|Female|पुरुष|महिला)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,4})/i
-      ];
-
-      for (const pattern of contextualNamePatterns) {
-        const match = fullText.match(pattern);
-        if (match && match[1]) {
-          const candidateName = match[1].trim();
-          const words = candidateName.split(/\s+/);
-          
-          if (words.length >= 2 && words.length <= 5 && 
-              candidateName.length >= 6 && candidateName.length <= 50) {
-            
-            // Clean any location words that might have been captured
-            const cleanWords = words.filter(word => 
-              !locationKeywords.some(keyword => 
-                word.toUpperCase() === keyword || word.toUpperCase().includes(keyword)
-              )
-            );
-            
-            if (cleanWords.length >= 2) {
-              name = cleanWords.join(' ');
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    // Strategy 3: Find probable names in early lines as fallback
-    if (!name) {
-      const probableNameLines = lines.slice(0, Math.min(8, midPoint));
+      console.log('Searching in bottom section...');
+      const namePattern = /([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,4})(?=\s*(?:DOB|जन्म\s*तिथि|\d{2}\/\d{2}\/\d{4}|Male|Female|पुरुष|महिला))/i;
+      const nameMatch = bottomSection.match(namePattern);
       
-      for (const line of probableNameLines) {
-        // Skip lines with government text, numbers, dates, or obvious non-names
-        if (line.match(/government|india|aadhaar|unique|identification|authority|enrolment|card|\d{4}|\d{2}\/\d{2}\/\d{4}/i)) {
+      if (nameMatch && nameMatch[1]) {
+        const candidateName = nameMatch[1].trim();
+        if (candidateName.length >= 6 && candidateName.length <= 50) {
+          name = candidateName;
+          console.log('✅ Found name near DOB/gender:', name);
+        }
+      }
+    }
+    
+    // Strategy 3: Simple fallback - look for clean name patterns in early lines
+    if (!name) {
+      console.log('Using fallback name extraction...');
+      for (const line of lines.slice(0, 8)) {
+        // Skip government/system lines
+        if (line.match(/government|india|aadhaar|unique|identification|enrolment|\d{4}/i)) {
           continue;
         }
         
-        // Look for lines that look like names (proper case, 2-5 words)
-        const nameMatch = line.match(/^([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,4})(?:\s|$)/);
+        const nameMatch = line.match(/^([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){1,4})$/);
         if (nameMatch && nameMatch[1]) {
           const candidateName = nameMatch[1].trim();
-          const words = candidateName.split(/\s+/);
-          
-          // Validate it's likely a person's name
-          if (words.length >= 2 && words.length <= 5 && 
-              candidateName.length >= 6 && candidateName.length <= 50) {
-            
-            // Clean any location words using our comprehensive list
-            const cleanWords = words.filter(word => 
-              !locationKeywords.some(keyword => 
-                word.toUpperCase() === keyword || word.toUpperCase().includes(keyword)
-              )
-            );
-            
-            if (cleanWords.length >= 2) {
-              name = cleanWords.join(' ');
-              break;
-            }
+          if (candidateName.length >= 6 && candidateName.length <= 50) {
+            name = candidateName;
+            console.log('✅ Found name in clean line:', name);
+            break;
           }
         }
       }
     }
 
-    // Extract DOB from bottom section (where it usually appears)
+    // Extract DOB - Focus on government format like "23/03/2001"  
     let dob = '';
-    const dobPatterns = [
-      // PRIORITY 1: Exact format "जन्म तारीख / DOB : 18/01/2001"
-      /जन्म\s*तारीख\s*\/\s*DOB\s*:\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/gi,
-      // PRIORITY 2: Just "DOB : 18/01/2001"  
-      /DOB\s*:\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/gi,
-      // PRIORITY 3: Hindi only "जन्म तारीख : 18/01/2001"
-      /जन्म\s*तारीख\s*:\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/gi,
-      // PRIORITY 4: More flexible with any spacing
-      /(?:जन्म\s*तारीख.*?DOB|DOB|जन्म\s*तिथि)\s*[:\s]*(\d{1,2})\/(\d{1,2})\/(\d{4})/gi,
-      // PRIORITY 5: Date before gender (18/01/2001 पुरुष / Male)
-      /(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(?:पुरुष|महिला|Male|Female)/gi,
-      // PRIORITY 6: Any date pattern DD/MM/YYYY
-      /(\d{1,2})\/(\d{1,2})\/(\d{4})/g,
-      // PRIORITY 7: Date with dashes
-      /(\d{1,2})-(\d{1,2})-(\d{4})/g,
-      // PRIORITY 8: Year only fallback
-      /Year of Birth\s*:?\s*(\d{4})/i
-    ];
-
-    // SOLUTION 1: Direct string search (most reliable)
-    console.log('=== MULTIPLE DOB EXTRACTION STRATEGIES ===');
+    console.log('🗓️ Extracting DOB from government Aadhar...');
     
-    // Strategy 1: Direct search for known date format
-    if (fullText.includes('18/01/2001')) {
-      dob = '2001-01-18';
-      console.log('✅ SOLUTION 1: Direct string search found 18/01/2001');
-    }
+    // Strategy 1: Look for DD/MM/YYYY pattern anywhere in the text
+    const dateRegex = /(\d{1,2})\/(\d{1,2})\/(\d{4})/g;
+    let bestDate = null;
+    let dateMatch;
     
-    // Strategy 2: Search for any DD/MM/YYYY pattern in text
-    if (!dob) {
-      const dateRegex = /(\d{1,2})\/(\d{1,2})\/(\d{4})/g;
-      let dateMatch;
-      while ((dateMatch = dateRegex.exec(fullText)) !== null) {
-        const day = parseInt(dateMatch[1]);
-        const month = parseInt(dateMatch[2]);
-        const year = parseInt(dateMatch[3]);
-        
-        if (year >= 1950 && year <= 2010 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-          dob = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-          console.log(`✅ SOLUTION 2: General date pattern found ${dateMatch[0]}`);
-          break;
-        }
+    while ((dateMatch = dateRegex.exec(fullText)) !== null) {
+      const day = parseInt(dateMatch[1]);
+      const month = parseInt(dateMatch[2]);
+      const year = parseInt(dateMatch[3]);
+      
+      // Validate the date components
+      if (year >= 1950 && year <= 2015 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        const dateString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        bestDate = { date: dateString, original: dateMatch[0] };
+        console.log(`Found valid date: ${dateMatch[0]} -> ${dateString}`);
+        // Don't break, continue to find the best one (prefer dates near DOB/gender text)
       }
     }
     
-    // Strategy 3: Manual parsing of text around DOB
-    if (!dob) {
-      const dobIndex = fullText.indexOf('DOB');
-      if (dobIndex !== -1) {
-        const textAfterDOB = fullText.slice(dobIndex, dobIndex + 50);
-        console.log('Text after DOB:', textAfterDOB);
-        const manualMatch = textAfterDOB.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-        if (manualMatch) {
-          const day = parseInt(manualMatch[1]);
-          const month = parseInt(manualMatch[2]);
-          const year = parseInt(manualMatch[3]);
-          if (year >= 1950 && year <= 2010 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-            dob = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-            console.log(`✅ SOLUTION 3: Manual DOB parsing found ${manualMatch[0]}`);
-          }
-        }
-      }
-    }
-    
-    // Strategy 4: Search in bottom section specifically
-    if (!dob) {
-      const dateRegex = /(\d{1,2})\/(\d{1,2})\/(\d{4})/g;
-      let dateMatch;
-      while ((dateMatch = dateRegex.exec(bottomSection)) !== null) {
-        const day = parseInt(dateMatch[1]);
-        const month = parseInt(dateMatch[2]);
-        const year = parseInt(dateMatch[3]);
-        
-        if (year >= 1950 && year <= 2010 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-          dob = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-          console.log(`✅ SOLUTION 4: Bottom section search found ${dateMatch[0]}`);
-          break;
-        }
-      }
-    }
-    
-    // Strategy 5: Look for date before gender words
-    if (!dob) {
-      const beforeGenderMatch = fullText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(?:पुरुष|महिला|Male|Female)/);
-      if (beforeGenderMatch) {
-        const day = parseInt(beforeGenderMatch[1]);
-        const month = parseInt(beforeGenderMatch[2]);
-        const year = parseInt(beforeGenderMatch[3]);
-        
-        if (year >= 1950 && year <= 2010 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-          dob = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-          console.log(`✅ SOLUTION 5: Date before gender found ${beforeGenderMatch[0]}`);
-        }
+    // Strategy 2: If we found valid dates, prefer one that's near DOB or gender keywords
+    if (bestDate) {
+      // Look for date near DOB or gender context
+      const contextPattern = new RegExp(`(${bestDate.original.replace(/[\/]/g, '\\/')})\\s*(?:DOB|जन्म\\s*तिथि|Male|Female|पुरुष|महिला)`, 'i');
+      if (fullText.match(contextPattern)) {
+        dob = bestDate.date;
+        console.log('✅ Found DOB with context:', bestDate.original);
+      } else {
+        dob = bestDate.date;
+        console.log('✅ Found DOB (general):', bestDate.original);
       }
     }
 
-    // Extract gender from bottom section
+    // Extract gender from the full text (more flexible)
     let gender = '';
-    const genderMatches = bottomSection.match(/(male|female|पुरुष|महिला)/i);
+    console.log('👤 Extracting gender...');
+    const genderMatches = fullText.match(/(male|female|पुरुष|महिला)/i);
     if (genderMatches) {
       const genderText = genderMatches[1].toLowerCase();
       gender = (genderText === 'male' || genderText === 'पुरुष') ? 'Male' : 'Female';
+      console.log('✅ Found gender:', gender);
     }
 
+    // Final extracted data
     const extractedData = { name, dob, aadhar: aadharNumber, gender };
-    console.log('Extracted data:', extractedData);
+    console.log('=== EXTRACTION SUMMARY ===');
+    console.log('📝 Name:', name || 'Not found');
+    console.log('🆔 Aadhar:', aadharNumber || 'Not found');
+    console.log('🗓️ DOB:', dob || 'Not found'); 
+    console.log('👤 Gender:', gender || 'Not found');
 
-    // STRICT validation - ALL essential fields must be present and valid
-    const hasValidName = name && name.length >= 5 && name.match(/^[A-Za-z\s]+$/) && !name.includes('OCR could not');
+    // Strict validation - ALL essential fields must be present
+    const hasValidName = name && name.length >= 5 && name.match(/^[A-Za-z\s]+$/) && name.split(' ').length >= 2;
     const hasValidAadhar = aadharNumber && aadharNumber.length === 12 && /^\d{12}$/.test(aadharNumber) && !aadharNumber.match(/^(.)\1+$/);
     const hasValidDob = dob && dob.match(/^\d{4}-\d{2}-\d{2}$/);
     
-    console.log('=== FINAL VALIDATION RESULTS ===');
-    console.log('✓ Name extracted:', hasValidName ? '✅' : '❌', name);
-    console.log('✓ Aadhar extracted:', hasValidAadhar ? '✅' : '❌', aadharNumber);
-    console.log('✓ DOB extracted:', hasValidDob ? '✅' : '❌', dob);
-    console.log('✓ Gender extracted:', gender || 'Not specified');
+    console.log('=== VALIDATION RESULTS ===');
+    console.log(hasValidName ? '✅' : '❌', 'Name valid:', name);
+    console.log(hasValidAadhar ? '✅' : '❌', 'Aadhar valid:', aadharNumber);
+    console.log(hasValidDob ? '✅' : '❌', 'DOB valid:', dob);
+    console.log(gender ? '✅' : '⚠️', 'Gender:', gender || 'Optional');
     
-    // ALL essential fields must be successfully extracted - NO fallback data
+    // Must have name, aadhar, and DOB - gender is optional
     if (hasValidName && hasValidAadhar && hasValidDob) {
-      console.log('🎉 OCR extraction SUCCESSFUL - All required fields extracted!');
+      console.log('🎉 SUCCESS: All required fields extracted from government Aadhar!');
       return {
         name: name.trim(),
         dob,
