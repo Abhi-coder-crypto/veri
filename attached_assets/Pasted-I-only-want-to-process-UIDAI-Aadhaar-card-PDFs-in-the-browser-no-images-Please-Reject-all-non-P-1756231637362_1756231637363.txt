@@ -1,3 +1,17 @@
+I only want to process UIDAI Aadhaar card PDFs in the browser (no images). Please:
+
+Reject all non-PDF files.
+
+Remove all Tesseract.js OCR logic.
+
+Use pdfjs-dist (PDF.js) for text extraction, since pdf-parse does not work in browsers.
+
+Extract all text from the PDF and then pass it to my extractAadharInfo function.
+
+Return Aadhaar details (name, dob, gender, aadhaar number) in the OCRResponse.
+
+Here’s the TypeScript class to update:
+
 import * as pdfjsLib from "pdfjs-dist";
 
 export interface AadharData {
@@ -96,3 +110,20 @@ export class OCRService {
 }
 
 export const ocrService = OCRService.getInstance();
+
+
+✅ With this setup in Replit:
+
+Run npm install pdfjs-dist
+
+Upload a UIDAI Aadhaar PDF
+
+It will extract and return details like:
+
+Name → Aniket Sanjay Rane
+
+DOB → 23/03/2001
+
+Gender → Male
+
+Aadhaar → 401593292039
