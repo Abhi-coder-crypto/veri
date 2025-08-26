@@ -27,43 +27,64 @@ export class OCRService {
   }
 
   public async processAadharDocument(file: File): Promise<OCRResponse> {
+    console.log("🚀 Starting Aadhaar document processing...");
+    console.log("📁 File details:", {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
+    
     try {
       // Accept PDFs even if browser reports as application/octet-stream
       const isPDF = file.type.includes('pdf') || 
                    file.type === 'application/octet-stream' || 
                    file.name.toLowerCase().endsWith('.pdf');
       
+      console.log("📋 File type check:", { isPDF, type: file.type, name: file.name });
+      
       if (!isPDF) {
+        console.log("❌ File rejected: not a PDF");
         return {
           success: false,
           error: "Only PDF Aadhaar files are supported."
         };
       }
 
+      console.log("✅ PDF file accepted, starting text extraction...");
+      
       // Extract text from PDF
       const extractedText = await this.processPDF(file);
       
+      console.log(`📝 Text extraction result: ${extractedText.length} characters extracted`);
+      
       if (!extractedText || extractedText.length < 100) {
+        console.log("❌ Text extraction failed or insufficient text");
         return {
           success: false,
           error: "Unable to extract text from PDF. Please ensure it's a valid UIDAI e-Aadhaar PDF."
         };
       }
 
+      console.log("✅ Text extracted successfully, starting data parsing...");
+      
       // Parse Aadhaar info with strict validation
       const aadharData = this.extractAadharInfo(extractedText);
+      
       if (aadharData) {
+        console.log("✅ Aadhaar data extracted successfully:", aadharData);
         return { 
           success: true, 
           data: aadharData 
         };
       }
 
+      console.log("❌ Failed to parse Aadhaar data from extracted text");
       return {
         success: false,
         error: "Could not extract valid Aadhaar details from PDF. Please ensure all required information is clearly visible."
       };
     } catch (err) {
+      console.error("💥 Error in processAadharDocument:", err);
       return {
         success: false,
         error: `Failed to process Aadhaar PDF: ${err instanceof Error ? err.message : 'Unknown error'}`
@@ -79,19 +100,28 @@ export class OCRService {
     
     try {
       console.log("📄 Opening PDF document...");
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pdf = await pdfjsLib.getDocument({ 
+        data: arrayBuffer,
+        verbosity: 0  // Reduce PDF.js internal logging
+      }).promise;
       console.log(`📄 PDF opened successfully. Pages: ${pdf.numPages}`);
       
       const text = await this.extractTextFromPDF(pdf);
       
       if (text.length < 10) {
+        console.log("⚠️ Very little text extracted:", text.length, "chars");
         throw new Error("No meaningful text extracted from PDF");
       }
       
+      console.log("✅ PDF processing completed successfully");
       return text;
       
     } catch (error) {
       console.error("❌ Error processing PDF:", error);
+      console.error("❌ Error details:", {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
       
       // If PDF fails to open normally, try with password
       const password = prompt(
