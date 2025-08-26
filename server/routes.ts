@@ -303,6 +303,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk import candidates from Excel data
+  app.post("/api/candidates/bulk-import", async (req, res) => {
+    try {
+      const { candidates: candidatesData } = req.body;
+      
+      if (!Array.isArray(candidatesData) || candidatesData.length === 0) {
+        return res.status(400).json({ error: "No candidates data provided" });
+      }
+
+      const results = [];
+      const errors = [];
+
+      for (const candidateData of candidatesData) {
+        try {
+          // Check if candidate already exists
+          const existingByAadhar = await activeStorage.getCandidateByAadhar(candidateData.aadhar);
+          const existingByMobile = await activeStorage.getCandidateByMobile(candidateData.mobile);
+          
+          if (existingByAadhar || existingByMobile) {
+            errors.push({
+              name: candidateData.name,
+              aadhar: candidateData.aadhar,
+              error: "Candidate already exists"
+            });
+            continue;
+          }
+
+          // Generate candidate ID
+          const allCandidates = await activeStorage.getAllCandidates();
+          const candidateId: string = `TRN${String(allCandidates.length + results.length + 1).padStart(3, '0')}`;
+          
+          // Validate and create candidate
+          const validatedCandidate = insertCandidateSchema.parse(candidateData);
+          const newCandidate: Candidate = await activeStorage.createCandidate(validatedCandidate, candidateId);
+          
+          results.push({
+            name: newCandidate.name,
+            candidateId: newCandidate.candidateId,
+            status: 'success'
+          });
+        } catch (error: any) {
+          errors.push({
+            name: candidateData.name || 'Unknown',
+            aadhar: candidateData.aadhar || 'Unknown',
+            error: error.message
+          });
+        }
+      }
+
+      res.json({
+        success: true,
+        imported: results.length,
+        errorCount: errors.length,
+        results,
+        errors
+      });
+    } catch (error) {
+      console.error('Bulk import error:', error);
+      res.status(500).json({ error: "Failed to import candidates" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

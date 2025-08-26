@@ -2,11 +2,11 @@ import { Route } from 'wouter';
 import { CandidateProvider, useCandidateContext } from './context/CandidateContext';
 import Navigation from './components/Navigation';
 import VerificationPage from './pages/VerificationPage';
-import RegistrationPage from './pages/RegistrationPage';
+import RegistrationPage from './pages/RegistrationPageNew';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import StatusPage from './pages/StatusPage';
-import AdminPage from './pages/AdminPageNew';
+import AdminPage from './pages/AdminPageWithImport';
 
 // Protected Registration Component
 function ProtectedRegistration() {

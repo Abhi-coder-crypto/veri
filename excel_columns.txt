@@ -1,0 +1,27 @@
+Columns:
+Sr No
+Location
+NAME
+Aadharno
+Date of Birth
+Gender
+Religion
+Vulnerability
+Annual Income
+Educational Qualification
+Contact no of Trainee
+Assessment Date
+DL No
+DL Type
+LICENSE EXPIRY DATE
+No. Of Dependent Family Members
+Owner / Driver
+ABHA noNO
+Job Role
+Job code
+Email Address of Trainee
+You Tube
+Facebook
+Instagram
+EKYC STATUS
+Email Address of Trainee.1

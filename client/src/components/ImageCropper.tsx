@@ -3,13 +3,13 @@ import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 interface ImageCropperProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onCropComplete: (croppedImageUrl: string) => void;
   imageUrl: string;
+  onCropComplete: (croppedImageUrl: string) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-const ImageCropper = ({ isOpen, onClose, onCropComplete, imageUrl }: ImageCropperProps) => {
+const ImageCropper = ({ imageUrl, onCropComplete, isOpen = true, onClose }: ImageCropperProps) => {
   const [crop, setCrop] = useState<Crop>({
     unit: '%',
     x: 25,
@@ -102,7 +102,7 @@ const ImageCropper = ({ isOpen, onClose, onCropComplete, imageUrl }: ImageCroppe
       const croppedImageUrl = await getCroppedImg(image, pixelCrop);
       if (croppedImageUrl) {
         onCropComplete(croppedImageUrl);
-        onClose();
+        onClose?.();
       }
     } catch (error) {
       console.error('Error cropping image:', error);
