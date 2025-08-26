@@ -139,11 +139,11 @@ export class OCRService {
           return item.str;
         }
         return '';
-      }).filter(str => str.length > 0);
+      }).filter((str: string) => str.length > 0);
       
       // Join with spaces and add line breaks
       const pageText = textItems.join(' ');
-      extractedText += pageText + "\\n";
+      extractedText += pageText + "\n";
       
       console.log(`Page ${i} text sample:`, pageText.substring(0, 200));
     }
