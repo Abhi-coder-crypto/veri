@@ -1,3 +1,5 @@
+i uploaded this
+
 import * as pdfjsLib from "pdfjs-dist";
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker?url";
 
@@ -186,43 +188,19 @@ export class OCRService {
   }
 
   private extractValidDOB(text: string): string {
-    // More flexible patterns to handle broken text and various formats
     const dobPatterns = [
-      /(?:जन्म|ज.*म)\s*(?:तारीख|तिथि|ितिथ)\s*[\/:]*\s*DOB\s*[\/:]*\s*(\d{2}\/\d{2}\/\d{4})/i,
-      /DOB\s*[\/:]*\s*(\d{2}\/\d{2}\/\d{4})/i,
-      /Date\s*of\s*Birth\s*[\/:]*\s*(\d{2}\/\d{2}\/\d{4})/i,
-      /(?:जन्म|ज.*म).*?(\d{2}\/\d{2}\/\d{4})/i,
-      /(?:तारीख|तिथि).*?(\d{2}\/\d{2}\/\d{4})/i
+      /(?:जन्म\s*तिथि|जन्म\s*ितिथ|DOB):\s*(\d{2}\/\d{2}\/\d{4})/i,
+      /DOB:\s*(\d{2}\/\d{2}\/\d{4})/i,
+      /Date\s*of\s*Birth:\s*(\d{2}\/\d{2}\/\d{4})/i
     ];
 
-    // Also look for standalone date patterns near birth-related text
-    const dateMatches = text.match(/\d{2}\/\d{2}\/\d{4}/g);
-    if (dateMatches) {
-      for (const date of dateMatches) {
-        const year = parseInt(date.split('/')[2]);
-        // Validate year range (1900-2015)
-        if (year >= 1900 && year <= 2015) {
-          // Check if this date appears near birth-related keywords
-          const dateIndex = text.indexOf(date);
-          const contextBefore = text.substring(Math.max(0, dateIndex - 50), dateIndex).toLowerCase();
-          const contextAfter = text.substring(dateIndex, dateIndex + 50).toLowerCase();
-          
-          if (contextBefore.includes('dob') || contextBefore.includes('birth') || 
-              contextBefore.includes('जन्म') || contextBefore.includes('तारीख') ||
-              contextAfter.includes('dob') || contextAfter.includes('birth')) {
-            return date;
-          }
-        }
-      }
-    }
-
-    // Try the original patterns as fallback
     for (const pattern of dobPatterns) {
       const match = text.match(pattern);
       if (match) {
         const dob = match[1];
         const year = parseInt(dob.split('/')[2]);
         
+        // Validate year range (1900-2015)
         if (year >= 1900 && year <= 2015) {
           return dob;
         }
@@ -233,105 +211,76 @@ export class OCRService {
   }
 
   private extractGender(text: string): string {
-    // More robust gender matching with broken character handling
-    const malePatterns = [
-      /MALE/i,
-      /पुरुष/i,
-      /पु.*ष/i,  // handles broken characters like पु�ष
-      /Male/i,
-      /पु\s*ष/i
-    ];
-    
-    const femalePatterns = [
-      /FEMALE/i,
-      /महिला/i,
-      /मह.*ला/i,  // handles broken characters
-      /Female/i
-    ];
-    
-    // Check for male patterns
-    for (const pattern of malePatterns) {
-      if (pattern.test(text)) {
-        return "Male";
-      }
+    const genderMatch = text.match(/(पुरुष|पु\s*ष|MALE|महिला|FEMALE)/i);
+    if (genderMatch) {
+      const genderText = genderMatch[1].toLowerCase().replace(/\s/g, '');
+      return (genderText.includes('male') || genderText.includes('पुरुष') || genderText.includes('पुष')) ? "Male" : "Female";
     }
-    
-    // Check for female patterns
-    for (const pattern of femalePatterns) {
-      if (pattern.test(text)) {
-        return "Female";
-      }
-    }
-    
     return "";
   }
 
   private extractName(text: string): string {
-    // Method 1: Extract name from "To" section - prioritize the actual cardholder
-    const toMatch = text.match(/\bTo\b\s*([\s\S]*?)(?=(?:C\/O:|Flat|Address|VTC|District|PIN|Mobile|Signature|Digitally))/i);
+    // Method 1: Extract name from "To" section
+    const toMatch = text.match(/\bTo\b\s*([\s\S]*?)(?=\n.*?(?:C\/O:|Flat|Address|VTC|District|PIN|Mobile))/i);
     if (toMatch) {
       const toSection = toMatch[1].trim();
+      // Look for English name (skip Hindi line, take English line)
       const lines = toSection.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       
-      // Look for the English name line (usually comes after Hindi name)
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        // Skip Hindi text lines and C/O lines
-        if (!/[अ-ह]/.test(line) && !line.toLowerCase().includes('c/o')) {
-          const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})(?:,|$)/);
+      for (const line of lines) {
+        // Skip Hindi text lines and focus on English names
+        if (!/[अ-ह]/.test(line)) {
+          const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})$/);
           if (nameMatch && this.isValidName(nameMatch[1])) {
-            // Prioritize names that are not just father's name
-            const name = nameMatch[1].trim();
-            // If this appears to be the main name (not just parent name)
-            if (!this.isParentName(name, text)) {
-              return name;
-            }
+            return nameMatch[1].trim();
           }
         }
       }
     }
 
-    // Method 2: Find name that appears multiple times (cardholder name appears twice)
-    const namePattern = /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){2,3})\b/g;
-    const nameFrequency: { [key: string]: number } = {};
-    let match;
-
-    while ((match = namePattern.exec(text)) !== null) {
-      const candidateName = match[1].trim();
-      if (this.isValidName(candidateName) && !candidateName.toLowerCase().includes('singh,')) {
-        nameFrequency[candidateName] = (nameFrequency[candidateName] || 0) + 1;
-      }
-    }
-
-    // Find names that appear more than once (cardholder name typically appears twice)
-    const repeatedNames = Object.entries(nameFrequency)
-      .filter(([name, count]) => count >= 2)
-      .sort((a, b) => b[1] - a[1]);
-
-    if (repeatedNames.length > 0) {
-      return repeatedNames[0][0];
-    }
-
-    // Method 3: Context-based extraction near DOB/Gender
+    // Method 2: Find name before address context
+    const addressKeywords = ['C/O:', 'Flat', 'Floor', 'Near', 'District', 'State', 'PIN', 'Maharashtra'];
     const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    for (let i = 0; i < lines.length; i++) {
+    
+    for (let i = 0; i < lines.length - 1; i++) {
       const line = lines[i];
-      const nextLine = lines[i + 1] || '';
+      const nextFewLines = lines.slice(i + 1, i + 4).join(' ');
       
-      // If next line contains DOB or gender info, current line might be the name
-      if ((nextLine.includes('DOB') || nextLine.includes('MALE') || nextLine.includes('FEMALE')) &&
-          !/[अ-ह]/.test(line) && !line.includes('Address') && !line.includes('पत्ता')) {
-        const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){2,3})/);
+      // Check if upcoming lines contain address keywords
+      const hasAddressKeywords = addressKeywords.some(keyword => 
+        nextFewLines.toLowerCase().includes(keyword.toLowerCase())
+      );
+      
+      if (hasAddressKeywords && !/[अ-ह]/.test(line)) {
+        const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})$/);
         if (nameMatch && this.isValidName(nameMatch[1])) {
           return nameMatch[1].trim();
         }
       }
     }
 
-    // Method 4: Fallback to most frequent valid name
-    if (Object.keys(nameFrequency).length > 0) {
-      const mostFrequent = Object.entries(nameFrequency)
+    // Method 3: Find most frequent proper noun (fallback)
+    const namePattern = /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g;
+    const foundNames: string[] = [];
+    let match;
+
+    while ((match = namePattern.exec(text)) !== null) {
+      const candidateName = match[1].trim();
+      if (this.isValidName(candidateName)) {
+        foundNames.push(candidateName);
+      }
+    }
+
+    // Return most frequent valid name
+    if (foundNames.length > 0) {
+      const nameCounts: { [key: string]: number } = {};
+      foundNames.forEach(name => {
+        nameCounts[name] = (nameCounts[name] || 0) + 1;
+      });
+
+      const mostFrequent = Object.entries(nameCounts)
         .sort((a, b) => b[1] - a[1])[0];
+      
       return mostFrequent[0];
     }
 
@@ -346,8 +295,7 @@ export class OCRService {
       'Maharashtra', 'Details', 'Address', 'Signature', 'Digitally',
       'Date', 'Issue', 'Download', 'VTC', 'PIN', 'Code', 'Floor', 'Wing',
       'CHS', 'Flat', 'Bhandar', 'Nagar', 'West', 'Thane', 'Download',
-      'Enrolment', 'Mobile', 'Khanna', 'Vitthalwadi', 'Ulhasnagar',
-      'Hanuman', 'Greenwood', 'Hubtown'
+      'Enrolment', 'Mobile'
     ];
 
     const words = name.split(' ');
@@ -363,13 +311,6 @@ export class OCRService {
            /^[A-Za-z\s]+$/.test(name) &&
            words.length >= 2 && 
            words.length <= 4;
-  }
-
-  private isParentName(name: string, text: string): boolean {
-    // Check if this name appears only in C/O or parent context
-    const nameIndex = text.indexOf(name);
-    const contextBefore = text.substring(Math.max(0, nameIndex - 30), nameIndex).toLowerCase();
-    return contextBefore.includes('c/o') || contextBefore.includes('c/o:');
   }
 }
 
