@@ -203,49 +203,62 @@ export class OCRService {
 
   private isValidAadharCard(text: string): boolean {
     const normalizedText = text.toUpperCase().replace(/\s+/g, ' ');
-    console.log('🔍 Validating government Aadhar format...');
+    console.log('🔍 Validating Aadhar format...');
+    console.log('Text sample:', normalizedText.substring(0, 200) + '...');
     
-    // Check for government Aadhar indicators (more focused)
-    const governmentIndicators = [
-      /GOVERNMENT.*INDIA/,
-      /भारत.*सरकार/,
-      /UNIQUE.*IDENTIFICATION/,
+    // Check for Aadhar indicators (more flexible)
+    const aadharIndicators = [
+      /GOVERNMENT/,
+      /INDIA/,
+      /भारत/,
+      /सरकार/,
+      /UNIQUE/,
+      /IDENTIFICATION/,
       /UIDAI/,
       /AADHAAR/,
       /आधार/,
-      /ENROLMENT.*NO/,
-      /VID/
+      /ENROLMENT/,
+      /VID/,
+      /DOB/,
+      /जन्म/,
+      /तिथि/,
+      /MALE|FEMALE/,
+      /पुरुष|महिला/
     ];
     
     let indicatorCount = 0;
-    for (const pattern of governmentIndicators) {
+    const foundIndicators = [];
+    for (const pattern of aadharIndicators) {
       if (pattern.test(normalizedText)) {
         indicatorCount++;
-        console.log('✅ Found indicator:', pattern.source);
+        foundIndicators.push(pattern.source);
       }
     }
     
-    if (indicatorCount < 1) {
-      console.log('❌ Not a government Aadhar card - no valid indicators found');
-      return false;
+    console.log(`Found ${indicatorCount} Aadhar indicators:`, foundIndicators);
+    
+    // Relax requirement - just need some indicators
+    if (indicatorCount < 2) {
+      console.log('❌ Insufficient Aadhar indicators - may not be valid Aadhar');
+      // Don't reject immediately, continue with lenient processing
     }
     
-    // Must contain 12-digit Aadhar number pattern
-    const hasAadharNumber = /\b\d{4}[\s]*\d{4}[\s]*\d{4}\b|\b\d{12}\b/.test(normalizedText);
-    if (!hasAadharNumber) {
-      console.log('❌ No Aadhar number pattern found');
-      return false;
+    // Check for 12-digit number pattern
+    const hasAadharNumber = /\d{4}[\s\-\.]*\d{4}[\s\-\.]*\d{4}|\d{12}/.test(normalizedText);
+    console.log('Has Aadhar number pattern:', hasAadharNumber);
+    
+    // Check for any date pattern
+    const hasDatePattern = /\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4}/.test(normalizedText);
+    console.log('Has date pattern:', hasDatePattern);
+    
+    // More lenient validation - accept if has basic structure
+    if (hasAadharNumber || hasDatePattern || indicatorCount >= 2) {
+      console.log(`✅ Accepting document for processing (${indicatorCount} indicators)`);
+      return true;
     }
     
-    // Must contain date pattern (DD/MM/YYYY format)
-    const hasDatePattern = /\b\d{1,2}\/\d{1,2}\/\d{4}\b/.test(normalizedText);
-    if (!hasDatePattern) {
-      console.log('❌ No valid date pattern found (DD/MM/YYYY required)');
-      return false;
-    }
-    
-    console.log(`✅ Valid government Aadhar detected (${indicatorCount} indicators)`);
-    return true;
+    console.log('❌ Document does not appear to contain Aadhar-like content');
+    return false;
   }
 
 
@@ -435,32 +448,42 @@ export class OCRService {
     console.log('🗓️ DOB:', dob || 'Not found'); 
     console.log('👤 Gender:', gender || 'Not found');
 
-    // Strict validation - ALL essential fields must be present
-    const hasValidName = name && name.length >= 5 && name.match(/^[A-Za-z\s]+$/) && name.split(' ').length >= 2;
-    const hasValidAadhar = aadharNumber && aadharNumber.length === 12 && /^\d{12}$/.test(aadharNumber) && !aadharNumber.match(/^(.)\1+$/);
-    const hasValidDob = dob && dob.match(/^\d{4}-\d{2}-\d{2}$/);
+    // Flexible validation - accept partial success
+    const hasName = name && name.length >= 3 && name.match(/^[A-Za-z\s\.]+$/);
+    const hasAadhar = aadharNumber && aadharNumber.length === 12 && /^\d{12}$/.test(aadharNumber) && !aadharNumber.match(/^(.)\1+$/);
+    const hasDob = dob && dob.match(/^\d{4}-\d{2}-\d{2}$/);
     
     console.log('=== VALIDATION RESULTS ===');
-    console.log(hasValidName ? '✅' : '❌', 'Name valid:', name);
-    console.log(hasValidAadhar ? '✅' : '❌', 'Aadhar valid:', aadharNumber);
-    console.log(hasValidDob ? '✅' : '❌', 'DOB valid:', dob);
-    console.log(gender ? '✅' : '⚠️', 'Gender:', gender || 'Optional');
+    console.log(hasName ? '✅' : '❌', 'Name:', name || 'Not found');
+    console.log(hasAadhar ? '✅' : '❌', 'Aadhar:', aadharNumber || 'Not found');
+    console.log(hasDob ? '✅' : '❌', 'DOB:', dob || 'Not found');
+    console.log('ℹ️', 'Gender:', gender || 'Not specified');
     
-    // Must have name, aadhar, and DOB - gender is optional
-    if (hasValidName && hasValidAadhar && hasValidDob) {
-      console.log('🎉 SUCCESS: All required fields extracted from government Aadhar!');
+    // Calculate success score - more lenient approach
+    const successScore = (hasName ? 1 : 0) + (hasAadhar ? 1 : 0) + (hasDob ? 1 : 0);
+    console.log(`📊 Extraction score: ${successScore}/3`);
+    
+    // Accept if we have at least name + one other field, or aadhar + dob
+    if ((hasName && hasAadhar) || (hasAadhar && hasDob) || successScore >= 2) {
+      console.log('🎉 SUCCESS: Sufficient data extracted from Aadhar!');
       return {
-        name: name.trim(),
-        dob,
+        name: name || 'Name could not be extracted',
+        dob: dob || '',
+        aadhar: aadharNumber || '',
+        gender: gender || 'Not specified'
+      };
+    } else if (hasAadhar) {
+      console.log('✅ PARTIAL: At least got Aadhar number');
+      return {
+        name: name || 'Name could not be extracted',
+        dob: dob || '',
         aadhar: aadharNumber,
         gender: gender || 'Not specified'
       };
     } else {
-      console.log('❌ OCR extraction FAILED - Missing essential data');
-      if (!hasValidName) console.log('   - Name extraction failed or invalid');
-      if (!hasValidAadhar) console.log('   - Aadhar number extraction failed or invalid');
-      if (!hasValidDob) console.log('   - DOB extraction failed or invalid');
-      return null; // Return null instead of generating fake data
+      console.log('❌ FAILED: Could not extract sufficient data');
+      console.log('💡 Please try a clearer, well-lit photo of your Aadhar card');
+      return null;
     }
   }
 }
