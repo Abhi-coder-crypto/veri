@@ -172,12 +172,92 @@ const AdminPage = () => {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        // For now, we'll show a demo message since we'd need a client-side Excel parser
-        // In a real implementation, you'd parse the Excel file here
-        alert('Excel import functionality requires server-side processing. Please use the bulk import API endpoint.');
-        setImporting(false);
-      } catch (error) {
+        const data = e.target?.result;
+        if (!data) throw new Error('Could not read file');
+
+        // Import XLSX library dynamically
+        const XLSX = await import('xlsx');
+        
+        // Parse the Excel file
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        
+        // Convert to JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        
+        if (jsonData.length === 0) {
+          throw new Error('No data found in Excel file');
+        }
+
+        // Map Excel data to our candidate format
+        const candidates = jsonData.map((row: any) => {
+          // Convert dates to strings
+          let dob = row['Date of Birth'] || '';
+          if (dob && typeof dob === 'number') {
+            // Excel date number to JS date
+            const date = new Date((dob - 25569) * 86400 * 1000);
+            dob = date.toISOString().split('T')[0];
+          } else if (dob) {
+            dob = new Date(dob).toISOString().split('T')[0];
+          }
+
+          let assessmentDate = row['Assessment Date'] || '';
+          if (assessmentDate && typeof assessmentDate === 'number') {
+            const date = new Date((assessmentDate - 25569) * 86400 * 1000);
+            assessmentDate = date.toISOString().split('T')[0];
+          } else if (assessmentDate) {
+            assessmentDate = new Date(assessmentDate).toISOString().split('T')[0];
+          }
+
+          let licenseExpiry = row['LICENSE EXPIRY DATE'] || '';
+          if (licenseExpiry && typeof licenseExpiry === 'number') {
+            const date = new Date((licenseExpiry - 25569) * 86400 * 1000);
+            licenseExpiry = date.toISOString().split('T')[0];
+          } else if (licenseExpiry) {
+            licenseExpiry = new Date(licenseExpiry).toISOString().split('T')[0];
+          }
+
+          return {
+            srNo: String(row['Sr No'] || ''),
+            location: String(row['Location'] || ''),
+            name: String(row['NAME'] || ''),
+            aadhar: String(row['Aadharno'] || '').replace(/[^0-9]/g, ''),
+            dob,
+            gender: String(row['Gender'] || ''),
+            religion: String(row['Religion'] || ''),
+            vulnerability: String(row['Vulnerability'] || ''),
+            annualIncome: String(row['Annual Income'] || ''),
+            educationalQualification: String(row['Educational Qualification'] || ''),
+            mobile: String(row['Contact no of Trainee'] || '').replace(/[^0-9]/g, ''),
+            assessmentDate,
+            dlNo: String(row['DL No'] || ''),
+            dlType: String(row['DL Type'] || ''),
+            licenseExpiryDate: licenseExpiry,
+            dependentFamilyMembers: String(row['No. Of Dependent Family Members'] || ''),
+            ownerDriver: String(row['Owner / Driver'] || ''),
+            abhaNo: String(row['ABHA noNO'] || ''),
+            jobRole: String(row['Job Role'] || ''),
+            jobCode: String(row['Job code'] || ''),
+            emailAddress: String(row['Email Address of Trainee'] || ''),
+            youTube: String(row['You Tube'] || 'No'),
+            facebook: String(row['Facebook'] || 'No'),
+            instagram: String(row['Instagram'] || 'No'),
+            ekycStatus: String(row['EKYC STATUS'] || ''),
+            personalEmailAddress: String(row['Email Address of Trainee.1'] || ''),
+            trained: false,
+            status: 'Enrolled'
+          };
+        });
+
+        console.log(`Parsed ${candidates.length} candidates from Excel`);
+        
+        // Send to bulk import API
+        await importMutation.mutateAsync(candidates);
+        
+      } catch (error: any) {
         console.error('Import error:', error);
+        alert(`Import failed: ${error.message}`);
         setImporting(false);
       }
     };
@@ -726,12 +806,12 @@ const AdminPage = () => {
                           <div className="text-sm text-green-700">Successfully Imported</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-red-600">{importResults.errors}</div>
+                          <div className="text-2xl font-bold text-red-600">{importResults.errorCount || importResults.errors || 0}</div>
                           <div className="text-sm text-red-700">Errors</div>
                         </div>
                         <div className="text-center">
                           <div className="text-2xl font-bold text-blue-600">
-                            {importResults.imported + importResults.errors}
+                            {importResults.imported + (importResults.errorCount || importResults.errors || 0)}
                           </div>
                           <div className="text-sm text-blue-700">Total Processed</div>
                         </div>
