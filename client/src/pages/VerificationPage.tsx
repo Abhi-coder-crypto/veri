@@ -383,7 +383,7 @@ const VerificationPage = () => {
                 <p className="text-gray-600 mb-4">Upload your Government Aadhar Card for verification</p>
                 <input
                   type="file"
-                  accept=".pdf,.jpg,.jpeg,.png,.webp"
+                  accept=".pdf"
                   onChange={handleAadharUpload}
                   className="hidden"
                   id="aadhar-upload"
@@ -394,7 +394,7 @@ const VerificationPage = () => {
                 >
                   {loading ? 'Processing...' : 'Choose File'}
                 </label>
-                <p className="text-xs text-gray-500 mt-2">Accepted formats: PDF, JPG, PNG, WEBP (Government Aadhar Cards only)</p>
+                <p className="text-xs text-gray-500 mt-2">Accepted format: PDF only (UIDAI e-Aadhaar PDF documents)</p>
               </div>
             ) : (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
