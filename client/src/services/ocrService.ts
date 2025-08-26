@@ -94,6 +94,9 @@ export class OCRService {
   }
 
   private extractAadharInfo(text: string): AadharData | null {
+    console.log("=== Starting Aadhaar extraction ===");
+    console.log("Text sample:", text.substring(0, 500));
+    
     const result = {
       name: "",
       dob: "",
@@ -103,238 +106,279 @@ export class OCRService {
 
     // Extract valid Aadhaar Number (12 digits only, not phone/VID/enrollment)
     result.aadhar = this.extractValidAadharNumber(text);
-    if (!result.aadhar) return null;
+    console.log("Extracted Aadhaar:", result.aadhar);
+    if (!result.aadhar) {
+      console.log("❌ No valid Aadhaar number found");
+      return null;
+    }
 
-    // Extract DOB with year validation (1900-2015)
+    // Extract DOB
     result.dob = this.extractValidDOB(text);
-    if (!result.dob) return null;
+    console.log("Extracted DOB:", result.dob);
+    if (!result.dob) {
+      console.log("❌ No valid DOB found");
+      return null;
+    }
 
     // Extract Gender
     result.gender = this.extractGender(text);
-    if (!result.gender) return null;
+    console.log("Extracted Gender:", result.gender);
+    if (!result.gender) {
+      console.log("❌ No valid Gender found");
+      return null;
+    }
 
     // Extract Name using context and fallback methods
     result.name = this.extractName(text);
-    if (!result.name) return null;
+    console.log("Extracted Name:", result.name);
+    if (!result.name) {
+      console.log("❌ No valid Name found");
+      return null;
+    }
 
+    console.log("✅ All fields extracted successfully:", result);
     return result;
   }
 
   private extractValidAadharNumber(text: string): string {
-    // Split text into lines to analyze context
-    const lines = text.split('\n').map(line => line.trim());
+    console.log("🔍 Searching for Aadhaar numbers...");
     
-    // Find all potential 12-digit numbers (with or without spaces)
-    const numberPattern = /\b\d{4}\s+\d{4}\s+\d{4}\b|\b\d{12}\b/g;
-    const potentialNumbers: Array<{number: string, context: string, lineIndex: number}> = [];
+    // Find all 12-digit patterns (spaced and unspaced)
+    const patterns = [
+      /\b(\d{4})\s+(\d{4})\s+(\d{4})\b/g,  // 2305 2244 1763
+      /\b(\d{12})\b/g  // 230522441763
+    ];
     
-    lines.forEach((line, index) => {
+    const foundNumbers: string[] = [];
+    
+    for (const pattern of patterns) {
       let match;
-      while ((match = numberPattern.exec(line)) !== null) {
-        const cleanNum = match[0].replace(/\s/g, '');
-        if (cleanNum.length === 12) {
-          potentialNumbers.push({
-            number: cleanNum,
-            context: line.toLowerCase(),
-            lineIndex: index
-          });
+      while ((match = pattern.exec(text)) !== null) {
+        let number;
+        if (match[2] && match[3]) {
+          // Spaced format: combine all parts
+          number = match[1] + match[2] + match[3];
+        } else {
+          // Unspaced format
+          number = match[1];
+        }
+        
+        if (number.length === 12) {
+          foundNumbers.push(number);
+          console.log("Found 12-digit number:", number);
         }
       }
-      // Reset regex for next line
-      numberPattern.lastIndex = 0;
-    });
-
-    // Filter out invalid numbers with strict rules
-    for (const item of potentialNumbers) {
-      const { number, context } = item;
+      pattern.lastIndex = 0; // Reset regex
+    }
+    
+    console.log("All found 12-digit numbers:", foundNumbers);
+    
+    // Filter out invalid numbers
+    for (const number of foundNumbers) {
+      console.log(`\n--- Validating ${number} ---`);
       
-      // Rule 1: Must be exactly 12 digits
-      if (number.length !== 12) continue;
-      
-      // Rule 2: Reject if appears after "VID" keyword
-      if (context.includes('vid') && context.indexOf('vid') < context.indexOf(number.substring(0, 4))) {
+      // Rule 1: Reject repeated digits (like 000000000000)
+      if (/^(\d)\1+$/.test(number)) {
+        console.log(`❌ Rejected: repeated digits`);
         continue;
       }
       
-      // Rule 3: Reject phone numbers (typically start with 9,8,7,6 and appear with mobile context)
+      // Rule 2: Check context around this number to reject VIDs
+      const numberIndex = text.indexOf(number.substring(0, 4)); // Find by first 4 digits
+      if (numberIndex !== -1) {
+        const contextBefore = text.substring(Math.max(0, numberIndex - 20), numberIndex).toLowerCase();
+        const contextAfter = text.substring(numberIndex, numberIndex + 50).toLowerCase();
+        
+        console.log(`Context before: "${contextBefore}"`);
+        console.log(`Context after: "${contextAfter}"`);
+        
+        if (contextBefore.includes('vid') || contextAfter.includes('vid')) {
+          console.log(`❌ Rejected: appears near VID keyword`);
+          continue;
+        }
+      }
+      
+      // Rule 3: Reject phone numbers in mobile context
       if ((number.startsWith('9') || number.startsWith('8') || 
-           number.startsWith('7') || number.startsWith('6')) &&
-          (context.includes('mobile') || context.includes('phone'))) {
-        continue;
+           number.startsWith('7') || number.startsWith('6'))) {
+        const mobileContext = text.toLowerCase();
+        const mobileIndex = mobileContext.indexOf(number);
+        if (mobileIndex !== -1) {
+          const surrounding = mobileContext.substring(Math.max(0, mobileIndex - 30), mobileIndex + 50);
+          if (surrounding.includes('mobile') || surrounding.includes('phone')) {
+            console.log(`❌ Rejected: appears in mobile context`);
+            continue;
+          }
+        }
       }
       
-      // Rule 4: Reject enrollment numbers (typically longer or contain slashes)
-      if (context.includes('enrolment') || context.includes('enrollment') || 
-          context.includes('नामांकन') || context.includes('/')) {
-        continue;
+      // Rule 4: Reject enrollment numbers
+      const enrollmentContext = text.toLowerCase();
+      if (enrollmentContext.includes('enrolment') || enrollmentContext.includes('नामांकन')) {
+        const enrollmentIndex = Math.max(
+          enrollmentContext.indexOf('enrolment'),
+          enrollmentContext.indexOf('नामांकन')
+        );
+        const numberIndexInText = enrollmentContext.indexOf(number);
+        
+        // If number appears close to enrollment keywords, reject it
+        if (Math.abs(enrollmentIndex - numberIndexInText) < 100) {
+          console.log(`❌ Rejected: appears near enrollment context`);
+          continue;
+        }
       }
       
-      // Rule 5: Reject repeated digits
-      if (/^(\d)\1+$/.test(number)) continue;
-      
-      // Rule 6: Additional VID rejection - numbers that commonly appear in VID format
+      // Rule 5: Common VID starting patterns
       if (number.startsWith('9171') || number.startsWith('9174') || 
-          number.startsWith('9999') || number.startsWith('9666')) {
+          number.startsWith('9999') || number.startsWith('9666') ||
+          number.startsWith('9174')) {
+        console.log(`❌ Rejected: common VID pattern`);
         continue;
       }
       
-      // Valid Aadhaar number found - return the first one that passes all rules
+      // If we get here, it's likely a valid Aadhaar number
+      console.log(`✅ Valid Aadhaar number found: ${number}`);
       return number;
     }
     
+    console.log("❌ No valid Aadhaar number found after filtering");
     return "";
   }
 
   private extractValidDOB(text: string): string {
-    // More flexible patterns to handle broken text and various formats
-    const dobPatterns = [
-      /(?:जन्म|ज.*म)\s*(?:तारीख|तिथि|ितिथ)\s*[\/:]*\s*DOB\s*[\/:]*\s*(\d{2}\/\d{2}\/\d{4})/i,
-      /DOB\s*[\/:]*\s*(\d{2}\/\d{2}\/\d{4})/i,
-      /Date\s*of\s*Birth\s*[\/:]*\s*(\d{2}\/\d{2}\/\d{4})/i,
-      /(?:जन्म|ज.*म).*?(\d{2}\/\d{2}\/\d{4})/i,
-      /(?:तारीख|तिथि).*?(\d{2}\/\d{2}\/\d{4})/i
-    ];
-
-    // Also look for standalone date patterns near birth-related text
-    const dateMatches = text.match(/\d{2}\/\d{2}\/\d{4}/g);
-    if (dateMatches) {
-      for (const date of dateMatches) {
-        const year = parseInt(date.split('/')[2]);
-        // Validate reasonable year range (1900-2030)
-        if (year >= 1900 && year <= 2030) {
-          // Check if this date appears near birth-related keywords
-          const dateIndex = text.indexOf(date);
-          const contextBefore = text.substring(Math.max(0, dateIndex - 50), dateIndex).toLowerCase();
-          const contextAfter = text.substring(dateIndex, dateIndex + 50).toLowerCase();
+    console.log("🔍 Searching for DOB...");
+    
+    // Find all date patterns first
+    const dateMatches = text.match(/\d{2}\/\d{2}\/\d{4}/g) || [];
+    console.log("Found date patterns:", dateMatches);
+    
+    // Check each date for birth context
+    for (const date of dateMatches) {
+      const year = parseInt(date.split('/')[2]);
+      if (year >= 1900 && year <= 2030) {
+        console.log(`Checking date ${date} (year ${year})`);
+        
+        // Find this date in text and check surrounding context
+        const dateIndex = text.indexOf(date);
+        if (dateIndex !== -1) {
+          const contextBefore = text.substring(Math.max(0, dateIndex - 60), dateIndex);
+          const contextAfter = text.substring(dateIndex, dateIndex + 30);
           
-          if (contextBefore.includes('dob') || contextBefore.includes('birth') || 
-              contextBefore.includes('जन्म') || contextBefore.includes('तारीख') ||
-              contextAfter.includes('dob') || contextAfter.includes('birth')) {
+          console.log(`Context before "${date}": "${contextBefore}"`);
+          console.log(`Context after "${date}": "${contextAfter}"`);
+          
+          // Very flexible DOB detection - look for any birth-related indicators
+          const birthIndicators = [
+            'dob', 'birth', 'जन्म', 'ज�म', 'तारीख', 'ितिथ', 'जनम'
+          ];
+          
+          const fullContext = (contextBefore + contextAfter).toLowerCase();
+          const hasBirthContext = birthIndicators.some(indicator => 
+            fullContext.includes(indicator)
+          );
+          
+          if (hasBirthContext) {
+            console.log(`✅ Found DOB: ${date}`);
             return date;
           }
         }
       }
     }
-
-    // Try the original patterns as fallback
-    for (const pattern of dobPatterns) {
-      const match = text.match(pattern);
-      if (match) {
-        const dob = match[1];
-        const year = parseInt(dob.split('/')[2]);
-        
-        if (year >= 1900 && year <= 2030) {
-          return dob;
-        }
-      }
-    }
-
+    
+    console.log("❌ No valid DOB found");
     return "";
   }
 
   private extractGender(text: string): string {
-    // More robust gender matching with broken character handling
-    const malePatterns = [
-      /MALE/i,
-      /पुरुष/i,
-      /पु.*ष/i,  // handles broken characters like पु�ष
-      /Male/i,
-      /पु\s*ष/i
+    console.log("🔍 Searching for gender...");
+    
+    // Very flexible gender patterns to handle broken characters
+    const maleIndicators = [
+      'male', 'पुरुष', 'पु', 'ष', 'पुरुष', 'male/', '/male', 'पु�ष', 'पुरुष/', '/पुरुष'
     ];
     
-    const femalePatterns = [
-      /FEMALE/i,
-      /महिला/i,
-      /मह.*ला/i,  // handles broken characters
-      /Female/i
+    const femaleIndicators = [
+      'female', 'महिला', 'मह', 'ला', 'female/', '/female', 'महिला/', '/महिला'
     ];
     
-    // Check for male patterns
-    for (const pattern of malePatterns) {
-      if (pattern.test(text)) {
+    const lowerText = text.toLowerCase();
+    
+    // Check for male indicators
+    for (const indicator of maleIndicators) {
+      if (lowerText.includes(indicator.toLowerCase())) {
+        console.log(`✅ Found male indicator: "${indicator}"`);
         return "Male";
       }
     }
     
-    // Check for female patterns
-    for (const pattern of femalePatterns) {
-      if (pattern.test(text)) {
+    // Check for female indicators
+    for (const indicator of femaleIndicators) {
+      if (lowerText.includes(indicator.toLowerCase())) {
+        console.log(`✅ Found female indicator: "${indicator}"`);
         return "Female";
       }
     }
     
+    console.log("❌ No gender found");
     return "";
   }
 
   private extractName(text: string): string {
-    // Method 1: Extract name from "To" section - prioritize the actual cardholder
-    const toMatch = text.match(/\bTo\b\s*([\s\S]*?)(?=(?:C\/O:|Flat|Address|VTC|District|PIN|Mobile|Signature|Digitally))/i);
-    if (toMatch) {
-      const toSection = toMatch[1].trim();
-      const lines = toSection.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      
-      // Look for the English name line (usually comes after Hindi name)
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        // Skip Hindi text lines and C/O lines
-        if (!/[अ-ह]/.test(line) && !line.toLowerCase().includes('c/o')) {
-          const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})(?:,|$)/);
-          if (nameMatch && this.isValidName(nameMatch[1])) {
-            // Prioritize names that are not just father's name
-            const name = nameMatch[1].trim();
-            // If this appears to be the main name (not just parent name)
-            if (!this.isParentName(name, text)) {
-              return name;
-            }
-          }
-        }
-      }
-    }
-
-    // Method 2: Find name that appears multiple times (cardholder name appears twice)
+    console.log("🔍 Searching for name...");
+    
+    // Method 1: Look for names that appear multiple times (cardholder appears twice)
     const namePattern = /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){2,3})\b/g;
     const nameFrequency: { [key: string]: number } = {};
     let match;
 
     while ((match = namePattern.exec(text)) !== null) {
       const candidateName = match[1].trim();
-      if (this.isValidName(candidateName) && !candidateName.toLowerCase().includes('singh,')) {
+      if (this.isValidName(candidateName)) {
         nameFrequency[candidateName] = (nameFrequency[candidateName] || 0) + 1;
+        console.log(`Found name candidate: "${candidateName}" (count: ${nameFrequency[candidateName]})`);
       }
     }
 
-    // Find names that appear more than once (cardholder name typically appears twice)
+    console.log("Name frequencies:", nameFrequency);
+
+    // Prioritize names that appear multiple times
     const repeatedNames = Object.entries(nameFrequency)
       .filter(([name, count]) => count >= 2)
       .sort((a, b) => b[1] - a[1]);
 
     if (repeatedNames.length > 0) {
+      console.log(`✅ Found repeated name: ${repeatedNames[0][0]} (appeared ${repeatedNames[0][1]} times)`);
       return repeatedNames[0][0];
     }
 
-    // Method 3: Context-based extraction near DOB/Gender
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const nextLine = lines[i + 1] || '';
+    // Method 2: Extract from "To" section
+    const toMatch = text.match(/\bTo\b\s*([\s\S]*?)(?=(?:C\/O:|Flat|Address|VTC|District|PIN|Mobile|Signature|Digitally))/i);
+    if (toMatch) {
+      console.log("Found 'To' section:", toMatch[1]);
+      const toSection = toMatch[1].trim();
+      const lines = toSection.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       
-      // If next line contains DOB or gender info, current line might be the name
-      if ((nextLine.includes('DOB') || nextLine.includes('MALE') || nextLine.includes('FEMALE')) &&
-          !/[अ-ह]/.test(line) && !line.includes('Address') && !line.includes('पत्ता')) {
-        const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){2,3})/);
-        if (nameMatch && this.isValidName(nameMatch[1])) {
-          return nameMatch[1].trim();
+      // Look for English names (skip Hindi text)
+      for (const line of lines) {
+        if (!/[अ-ह]/.test(line) && !line.toLowerCase().includes('c/o')) {
+          const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){2,3})/);
+          if (nameMatch && this.isValidName(nameMatch[1])) {
+            console.log(`✅ Found name in 'To' section: ${nameMatch[1]}`);
+            return nameMatch[1].trim();
+          }
         }
       }
     }
 
-    // Method 4: Fallback to most frequent valid name
+    // Method 3: Look for the most frequent valid name
     if (Object.keys(nameFrequency).length > 0) {
       const mostFrequent = Object.entries(nameFrequency)
         .sort((a, b) => b[1] - a[1])[0];
+      console.log(`✅ Using most frequent name: ${mostFrequent[0]}`);
       return mostFrequent[0];
     }
 
+    console.log("❌ No valid name found");
     return "";
   }
 
