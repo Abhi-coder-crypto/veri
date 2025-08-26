@@ -237,18 +237,33 @@ const VerificationPage = () => {
   };
 
   const handleAadharUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("🎯 File input triggered!");
+    
     const file = event.target.files?.[0];
-    if (!file) return;
+    console.log("📎 File selected:", file ? {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    } : "No file selected");
+    
+    if (!file) {
+      console.log("❌ No file selected, returning");
+      return;
+    }
 
+    console.log("🔄 Starting processing workflow...");
     setLoading(true);
     setError('');
     setSuccess('');
 
     try {
+      console.log("📞 Calling OCR service...");
       // Process the uploaded document
       const result = await ocrService.processAadharDocument(file);
+      console.log("🔍 OCR service result:", result);
       
       if (result.success && result.data) {
+        console.log("✅ Processing successful, updating state...");
         setExtractedAadharData(result.data);
         setAadharUploaded(true);
         setCurrentCandidate({
@@ -257,12 +272,14 @@ const VerificationPage = () => {
         });
         setSuccess('Aadhar document processed and verified successfully!');
       } else {
+        console.log("❌ Processing failed:", result.error);
         setError(result.error || 'Failed to process Aadhar document. Please try again.');
       }
     } catch (error) {
+      console.error('💥 Exception in handleAadharUpload:', error);
       setError('An error occurred while processing the document. Please try again.');
-      console.error('Document processing error:', error);
     } finally {
+      console.log("🏁 Processing workflow completed, setting loading to false");
       setLoading(false);
     }
   };
