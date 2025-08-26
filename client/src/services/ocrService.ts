@@ -1,4 +1,5 @@
 import * as pdfjsLib from "pdfjs-dist";
+import pdfjsWorker from "pdfjs-dist/build/pdf.worker?url";
 
 export interface AadharData {
   name: string;
@@ -27,7 +28,9 @@ export class OCRService {
 
   public async processAadharDocument(file: File): Promise<OCRResponse> {
     try {
-      if (file.type !== "application/pdf") {
+      console.log("File info:", file.name, file.type, file.size);
+      
+      if (!file.type.includes('pdf') && !file.name.toLowerCase().endsWith('.pdf')) {
         return {
           success: false,
           error: "Only PDF Aadhaar files are supported."
@@ -35,11 +38,15 @@ export class OCRService {
       }
 
       // Extract text from PDF
+      console.log("Starting PDF processing...");
       const extractedText = await this.processPDF(file);
+      console.log("Extracted text length:", extractedText.length);
+      console.log("Extracted text sample:", extractedText.substring(0, 200));
 
       // Parse Aadhaar info
       const aadharData = this.extractAadharInfo(extractedText);
       if (aadharData) {
+        console.log("Successfully extracted Aadhaar data:", aadharData);
         return { success: true, data: aadharData };
       }
 
@@ -51,14 +58,13 @@ export class OCRService {
       console.error("PDF processing error:", err);
       return {
         success: false,
-        error: "Failed to process Aadhaar PDF. Please try again."
+        error: `Failed to process Aadhaar PDF: ${err instanceof Error ? err.message : 'Unknown error'}`
       };
     }
   }
 
   private async processPDF(file: File): Promise<string> {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
