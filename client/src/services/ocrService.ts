@@ -76,8 +76,56 @@ export class OCRService {
     pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    // First attempt: Try to open without password
+    try {
+      console.log("🔓 Attempting to open PDF without password...");
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const text = await this.extractTextFromPDF(pdf);
+      
+      // Check if we got meaningful text (not just broken characters)
+      if (text.length > 50 && !this.isTextCorrupted(text)) {
+        console.log("✅ PDF opened successfully without password");
+        console.log("First 500 chars:", text.substring(0, 500));
+        return text;
+      } else {
+        console.log("⚠️ PDF text appears corrupted, might need password");
+        throw new Error("Text appears corrupted");
+      }
+    } catch (error) {
+      console.log("🔒 PDF requires password or failed to open:", error);
+      
+      // PDF is likely password-protected, ask user for password
+      const password = prompt(
+        "This Aadhaar PDF is password protected.\\n\\n" +
+        "Enter the password (usually first 4 letters of name in CAPS + birth year, e.g., ABHI1999):"
+      );
+      
+      if (!password) {
+        throw new Error("Password is required to open this Aadhaar PDF");
+      }
+      
+      console.log(`🔑 Attempting to open PDF with password: ${password.substring(0, 4)}****`);
+      
+      try {
+        const pdfWithPassword = await pdfjsLib.getDocument({ 
+          data: arrayBuffer, 
+          password: password 
+        }).promise;
+        
+        const text = await this.extractTextFromPDF(pdfWithPassword);
+        console.log("✅ PDF opened successfully with password");
+        console.log("First 500 chars:", text.substring(0, 500));
+        return text;
+        
+      } catch (passwordError) {
+        console.error("❌ Failed to open PDF with provided password:", passwordError);
+        throw new Error("Invalid password. Please check and try again.");
+      }
+    }
+  }
 
+  private async extractTextFromPDF(pdf: any): Promise<string> {
     let extractedText = "";
 
     // Extract text from all pages
@@ -87,10 +135,23 @@ export class OCRService {
       const strings = content.items
         .map((item: any) => ("str" in item ? item.str : ""))
         .filter((s: string) => s.trim().length > 0);
-      extractedText += strings.join(" ") + "\n";
+      extractedText += strings.join(" ") + "\\n";
     }
 
     return extractedText.trim();
+  }
+
+  private isTextCorrupted(text: string): boolean {
+    // Check if text contains mostly broken Unicode characters or very little content
+    const meaningfulChars = text.match(/[a-zA-Z0-9]/g) || [];
+    const totalChars = text.replace(/\\s/g, '').length;
+    
+    // If less than 30% of characters are meaningful English/numbers, likely corrupted
+    const meaningfulRatio = meaningfulChars.length / Math.max(totalChars, 1);
+    
+    console.log(`Text analysis: ${meaningfulChars.length}/${totalChars} meaningful chars (${(meaningfulRatio * 100).toFixed(1)}%)`);
+    
+    return meaningfulRatio < 0.3;
   }
 
   private extractAadharInfo(text: string): AadharData | null {
