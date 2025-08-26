@@ -32,7 +32,7 @@ export class OCRService {
       if (!this.isValidFileType(file)) {
         return {
           success: false,
-          error: 'Please upload a valid PDF file (government Aadhar cards only)'
+          error: 'Please upload a valid file format. Supported formats: PDF, JPG, PNG, WEBP (government Aadhar cards only)'
         };
       }
 
@@ -50,7 +50,7 @@ export class OCRService {
       const base64Data = await this.fileToBase64(file);
       
       // Extract text from image using OCR
-      const extractedText = await this.performOCR(base64Data);
+      const extractedText = await this.performOCR(base64Data, file.type);
       console.log('Raw OCR text:', extractedText);
       
       // Parse the extracted text
@@ -107,7 +107,11 @@ export class OCRService {
 
   private isValidFileType(file: File): boolean {
     const validTypes = [
-      'application/pdf'  // Only PDF files accepted
+      'application/pdf',
+      'image/jpeg',
+      'image/jpg', 
+      'image/png',
+      'image/webp'
     ];
     console.log('File type check:', file.type, 'Valid:', validTypes.includes(file.type));
     return validTypes.includes(file.type);
@@ -125,7 +129,7 @@ export class OCRService {
     });
   }
 
-  private async performOCR(base64Data: string): Promise<string> {
+  private async performOCR(base64Data: string, fileType?: string): Promise<string> {
     try {
       // Convert base64 to blob for Tesseract
       const binaryString = atob(base64Data);
@@ -133,7 +137,9 @@ export class OCRService {
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      const blob = new Blob([bytes], { type: 'image/jpeg' });
+      // Use appropriate MIME type, default to image/jpeg for compatibility
+      const mimeType = fileType && fileType.startsWith('image/') ? fileType : 'image/jpeg';
+      const blob = new Blob([bytes], { type: mimeType });
 
       console.log('Starting OCR processing...');
       
