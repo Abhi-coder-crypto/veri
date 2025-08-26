@@ -121,27 +121,65 @@ export class OCRService {
   }
 
   private extractValidAadharNumber(text: string): string {
-    // Find all 12-digit sequences
-    const allNumbers = text.match(/\d{12}|\d{4}\s+\d{4}\s+\d{4}/g) || [];
+    // Split text into lines to analyze context
+    const lines = text.split('\n').map(line => line.trim());
     
-    for (const num of allNumbers) {
-      const cleanNum = num.replace(/\s/g, '');
+    // Find all potential 12-digit numbers (with or without spaces)
+    const numberPattern = /\b\d{4}\s+\d{4}\s+\d{4}\b|\b\d{12}\b/g;
+    const potentialNumbers: Array<{number: string, context: string, lineIndex: number}> = [];
+    
+    lines.forEach((line, index) => {
+      let match;
+      while ((match = numberPattern.exec(line)) !== null) {
+        const cleanNum = match[0].replace(/\s/g, '');
+        if (cleanNum.length === 12) {
+          potentialNumbers.push({
+            number: cleanNum,
+            context: line.toLowerCase(),
+            lineIndex: index
+          });
+        }
+      }
+      // Reset regex for next line
+      numberPattern.lastIndex = 0;
+    });
+
+    // Filter out invalid numbers with strict rules
+    for (const item of potentialNumbers) {
+      const { number, context } = item;
       
-      // Must be exactly 12 digits
-      if (cleanNum.length !== 12) continue;
+      // Rule 1: Must be exactly 12 digits
+      if (number.length !== 12) continue;
       
-      // Ignore VIDs (typically start with 9174 or 9999)
-      if (cleanNum.startsWith('9174') || cleanNum.startsWith('9999')) continue;
+      // Rule 2: Reject if appears after "VID" keyword
+      if (context.includes('vid') && context.indexOf('vid') < context.indexOf(number.substring(0, 4))) {
+        continue;
+      }
       
-      // Ignore phone numbers (typically start with 9, 8, 7, 6)
-      if (cleanNum.startsWith('9') || cleanNum.startsWith('8') || 
-          cleanNum.startsWith('7') || cleanNum.startsWith('6')) continue;
+      // Rule 3: Reject phone numbers (typically start with 9,8,7,6 and appear with mobile context)
+      if ((number.startsWith('9') || number.startsWith('8') || 
+           number.startsWith('7') || number.startsWith('6')) &&
+          (context.includes('mobile') || context.includes('phone'))) {
+        continue;
+      }
       
-      // Ignore sequences of same digit (like 000000000000)
-      if (/^(\d)\1+$/.test(cleanNum)) continue;
+      // Rule 4: Reject enrollment numbers (typically longer or contain slashes)
+      if (context.includes('enrolment') || context.includes('enrollment') || 
+          context.includes('नामांकन') || context.includes('/')) {
+        continue;
+      }
       
-      // Valid Aadhaar number found
-      return cleanNum;
+      // Rule 5: Reject repeated digits
+      if (/^(\d)\1+$/.test(number)) continue;
+      
+      // Rule 6: Additional VID rejection - numbers that commonly appear in VID format
+      if (number.startsWith('9171') || number.startsWith('9174') || 
+          number.startsWith('9999') || number.startsWith('9666')) {
+        continue;
+      }
+      
+      // Valid Aadhaar number found - return the first one that passes all rules
+      return number;
     }
     
     return "";
@@ -149,7 +187,7 @@ export class OCRService {
 
   private extractValidDOB(text: string): string {
     const dobPatterns = [
-      /(?:जन्म\s*तारीख|DOB):\s*(\d{2}\/\d{2}\/\d{4})/i,
+      /(?:जन्म\s*तिथि|जन्म\s*ितिथ|DOB):\s*(\d{2}\/\d{2}\/\d{4})/i,
       /DOB:\s*(\d{2}\/\d{2}\/\d{4})/i,
       /Date\s*of\s*Birth:\s*(\d{2}\/\d{2}\/\d{4})/i
     ];
@@ -171,44 +209,48 @@ export class OCRService {
   }
 
   private extractGender(text: string): string {
-    const genderMatch = text.match(/(पुरुष|MALE|महिला|FEMALE)/i);
+    const genderMatch = text.match(/(पुरुष|पु\s*ष|MALE|महिला|FEMALE)/i);
     if (genderMatch) {
-      const genderText = genderMatch[1].toLowerCase();
-      return (genderText.includes('male') || genderText.includes('पुरुष')) ? "Male" : "Female";
+      const genderText = genderMatch[1].toLowerCase().replace(/\s/g, '');
+      return (genderText.includes('male') || genderText.includes('पुरुष') || genderText.includes('पुष')) ? "Male" : "Female";
     }
     return "";
   }
 
   private extractName(text: string): string {
-    // Method 1: Extract name after "To" section
-    const toMatch = text.match(/\bTo\b\s+(.*?)(?=\n|$)/i);
+    // Method 1: Extract name from "To" section
+    const toMatch = text.match(/\bTo\b\s*([\s\S]*?)(?=\n.*?(?:C\/O:|Flat|Address|VTC|District|PIN|Mobile))/i);
     if (toMatch) {
-      const afterTo = toMatch[1].trim();
-      // Look for English name pattern in the "To" section
-      const nameMatch = afterTo.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})/);
-      if (nameMatch) {
-        const name = nameMatch[1].trim();
-        if (this.isValidName(name)) {
-          return name;
+      const toSection = toMatch[1].trim();
+      // Look for English name (skip Hindi line, take English line)
+      const lines = toSection.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      
+      for (const line of lines) {
+        // Skip Hindi text lines and focus on English names
+        if (!/[अ-ह]/.test(line)) {
+          const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})$/);
+          if (nameMatch && this.isValidName(nameMatch[1])) {
+            return nameMatch[1].trim();
+          }
         }
       }
     }
 
     // Method 2: Find name before address context
-    const addressKeywords = ['Compound', 'Chawl', 'Road', 'Near', 'District', 'State', 'PIN'];
-    const lines = text.split('\n');
+    const addressKeywords = ['C/O:', 'Flat', 'Floor', 'Near', 'District', 'State', 'PIN', 'Maharashtra'];
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     
     for (let i = 0; i < lines.length - 1; i++) {
-      const line = lines[i].trim();
-      const nextLine = lines[i + 1]?.trim() || '';
+      const line = lines[i];
+      const nextFewLines = lines.slice(i + 1, i + 4).join(' ');
       
-      // Check if next line contains address keywords
+      // Check if upcoming lines contain address keywords
       const hasAddressKeywords = addressKeywords.some(keyword => 
-        nextLine.toLowerCase().includes(keyword.toLowerCase())
+        nextFewLines.toLowerCase().includes(keyword.toLowerCase())
       );
       
-      if (hasAddressKeywords) {
-        const nameMatch = line.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})/);
+      if (hasAddressKeywords && !/[अ-ह]/.test(line)) {
+        const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})$/);
         if (nameMatch && this.isValidName(nameMatch[1])) {
           return nameMatch[1].trim();
         }
@@ -249,7 +291,9 @@ export class OCRService {
       'Unique', 'Identification', 'Authority', 'India', 'Government',
       'Compound', 'Chawl', 'Road', 'Near', 'Mandir', 'District', 'State',
       'Maharashtra', 'Details', 'Address', 'Signature', 'Digitally',
-      'Date', 'Issue', 'Download', 'VTC', 'PIN', 'Code'
+      'Date', 'Issue', 'Download', 'VTC', 'PIN', 'Code', 'Floor', 'Wing',
+      'CHS', 'Flat', 'Bhandar', 'Nagar', 'West', 'Thane', 'Download',
+      'Enrolment', 'Mobile'
     ];
 
     const words = name.split(' ');
