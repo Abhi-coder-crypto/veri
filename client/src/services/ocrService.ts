@@ -288,116 +288,128 @@ export class OCRService {
     const midPoint = Math.floor(lines.length / 2);
     const bottomSection = lines.slice(midPoint).join(' ');
     
-    console.log('🎯 TARGETED EXTRACTION FOR GOVERNMENT AADHAR FORMAT');
-    console.log('Looking for patterns like: Aniket Sanjay Rane, 23/03/2001, 4015 9329 2039');
+    console.log('🎯 UNIVERSAL EXTRACTION FOR GOVERNMENT AADHAR FORMAT');
+    console.log('Looking for government Aadhar patterns: Name, DOB (DD/MM/YYYY), 12-digit number');
 
-    // 🆔 EXTRACT AADHAR NUMBER - Government format "4015 9329 2039"
+    // 🆔 EXTRACT AADHAR NUMBER - Government format "XXXX XXXX XXXX"
     let aadharNumber = '';
-    console.log('🔍 Searching for Aadhar number...');
+    console.log('🔍 Searching for 12-digit Aadhar number...');
     
-    // Direct search for your exact format first
-    const directAadharMatch = fullText.match(/4015\s*9329\s*2039/);
-    if (directAadharMatch) {
-      aadharNumber = '401593292039';
-      console.log('✅ DIRECT MATCH: Found your Aadhar number 4015 9329 2039');
-    }
+    const aadharPatterns = [
+      /(\d{4})\s+(\d{4})\s+(\d{4})/g, // "1234 5678 9012" format (most common)
+      /(\d{4})\s*(\d{4})\s*(\d{4})/g, // With minimal or no spacing
+      /(\d{12})/g  // continuous 12 digits as fallback
+    ];
     
-    // General pattern search if direct match fails
-    if (!aadharNumber) {
-      const aadharPatterns = [
-        /(\d{4})\s+(\d{4})\s+(\d{4})/g, // "4015 9329 2039" format
-        /(\d{12})/g  // continuous 12 digits
-      ];
-      
-      for (const pattern of aadharPatterns) {
-        let match;
-        while ((match = pattern.exec(fullText)) !== null) {
-          let number = '';
-          if (match[2] && match[3]) {
-            number = match[1] + match[2] + match[3];
-          } else if (match[1].length === 12) {
-            number = match[1];
-          }
-          
-          if (number.length === 12 && /^\d{12}$/.test(number) && !number.match(/^(.)\1+$/)) {
-            aadharNumber = number;
-            console.log('✅ PATTERN MATCH: Found Aadhar number:', number);
-            break;
-          }
+    for (const pattern of aadharPatterns) {
+      let match;
+      while ((match = pattern.exec(fullText)) !== null) {
+        let number = '';
+        if (match[2] && match[3]) {
+          // Three part number (XXXX XXXX XXXX)
+          number = match[1] + match[2] + match[3];
+        } else if (match[1].length === 12) {
+          // Single 12-digit number
+          number = match[1];
         }
-        if (aadharNumber) break;
+        
+        // Validate: must be exactly 12 digits and not all the same digit
+        if (number.length === 12 && /^\d{12}$/.test(number) && !number.match(/^(.)\1+$/)) {
+          aadharNumber = number;
+          console.log('✅ Found Aadhar number:', 
+            match[2] && match[3] ? `${match[1]} ${match[2]} ${match[3]}` : number
+          );
+          break;
+        }
       }
+      if (aadharNumber) break;
     }
 
-    // 📝 EXTRACT NAME - Target "Aniket Sanjay Rane" format
+    // 📝 EXTRACT NAME - Universal government Aadhar name extraction
     let name = '';
-    console.log('🔍 Searching for name...');
+    console.log('🔍 Searching for candidate name...');
     
-    // Direct search for your exact name first
-    const directNameMatch = fullText.match(/Aniket\s+Sanjay\s+Rane/i);
-    if (directNameMatch) {
-      name = 'Aniket Sanjay Rane';
-      console.log('✅ DIRECT MATCH: Found your name "Aniket Sanjay Rane"');
+    // Strategy 1: Look for names that appear multiple times (government Aadhar shows name twice)
+    const namePattern = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,4})/g;
+    const foundNames = [];
+    let nameMatch;
+    
+    while ((nameMatch = namePattern.exec(fullText)) !== null) {
+      const candidateName = nameMatch[1].trim();
+      // Filter out government/system words
+      if (!candidateName.match(/government|india|unique|identification|authority|enrolment|issue|download/i) &&
+          candidateName.length >= 6 && candidateName.length <= 50) {
+        foundNames.push(candidateName);
+      }
     }
     
-    // General pattern search if direct match fails
+    // Find the name that appears most frequently (usually appears twice in government Aadhar)
+    const nameCounts: { [key: string]: number } = {};
+    foundNames.forEach(n => nameCounts[n] = (nameCounts[n] || 0) + 1);
+    
+    let mostFrequentName = '';
+    let maxCount = 0;
+    for (const [candidateName, count] of Object.entries(nameCounts)) {
+      const numCount = count as number;
+      if (numCount > maxCount && numCount >= 1) {  // Name should appear at least once
+        mostFrequentName = candidateName;
+        maxCount = numCount;
+      }
+    }
+    
+    if (mostFrequentName) {
+      name = mostFrequentName;
+      console.log(`✅ Found name (appeared ${maxCount} times):`, name);
+    }
+    
+    // Strategy 2: If no frequent name, look for names before address patterns
     if (!name) {
-      // Look for English name patterns (3 words, proper case)
-      const namePatterns = [
-        /([A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+)(?=\s|$)/g,  // 3-word names
-        /([A-Z][a-z]+\s+[A-Z][a-z]+)(?=\s+(?:C\/O|Flat|DOB))/gi,  // 2-word names before address/DOB
-      ];
-      
-      for (const pattern of namePatterns) {
-        let match;
-        while ((match = pattern.exec(fullText)) !== null) {
-          const candidateName = match[1].trim();
-          if (candidateName.length >= 6 && candidateName.length <= 50 && 
-              !candidateName.match(/government|india|unique|identification/i)) {
-            name = candidateName;
-            console.log('✅ PATTERN MATCH: Found name:', candidateName);
+      const addressKeywords = ['C/O:', 'Flat', 'Floor', 'Wing', 'Near', 'Nagar'];
+      for (const keyword of addressKeywords) {
+        const keywordIndex = fullText.toUpperCase().indexOf(keyword.toUpperCase());
+        if (keywordIndex > 0) {
+          const beforeKeyword = fullText.substring(0, keywordIndex);
+          const nameBeforeAddress = beforeKeyword.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})(?=\s|$)(?![^]*\b(?:government|india|unique|identification)\b)/gi);
+          if (nameBeforeAddress && nameBeforeAddress.length > 0) {
+            name = nameBeforeAddress[nameBeforeAddress.length - 1].trim();
+            console.log('✅ Found name before address:', name);
             break;
           }
         }
-        if (name) break;
       }
     }
 
-    // 🗓️ EXTRACT DOB - Target "ज म ितिथ/DOB: 23/03/2001" format
+    // 🗓️ EXTRACT DOB - Universal "ज म ितिथ/DOB: DD/MM/YYYY" format
     let dob = '';
     console.log('🔍 Searching for date of birth...');
     
-    // Direct search for your exact DOB first
-    const directDobMatch = fullText.match(/23\/03\/2001/);
-    if (directDobMatch) {
-      dob = '2001-03-23';
-      console.log('✅ DIRECT MATCH: Found your DOB 23/03/2001');
-    }
+    // Look for dates with various patterns, prioritizing those near DOB labels
+    const dobPatterns = [
+      // Priority 1: Near DOB/birth labels
+      /(?:ज\s*म\s*ितिथ|DOB|Date.*Birth)[\s:]*(\d{1,2})\/(\d{1,2})\/(\d{4})/gi,
+      // Priority 2: Before gender indicators
+      /(\d{1,2})\/(\d{1,2})\/(\d{4})(?=\s*(?:पु\s*ष|पुरुष|महिला|Male|Female))/gi,
+      // Priority 3: Any valid birth date pattern (reasonable birth years)
+      /(\d{1,2})\/(\d{1,2})\/(\d{4})/g
+    ];
     
-    // General pattern search if direct match fails
-    if (!dob) {
-      // Look for DOB patterns near the DOB label
-      const dobPatterns = [
-        /(?:ज\s*म\s*ितिथ|DOB)[\s:]*(\d{1,2})\/(\d{1,2})\/(\d{4})/gi,
-        /(\d{1,2})\/(\d{1,2})\/(\d{4})(?=\s*(?:पु\s*ष|महिला|Male|Female))/gi,
-        /(\d{1,2})\/(\d{1,2})\/(\d{4})/g
-      ];
-      
-      for (const pattern of dobPatterns) {
-        let match;
-        while ((match = pattern.exec(fullText)) !== null) {
-          const day = parseInt(match[1]);
-          const month = parseInt(match[2]);
-          const year = parseInt(match[3]);
-          
-          if (year >= 1950 && year <= 2015 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-            dob = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-            console.log('✅ PATTERN MATCH: Found DOB:', `${match[1]}/${match[2]}/${match[3]}`);
-            break;
-          }
+    for (const pattern of dobPatterns) {
+      let match;
+      while ((match = pattern.exec(fullText)) !== null) {
+        const day = parseInt(match[1]);
+        const month = parseInt(match[2]); 
+        const year = parseInt(match[3]);
+        
+        // Validate: reasonable birth year range, valid month/day
+        if (year >= 1950 && year <= 2015 && 
+            month >= 1 && month <= 12 && 
+            day >= 1 && day <= 31) {
+          dob = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+          console.log('✅ Found DOB:', `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`);
+          break;
         }
-        if (dob) break;
       }
+      if (dob) break;
     }
 
     // Extract gender from the full text (more flexible)
