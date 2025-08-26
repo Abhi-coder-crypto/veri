@@ -28,8 +28,6 @@ export class OCRService {
 
   public async processAadharDocument(file: File): Promise<OCRResponse> {
     try {
-      console.log("File info:", file.name, file.type, file.size);
-      
       // Accept PDFs even if browser reports as application/octet-stream
       const isPDF = file.type.includes('pdf') || 
                    file.type === 'application/octet-stream' || 
@@ -43,24 +41,29 @@ export class OCRService {
       }
 
       // Extract text from PDF
-      console.log("Starting PDF processing...");
       const extractedText = await this.processPDF(file);
-      console.log("Extracted text length:", extractedText.length);
-      console.log("Extracted text sample:", extractedText.substring(0, 500));
+      
+      if (!extractedText || extractedText.length < 100) {
+        return {
+          success: false,
+          error: "Unable to extract text from PDF. Please ensure it's a valid UIDAI e-Aadhaar PDF."
+        };
+      }
 
-      // Parse Aadhaar info
+      // Parse Aadhaar info with strict validation
       const aadharData = this.extractAadharInfo(extractedText);
       if (aadharData) {
-        console.log("Successfully extracted Aadhaar data:", aadharData);
-        return { success: true, data: aadharData };
+        return { 
+          success: true, 
+          data: aadharData 
+        };
       }
 
       return {
         success: false,
-        error: "Could not extract Aadhaar details. Please upload a valid UIDAI PDF."
+        error: "Could not extract valid Aadhaar details from PDF. Please ensure all required information is clearly visible."
       };
     } catch (err) {
-      console.error("PDF processing error:", err);
       return {
         success: false,
         error: `Failed to process Aadhaar PDF: ${err instanceof Error ? err.message : 'Unknown error'}`
@@ -91,91 +94,177 @@ export class OCRService {
   }
 
   private extractAadharInfo(text: string): AadharData | null {
-    console.log("Parsing Aadhaar info from text...");
+    const result = {
+      name: "",
+      dob: "",
+      aadhar: "",
+      gender: ""
+    };
+
+    // Extract valid Aadhaar Number (12 digits only, not phone/VID/enrollment)
+    result.aadhar = this.extractValidAadharNumber(text);
+    if (!result.aadhar) return null;
+
+    // Extract DOB with year validation (1900-2015)
+    result.dob = this.extractValidDOB(text);
+    if (!result.dob) return null;
+
+    // Extract Gender
+    result.gender = this.extractGender(text);
+    if (!result.gender) return null;
+
+    // Extract Name using context and fallback methods
+    result.name = this.extractName(text);
+    if (!result.name) return null;
+
+    return result;
+  }
+
+  private extractValidAadharNumber(text: string): string {
+    // Find all 12-digit sequences
+    const allNumbers = text.match(/\d{12}|\d{4}\s+\d{4}\s+\d{4}/g) || [];
     
-    // Extract Aadhaar Number (format: XXXX XXXX XXXX)
-    const aadharMatches = text.match(/(\d{4})\s+(\d{4})\s+(\d{4})/g);
-    let aadharNumber = "";
-    if (aadharMatches && aadharMatches.length > 0) {
-      // Use the first valid Aadhaar number found
-      aadharNumber = aadharMatches[0].replace(/\s/g, "");
-      console.log("Found Aadhaar number:", aadharMatches[0]);
+    for (const num of allNumbers) {
+      const cleanNum = num.replace(/\s/g, '');
+      
+      // Must be exactly 12 digits
+      if (cleanNum.length !== 12) continue;
+      
+      // Ignore VIDs (typically start with 9174 or 9999)
+      if (cleanNum.startsWith('9174') || cleanNum.startsWith('9999')) continue;
+      
+      // Ignore phone numbers (typically start with 9, 8, 7, 6)
+      if (cleanNum.startsWith('9') || cleanNum.startsWith('8') || 
+          cleanNum.startsWith('7') || cleanNum.startsWith('6')) continue;
+      
+      // Ignore sequences of same digit (like 000000000000)
+      if (/^(\d)\1+$/.test(cleanNum)) continue;
+      
+      // Valid Aadhaar number found
+      return cleanNum;
     }
-
-    // Extract DOB (format: DD/MM/YYYY after DOB:)
-    const dobMatch = text.match(/(?:जन्म\s*तारीख|DOB):\s*(\d{2}\/\d{2}\/\d{4})/i);
-    let dob = "";
-    if (dobMatch) {
-      dob = dobMatch[1];
-      console.log("Found DOB:", dob);
-    }
-
-    // Extract Gender (MALE/FEMALE)
-    const genderMatch = text.match(/(पुरुष|MALE|महिला|FEMALE)/i);
-    let gender = "";
-    if (genderMatch) {
-      const genderText = genderMatch[1].toLowerCase();
-      gender = (genderText.includes('male') || genderText.includes('पुरुष')) ? "Male" : "Female";
-      console.log("Found gender:", gender);
-    }
-
-    // Extract Name (English name pattern)
-    let name = "";
     
-    // Method 1: Look for name after "To" and before address
-    const toSection = text.split(/\bTo\b/i)[1];
-    if (toSection) {
-      const nameMatches = toSection.match(/([A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+)/);
-      if (nameMatches) {
-        name = nameMatches[1].trim();
-        console.log("Found name after 'To':", name);
-      }
-    }
+    return "";
+  }
 
-    // Method 2: If not found, look for capitalized name pattern
-    if (!name) {
-      const namePattern = /\b([A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+)\b/g;
-      let match;
-      while ((match = namePattern.exec(text)) !== null) {
-        const candidateName = match[1];
-        // Skip common non-name words
-        if (!candidateName.match(/Unique|Identification|Authority|India|Singh|Compound|Chawl|Road|Near|Mandir|District|State|Maharashtra/)) {
-          if (candidateName.includes('Abhishek') || candidateName.includes('Rajesh')) {
-            name = candidateName;
-            console.log("Found name by pattern:", name);
-            break;
-          }
+  private extractValidDOB(text: string): string {
+    const dobPatterns = [
+      /(?:जन्म\s*तारीख|DOB):\s*(\d{2}\/\d{2}\/\d{4})/i,
+      /DOB:\s*(\d{2}\/\d{2}\/\d{4})/i,
+      /Date\s*of\s*Birth:\s*(\d{2}\/\d{2}\/\d{4})/i
+    ];
+
+    for (const pattern of dobPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const dob = match[1];
+        const year = parseInt(dob.split('/')[2]);
+        
+        // Validate year range (1900-2015)
+        if (year >= 1900 && year <= 2015) {
+          return dob;
         }
       }
     }
 
-    // Method 3: Fallback - look for specific pattern in the sample
-    if (!name) {
-      const specificMatch = text.match(/Abhishek\s+Rajesh\s+Singh/);
-      if (specificMatch) {
-        name = specificMatch[0];
-        console.log("Found name by specific pattern:", name);
+    return "";
+  }
+
+  private extractGender(text: string): string {
+    const genderMatch = text.match(/(पुरुष|MALE|महिला|FEMALE)/i);
+    if (genderMatch) {
+      const genderText = genderMatch[1].toLowerCase();
+      return (genderText.includes('male') || genderText.includes('पुरुष')) ? "Male" : "Female";
+    }
+    return "";
+  }
+
+  private extractName(text: string): string {
+    // Method 1: Extract name after "To" section
+    const toMatch = text.match(/\bTo\b\s+(.*?)(?=\n|$)/i);
+    if (toMatch) {
+      const afterTo = toMatch[1].trim();
+      // Look for English name pattern in the "To" section
+      const nameMatch = afterTo.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})/);
+      if (nameMatch) {
+        const name = nameMatch[1].trim();
+        if (this.isValidName(name)) {
+          return name;
+        }
       }
     }
 
-    console.log("Final extraction results:");
-    console.log("- Name:", name);
-    console.log("- DOB:", dob);
-    console.log("- Aadhaar:", aadharNumber);
-    console.log("- Gender:", gender);
-
-    // Return data if we have the essential fields
-    if (name && dob && aadharNumber && gender) {
-      return {
-        name: name,
-        dob: dob,
-        aadhar: aadharNumber,
-        gender: gender
-      };
+    // Method 2: Find name before address context
+    const addressKeywords = ['Compound', 'Chawl', 'Road', 'Near', 'District', 'State', 'PIN'];
+    const lines = text.split('\n');
+    
+    for (let i = 0; i < lines.length - 1; i++) {
+      const line = lines[i].trim();
+      const nextLine = lines[i + 1]?.trim() || '';
+      
+      // Check if next line contains address keywords
+      const hasAddressKeywords = addressKeywords.some(keyword => 
+        nextLine.toLowerCase().includes(keyword.toLowerCase())
+      );
+      
+      if (hasAddressKeywords) {
+        const nameMatch = line.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})/);
+        if (nameMatch && this.isValidName(nameMatch[1])) {
+          return nameMatch[1].trim();
+        }
+      }
     }
 
-    console.log("Missing required fields - extraction failed");
-    return null;
+    // Method 3: Find most frequent proper noun (fallback)
+    const namePattern = /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g;
+    const foundNames: string[] = [];
+    let match;
+
+    while ((match = namePattern.exec(text)) !== null) {
+      const candidateName = match[1].trim();
+      if (this.isValidName(candidateName)) {
+        foundNames.push(candidateName);
+      }
+    }
+
+    // Return most frequent valid name
+    if (foundNames.length > 0) {
+      const nameCounts: { [key: string]: number } = {};
+      foundNames.forEach(name => {
+        nameCounts[name] = (nameCounts[name] || 0) + 1;
+      });
+
+      const mostFrequent = Object.entries(nameCounts)
+        .sort((a, b) => b[1] - a[1])[0];
+      
+      return mostFrequent[0];
+    }
+
+    return "";
+  }
+
+  private isValidName(name: string): boolean {
+    // Filter out common non-name words
+    const invalidWords = [
+      'Unique', 'Identification', 'Authority', 'India', 'Government',
+      'Compound', 'Chawl', 'Road', 'Near', 'Mandir', 'District', 'State',
+      'Maharashtra', 'Details', 'Address', 'Signature', 'Digitally',
+      'Date', 'Issue', 'Download', 'VTC', 'PIN', 'Code'
+    ];
+
+    const words = name.split(' ');
+    for (const word of words) {
+      if (invalidWords.some(invalid => word.toLowerCase().includes(invalid.toLowerCase()))) {
+        return false;
+      }
+    }
+
+    // Name should be reasonable length and contain only letters and spaces
+    return name.length >= 6 && 
+           name.length <= 50 && 
+           /^[A-Za-z\s]+$/.test(name) &&
+           words.length >= 2 && 
+           words.length <= 4;
   }
 }
 
