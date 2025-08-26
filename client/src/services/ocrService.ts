@@ -77,50 +77,46 @@ export class OCRService {
 
     const arrayBuffer = await file.arrayBuffer();
     
-    // First attempt: Try to open without password
     try {
-      console.log("🔓 Attempting to open PDF without password...");
+      console.log("📄 Opening PDF document...");
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      console.log(`📄 PDF opened successfully. Pages: ${pdf.numPages}`);
+      
       const text = await this.extractTextFromPDF(pdf);
       
-      // Check if we got meaningful text (not just broken characters)
-      if (text.length > 50 && !this.isTextCorrupted(text)) {
-        console.log("✅ PDF opened successfully without password");
-        console.log("First 500 chars:", text.substring(0, 500));
-        return text;
-      } else {
-        console.log("⚠️ PDF text appears corrupted, might need password");
-        throw new Error("Text appears corrupted");
+      if (text.length < 10) {
+        throw new Error("No meaningful text extracted from PDF");
       }
-    } catch (error) {
-      console.log("🔒 PDF requires password or failed to open:", error);
       
-      // PDF is likely password-protected, ask user for password
+      return text;
+      
+    } catch (error) {
+      console.error("❌ Error processing PDF:", error);
+      
+      // If PDF fails to open normally, try with password
       const password = prompt(
-        "This Aadhaar PDF is password protected.\\n\\n" +
-        "Enter the password (usually first 4 letters of name in CAPS + birth year, e.g., ABHI1999):"
+        "PDF processing failed. If this is a password-protected Aadhaar PDF:\\n\\n" +
+        "Enter the password (first 4 letters of name + birth year, e.g., ABHI1999):\\n\\n" +
+        "Or click Cancel if the PDF should work without password:"
       );
       
-      if (!password) {
-        throw new Error("Password is required to open this Aadhaar PDF");
-      }
-      
-      console.log(`🔑 Attempting to open PDF with password: ${password.substring(0, 4)}****`);
-      
-      try {
-        const pdfWithPassword = await pdfjsLib.getDocument({ 
-          data: arrayBuffer, 
-          password: password 
-        }).promise;
-        
-        const text = await this.extractTextFromPDF(pdfWithPassword);
-        console.log("✅ PDF opened successfully with password");
-        console.log("First 500 chars:", text.substring(0, 500));
-        return text;
-        
-      } catch (passwordError) {
-        console.error("❌ Failed to open PDF with provided password:", passwordError);
-        throw new Error("Invalid password. Please check and try again.");
+      if (password) {
+        console.log(`🔑 Retrying with password...`);
+        try {
+          const pdfWithPassword = await pdfjsLib.getDocument({ 
+            data: arrayBuffer, 
+            password: password 
+          }).promise;
+          
+          const text = await this.extractTextFromPDF(pdfWithPassword);
+          return text;
+          
+        } catch (passwordError) {
+          console.error("❌ Failed with password:", passwordError);
+          throw new Error("Could not process PDF with or without password. Please check the file.");
+        }
+      } else {
+        throw new Error(`PDF processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
   }
@@ -130,15 +126,33 @@ export class OCRService {
 
     // Extract text from all pages
     for (let i = 1; i <= pdf.numPages; i++) {
+      console.log(`📄 Processing page ${i}/${pdf.numPages}`);
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
-      const strings = content.items
-        .map((item: any) => ("str" in item ? item.str : ""))
-        .filter((s: string) => s.trim().length > 0);
-      extractedText += strings.join(" ") + "\\n";
+      
+      console.log(`Found ${content.items.length} text items on page ${i}`);
+      
+      // Better text extraction - preserve structure and spacing
+      const textItems = content.items.map((item: any) => {
+        if ('str' in item && item.str.trim()) {
+          console.log(`Text item: "${item.str}"`);
+          return item.str;
+        }
+        return '';
+      }).filter(str => str.length > 0);
+      
+      // Join with spaces and add line breaks
+      const pageText = textItems.join(' ');
+      extractedText += pageText + "\\n";
+      
+      console.log(`Page ${i} text sample:`, pageText.substring(0, 200));
     }
 
-    return extractedText.trim();
+    const finalText = extractedText.trim();
+    console.log("🔍 Final extracted text length:", finalText.length);
+    console.log("🔍 Final text sample:", finalText.substring(0, 500));
+    
+    return finalText;
   }
 
   private isTextCorrupted(text: string): boolean {
