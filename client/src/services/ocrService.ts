@@ -200,8 +200,8 @@ export class OCRService {
     if (dateMatches) {
       for (const date of dateMatches) {
         const year = parseInt(date.split('/')[2]);
-        // Validate year range (1900-2015)
-        if (year >= 1900 && year <= 2015) {
+        // Validate reasonable year range (1900-2030)
+        if (year >= 1900 && year <= 2030) {
           // Check if this date appears near birth-related keywords
           const dateIndex = text.indexOf(date);
           const contextBefore = text.substring(Math.max(0, dateIndex - 50), dateIndex).toLowerCase();
@@ -223,7 +223,7 @@ export class OCRService {
         const dob = match[1];
         const year = parseInt(dob.split('/')[2]);
         
-        if (year >= 1900 && year <= 2015) {
+        if (year >= 1900 && year <= 2030) {
           return dob;
         }
       }
