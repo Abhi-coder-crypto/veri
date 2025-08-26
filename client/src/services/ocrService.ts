@@ -202,63 +202,48 @@ export class OCRService {
   }
 
   private isValidAadharCard(text: string): boolean {
-    const normalizedText = text.toUpperCase().replace(/\s+/g, ' ');
-    console.log('🔍 Validating Aadhar format...');
-    console.log('Text sample:', normalizedText.substring(0, 200) + '...');
+    console.log('🔍 Validating Government Aadhar format...');
     
-    // Check for Aadhar indicators (more flexible)
-    const aadharIndicators = [
-      /GOVERNMENT/,
-      /INDIA/,
-      /भारत/,
-      /सरकार/,
-      /UNIQUE/,
-      /IDENTIFICATION/,
-      /UIDAI/,
-      /AADHAAR/,
-      /आधार/,
-      /ENROLMENT/,
-      /VID/,
-      /DOB/,
-      /जन्म/,
-      /तिथि/,
-      /MALE|FEMALE/,
-      /पुरुष|महिला/
+    // STRICT validation for government Aadhar cards only
+    const requiredIndicators = [
+      /\b\d{4}\s+\d{4}\s+\d{4}\b/,  // 12-digit number with spaces (MUST HAVE)
+      /\d{1,2}\/\d{1,2}\/\d{4}/,     // Date format DD/MM/YYYY (MUST HAVE)
+      /(male|female|पुरुष|महिला)/i,  // Gender (MUST HAVE)
     ];
-    
-    let indicatorCount = 0;
-    const foundIndicators = [];
-    for (const pattern of aadharIndicators) {
-      if (pattern.test(normalizedText)) {
-        indicatorCount++;
-        foundIndicators.push(pattern.source);
+
+    const governmentIndicators = [
+      /enrolment\s*no/i,
+      /issue\s*date/i,
+      /download\s*date/i,
+      /VID\s*:/i,
+      /government/i,
+      /भारत/,
+      /ज.*म.*ितिथ/,
+      /DOB/i,
+    ];
+
+    // Check REQUIRED indicators (all must be present)
+    let requiredCount = 0;
+    for (const indicator of requiredIndicators) {
+      if (indicator.test(text)) {
+        requiredCount++;
+        console.log(`✓ Required: ${indicator.source}`);
       }
     }
-    
-    console.log(`Found ${indicatorCount} Aadhar indicators:`, foundIndicators);
-    
-    // Relax requirement - just need some indicators
-    if (indicatorCount < 2) {
-      console.log('❌ Insufficient Aadhar indicators - may not be valid Aadhar');
-      // Don't reject immediately, continue with lenient processing
+
+    // Check GOVERNMENT indicators (at least 2 must be present)
+    let govCount = 0;
+    for (const indicator of governmentIndicators) {
+      if (indicator.test(text)) {
+        govCount++;
+        console.log(`✓ Government: ${indicator.source}`);
+      }
     }
+
+    const isValid = requiredCount >= 3 && govCount >= 2;
+    console.log(`Government Aadhar Validation: ${isValid} (Required: ${requiredCount}/3, Gov: ${govCount}/8)`);
     
-    // Check for 12-digit number pattern
-    const hasAadharNumber = /\d{4}[\s\-\.]*\d{4}[\s\-\.]*\d{4}|\d{12}/.test(normalizedText);
-    console.log('Has Aadhar number pattern:', hasAadharNumber);
-    
-    // Check for any date pattern
-    const hasDatePattern = /\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4}/.test(normalizedText);
-    console.log('Has date pattern:', hasDatePattern);
-    
-    // More lenient validation - accept if has basic structure
-    if (hasAadharNumber || hasDatePattern || indicatorCount >= 2) {
-      console.log(`✅ Accepting document for processing (${indicatorCount} indicators)`);
-      return true;
-    }
-    
-    console.log('❌ Document does not appear to contain Aadhar-like content');
-    return false;
+    return isValid;
   }
 
 

@@ -380,10 +380,10 @@ const VerificationPage = () => {
             {!aadharUploaded ? (
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors duration-200">
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">Upload your Aadhar Card for verification</p>
+                <p className="text-gray-600 mb-4">Upload your Government Aadhar Card PDF for verification</p>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept=".pdf"
                   onChange={handleAadharUpload}
                   className="hidden"
                   id="aadhar-upload"
@@ -394,17 +394,17 @@ const VerificationPage = () => {
                 >
                   {loading ? 'Processing...' : 'Choose File'}
                 </label>
-                <p className="text-xs text-gray-500 mt-2">Supported formats: JPG, PNG (Max 5MB)</p>
+                <p className="text-xs text-gray-500 mt-2">Only PDF format accepted (Government Aadhar Cards only)</p>
               </div>
             ) : (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <h4 className="font-semibold text-green-800 mb-2">Document Verified</h4>
                 {extractedAadharData && (
-                  <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Name:</span> {extractedAadharData.name}</p>
-                    <p><span className="font-medium">Date of Birth:</span> {new Date(extractedAadharData.dob).toLocaleDateString()}</p>
-                    <p><span className="font-medium">Aadhar Number:</span> {extractedAadharData.aadhar}</p>
-                    <p><span className="font-medium">Gender:</span> {extractedAadharData.gender}</p>
+                  <div className="space-y-2 text-sm font-mono bg-white p-4 rounded border">
+                    <p><strong>Name:</strong> {extractedAadharData.name}</p>
+                    <p><strong>DOB:</strong> {extractedAadharData.dob.split('-').reverse().join('/')}</p>
+                    <p><strong>Aadhar:</strong> {extractedAadharData.aadhar.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3')}</p>
+                    <p><strong>Gender:</strong> {extractedAadharData.gender}</p>
                   </div>
                 )}
               </div>
