@@ -196,14 +196,16 @@ export class OCRService {
     console.log('PDF content length:', pdfContent.length);
     
     try {
-      // Focus on the left side where the key personal information is displayed
+      // Focus on the bottom section where the 4 key details are formatted together
       const lines = pdfContent.split(/\n|\r/);
       console.log('📄 Total lines in PDF:', lines.length);
       
-      // Look for the key information in the entire document but focus on left side patterns
-      const leftSideContent = pdfContent;
+      // Target the bottom 30% of the document where the formatted details appear
+      const bottomSectionStart = Math.floor(lines.length * 0.7);
+      const bottomSection = lines.slice(bottomSectionStart).join('\n');
       
-      console.log('📍 Analyzing PDF for left side personal information...');
+      console.log('📍 Analyzing BOTTOM SECTION for the 4 key details...');
+      console.log('🎯 Bottom section content:', bottomSection.substring(0, 200) + '...');
       
       const extractedData = {
         name_hindi: '',
@@ -220,37 +222,14 @@ export class OCRService {
         extractedData.enrollmentNo = enrollmentMatch[0];
       }
       
-      // 2. Extract Aadhar Number (large bold number at bottom)
-      console.log('🔍 Searching for Aadhar number patterns...');
-      
-      // Look for 12-digit numbers in XXXX XXXX XXXX format
-      const aadharPatterns = [
-        /(\d{4})\s+(\d{4})\s+(\d{4})/g,
-        /(\d{4})\s*(\d{4})\s*(\d{4})/g,
-        /(\d{12})/g
-      ];
-      
-      const allAadharNumbers: string[] = [];
-      aadharPatterns.forEach(pattern => {
-        const matches = leftSideContent.match(pattern);
-        if (matches) {
-          matches.forEach(match => {
-            // Clean and format the number
-            const cleanNumber = match.replace(/\s+/g, '');
-            if (cleanNumber.length === 12 && /^\d{12}$/.test(cleanNumber)) {
-              const formatted = `${cleanNumber.slice(0,4)} ${cleanNumber.slice(4,8)} ${cleanNumber.slice(8,12)}`;
-              allAadharNumbers.push(formatted);
-            }
-          });
-        }
-      });
-      
-      console.log('📋 All found Aadhar patterns:', allAadharNumbers);
-      
-      if (allAadharNumbers.length > 0) {
-        // Take the most frequent one (main Aadhar number appears multiple times)
+      // 2. Extract Aadhar Number from BOTTOM SECTION (XXXX XXXX XXXX format)
+      console.log('🔍 Searching for Aadhar number in BOTTOM SECTION...');
+      const aadharMatches = bottomSection.match(/(\d{4})\s+(\d{4})\s+(\d{4})/g);
+      if (aadharMatches) {
+        console.log('📋 Found Aadhar patterns in bottom section:', aadharMatches);
+        // Take the most frequent one (appears multiple times in bottom section)
         const aadharCounts: {[key: string]: number} = {};
-        allAadharNumbers.forEach(num => {
+        aadharMatches.forEach(num => {
           aadharCounts[num] = (aadharCounts[num] || 0) + 1;
         });
         const mostFrequent = Object.entries(aadharCounts).sort((a, b) => b[1] - a[1])[0];
@@ -260,74 +239,64 @@ export class OCRService {
         }
       }
       
-      // 3. Extract DOB (जन्म तारीख/DOB: DD/MM/YYYY format) 
-      console.log('🔍 Searching for DOB patterns...');
+      // 3. Extract DOB from BOTTOM SECTION (Date of Birth/DOB: DD/MM/YYYY format) 
+      console.log('🔍 Searching for DOB in BOTTOM SECTION...');
       const dobPatterns = [
-        /(?:जन्म\s*तारीख|ज\s*म\s*ितिथ)\/DOB:\s*(\d{1,2}\/\d{1,2}\/\d{4})/gi,
-        /(?:जन्म\s*तारीख|ज\s*म\s*ितिथ)[\s\/]*DOB[\s:]*(\d{1,2}\/\d{1,2}\/\d{4})/gi,
+        /Date\s*of\s*Birth\/DOB:\s*(\d{1,2}\/\d{1,2}\/\d{4})/gi,
         /DOB:\s*(\d{1,2}\/\d{1,2}\/\d{4})/gi,
-        /(\d{1,2}\/\d{1,2}\/\d{4})/g
+        /Birth\/DOB:\s*(\d{1,2}\/\d{1,2}\/\d{4})/gi
       ];
       
       for (const pattern of dobPatterns) {
-        const dobMatches = leftSideContent.match(pattern);
+        const dobMatches = bottomSection.match(pattern);
         if (dobMatches) {
-          console.log('📋 Found DOB patterns:', dobMatches);
+          console.log('📋 Found DOB patterns in bottom section:', dobMatches);
           for (const match of dobMatches) {
             const dateOnly = match.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
             if (dateOnly) {
-              const year = parseInt(dateOnly[1].split('/')[2]);
-              // Filter for realistic birth years (1940-2010)
-              if (year >= 1940 && year <= 2010) {
-                extractedData.dob = dateOnly[1];
-                console.log('✅ DATE OF BIRTH:', extractedData.dob);
-                break;
-              }
+              extractedData.dob = dateOnly[1];
+              console.log('✅ DATE OF BIRTH:', extractedData.dob);
+              break;
             }
           }
           if (extractedData.dob) break;
         }
       }
       
-      // 4. Extract Gender (पुरुष/MALE or महिला/FEMALE format)
-      console.log('🔍 Searching for Gender patterns...');
-      const genderMatches = leftSideContent.match(/(?:पुरुष|पु\s*ष)\/?\s*MALE|(?:महिला)\/?\s*FEMALE|MALE|FEMALE/gi);
+      // 4. Extract Gender from BOTTOM SECTION (Female/FEMALE or Male/MALE format)
+      console.log('🔍 Searching for Gender in BOTTOM SECTION...');
+      const genderMatches = bottomSection.match(/Female\/\s*FEMALE|Male\/\s*MALE|FEMALE|MALE/gi);
       if (genderMatches) {
-        console.log('📋 Found gender patterns:', genderMatches);
+        console.log('📋 Found gender patterns in bottom section:', genderMatches);
         const gender = genderMatches[0].toLowerCase();
-        extractedData.gender = (gender.includes('male') || gender.includes('पुरुष') || gender.includes('पु')) ? 'MALE' : 'FEMALE';
+        extractedData.gender = gender.includes('male') ? 'MALE' : 'FEMALE';
         console.log('✅ GENDER:', extractedData.gender);
       }
       
-      // 5. Extract Names (Hindi and English name patterns)
-      console.log('🔍 Searching for names...');
+      // 5. Extract Names from BOTTOM SECTION 
+      console.log('🔍 Searching for names in BOTTOM SECTION...');
       
-      // Extract English name - look for names that appear frequently
-      const englishNameMatches = leftSideContent.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g);
+      // Extract English name from bottom section (appears above DOB line)
+      const englishNameMatches = bottomSection.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g);
       if (englishNameMatches) {
-        console.log('📋 All English name patterns found:', englishNameMatches);
+        console.log('📋 English name patterns found in bottom section:', englishNameMatches);
         
-        // Count frequency and filter out common non-names
-        const nameCounts: {[key: string]: number} = {};
-        englishNameMatches.forEach((name: string) => {
-          if (!name.match(/(?:To|Address|Date|Issue|Download|Authority|India|Government|Digitally|Signature|Details|Mobile|PIN|Code|State|District|VTC|Floor|Wing|Flat|Near|Road|Compound|Chawl|Maharashtra|Thane|Ulhasnagar|Enrolment|Unique|Identification|Aadhaar)/i) &&
-              name.length >= 6 && name.length <= 50) {
-            nameCounts[name] = (nameCounts[name] || 0) + 1;
-          }
-        });
+        // Filter out non-names and find the clean person name
+        const validNames = englishNameMatches.filter(name => 
+          !name.match(/(?:Date|Birth|DOB|Female|Male|Address|Details|VID|Aadhaar)/i) &&
+          name.length >= 6 && name.length <= 50
+        );
         
-        // Get the most frequent name (person's name appears multiple times)
-        const mostFrequent = Object.entries(nameCounts).sort((a, b) => b[1] - a[1])[0];
-        if (mostFrequent && mostFrequent[1] > 1) {
-          extractedData.name_english = mostFrequent[0];
-          console.log('✅ ENGLISH NAME:', extractedData.name_english, `(appeared ${mostFrequent[1]} times)`);
+        if (validNames.length > 0) {
+          extractedData.name_english = validNames[0];
+          console.log('✅ ENGLISH NAME:', extractedData.name_english);
         }
       }
       
-      // Extract Hindi name 
-      const hindiNameMatches = leftSideContent.match(/([अ-ह][अ-ह\s]{3,40})/g);
+      // Extract Hindi name from bottom section
+      const hindiNameMatches = bottomSection.match(/([अ-ह][अ-ह\s]{3,40})/g);
       if (hindiNameMatches) {
-        console.log('📋 All Hindi name patterns found:', hindiNameMatches);
+        console.log('📋 Hindi name patterns found in bottom section:', hindiNameMatches);
         
         // Take the first reasonable Hindi name
         for (const name of hindiNameMatches) {
@@ -340,14 +309,14 @@ export class OCRService {
         }
       }
       
-      // Fallback: If still no English name found, try one more time with looser criteria
+      // Fallback: If no English name found in bottom section, search entire document
       if (!extractedData.name_english) {
-        console.log('🔄 Fallback: Searching for any repeated English names...');
-        const allEnglishNames = leftSideContent.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g);
+        console.log('🔄 Fallback: Searching entire document for repeated English names...');
+        const allEnglishNames = pdfContent.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g);
         if (allEnglishNames) {
           const fallbackNameCounts: {[key: string]: number} = {};
           allEnglishNames.forEach((name: string) => {
-            if (!name.match(/(?:To|Address|Date|Issue|Download|Authority|India|Government|Digitally|Signature|Details|Mobile|PIN|Code|State|District|VTC|Floor|Wing|Flat|Near|Road|Compound|Chawl|Maharashtra|Thane|Ulhasnagar|Enrolment|Unique|Identification)/i) &&
+            if (!name.match(/(?:To|Address|Date|Issue|Download|Authority|India|Government|Digitally|Signature|Details|Mobile|PIN|Code|State|District|VTC|Floor|Wing|Flat|Near|Road|Compound|Chawl|Maharashtra|Thane|Ulhasnagar|Enrolment|Unique|Identification|Birth|Female|Male)/i) &&
                 name.length >= 6 && name.length <= 50) {
               fallbackNameCounts[name] = (fallbackNameCounts[name] || 0) + 1;
             }
