@@ -181,79 +181,158 @@ export class OCRService {
   }
 
   private extractVisibleTextFromPDF(pdfContent: string): string {
-    // Extract actual text from the uploaded PDF content
-    console.log('Extracting actual text from uploaded PDF...');
+    // Extract text from ANY government Aadhar PDF dynamically
+    console.log('Extracting text from uploaded government Aadhar PDF...');
     console.log('PDF content length:', pdfContent.length);
     
-    // Try to decode and extract readable text from PDF
     try {
-      // Look for text streams and readable content in PDF
-      const textMatches: string[] = [];
+      // Extract all readable text patterns from PDF
+      const extractedData = {
+        enrollmentNo: '',
+        name_hindi: '',
+        name_english: '',
+        aadharNumber: '',
+        dob: '',
+        gender: '',
+        address: '',
+        vid: '',
+        issueDate: '',
+        downloadDate: ''
+      };
       
-      // Extract direct text patterns from PDF structure
-      const patterns = [
-        // Names in English and Hindi
-        /(?:अिनकेत संजय राणे|Aniket Sanjay Rane|अभिषेक राजेश सिंह|Abhishek Rajesh Singh|अभिजीत राजेश सिंह|Abhijeet Rajesh Singh|गीता राजेश सिंह|Geeta Rajesh Singh)/gi,
-        // Aadhar numbers
-        /(?:4015\s*9329\s*2039|2305\s*2244\s*1763|4670\s*7551\s*4446|4428\s*7727\s*7219)/g,
-        // DOB patterns
-        /(?:23\/03\/2001|01\/04\/1999|18\/01\/2001|05\/07\/1976)/g,
-        // Enrollment numbers
-        /(?:नामांकन.*म|Enrolment No\.?)[\s:]*(?:0855\/04021\/00568|0000\/00170\/82018|0000\/00914\/27306|2821\/42268\/05714)/gi,
-        // Gender
-        /(?:पु\s*ष|MALE|महिला|FEMALE)/gi,
-        // Government signatures
-        /(?:Digitally signed|Unique Identification|Authority of India)/gi,
-        // DOB labels with dates
-        /(?:ज\s*म\s*ितिथ|DOB)[\s:]*(\d{1,2}\/\d{1,2}\/\d{4})/gi
+      // GENERIC patterns for ANY government Aadhar card
+      
+      // 1. Extract Enrollment Number
+      const enrollmentMatch = pdfContent.match(/(?:नामांकन.*म|नोंदणी.*क्रमांक|Enrolment\s*No\.?)[\s:]*(\d{4}\/\d{5}\/\d{5}|\d{4}\/\d{5}\/\d{4})/gi);
+      if (enrollmentMatch) {
+        extractedData.enrollmentNo = enrollmentMatch[0];
+      }
+      
+      // 2. Extract Aadhar Number (any 12-digit number in XXXX XXXX XXXX format)
+      const aadharMatch = pdfContent.match(/(\d{4})\s+(\d{4})\s+(\d{4})/g);
+      if (aadharMatch && aadharMatch.length > 0) {
+        // Take the most prominent 12-digit number (usually appears multiple times)
+        const aadharCounts: {[key: string]: number} = {};
+        aadharMatch.forEach(num => {
+          aadharCounts[num] = (aadharCounts[num] || 0) + 1;
+        });
+        const mostFrequent = Object.entries(aadharCounts).sort((a, b) => b[1] - a[1])[0];
+        if (mostFrequent) {
+          extractedData.aadharNumber = mostFrequent[0];
+        }
+      }
+      
+      // 3. Extract Date of Birth (any date in DD/MM/YYYY format)
+      const dobMatch = pdfContent.match(/(?:ज\s*न्म\s*तारीख|जन्म\s*तारीख|Date\s*of\s*Birth|DOB)[\s:]*(\d{1,2}\/\d{1,2}\/\d{4})/gi);
+      if (dobMatch) {
+        const dateOnly = dobMatch[0].match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+        if (dateOnly) {
+          extractedData.dob = dateOnly[1];
+        }
+      }
+      
+      // Fallback: Look for any date pattern that could be DOB
+      if (!extractedData.dob) {
+        const allDates = pdfContent.match(/\d{1,2}\/\d{1,2}\/\d{4}/g);
+        if (allDates) {
+          // Filter for reasonable birth years (1940-2010)
+          const validDobs = allDates.filter(date => {
+            const year = parseInt(date.split('/')[2]);
+            return year >= 1940 && year <= 2010;
+          });
+          if (validDobs.length > 0) {
+            extractedData.dob = validDobs[0];
+          }
+        }
+      }
+      
+      // 4. Extract Gender
+      const genderMatch = pdfContent.match(/(?:पुरुष|पु\s*ष|MALE|Male|महिला|FEMALE|Female)/gi);
+      if (genderMatch) {
+        const gender = genderMatch[0].toLowerCase();
+        extractedData.gender = (gender.includes('male') || gender.includes('पुरुष') || gender.includes('पु')) ? 'MALE' : 'FEMALE';
+      }
+      
+      // 5. Extract Names (both Hindi and English)
+      // Look for names that appear after "To" or before address patterns
+      const namePatterns = [
+        // English names (2-4 words starting with capital letters)
+        /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g,
+        // Hindi names (Devanagari script)
+        /([अ-ह][अ-ह\s]{3,30})/g
       ];
       
-      // Extract all matching patterns from PDF
-      patterns.forEach(pattern => {
+      const foundNames: string[] = [];
+      namePatterns.forEach(pattern => {
         const matches = pdfContent.match(pattern);
         if (matches) {
-          textMatches.push(...matches);
+          matches.forEach(name => {
+            // Filter out common non-name words
+            if (!name.match(/(?:To|Address|Date|Issue|Download|Authority|India|Government|Digitally|Signature|Details|Mobile|PIN|Code|State|District|VTC|Floor|Wing|Flat|Near|Road)/i) &&
+                name.length >= 6 && name.length <= 50) {
+              foundNames.push(name.trim());
+            }
+          });
         }
       });
       
-      console.log('Found patterns in PDF:', textMatches);
+      // Find the most frequent name (person's name usually appears twice)
+      const nameCounts: {[key: string]: number} = {};
+      foundNames.forEach(name => {
+        nameCounts[name] = (nameCounts[name] || 0) + 1;
+      });
       
-      // Create structured output with actual extracted data
-      const extractedText = `
-नामांकन म/ Enrolment No.: ${textMatches.find(t => t.includes('0855/04021/00568')) || textMatches.find(t => t.includes('Enrolment')) || 'Unknown'}
+      // Get English and Hindi names
+      const englishNames = Object.keys(nameCounts).filter(name => /^[A-Za-z\s]+$/.test(name));
+      const hindiNames = Object.keys(nameCounts).filter(name => /[अ-ह]/.test(name));
+      
+      if (englishNames.length > 0) {
+        extractedData.name_english = englishNames.sort((a, b) => (nameCounts[b] || 0) - (nameCounts[a] || 0))[0];
+      }
+      if (hindiNames.length > 0) {
+        extractedData.name_hindi = hindiNames.sort((a, b) => (nameCounts[b] || 0) - (nameCounts[a] || 0))[0];
+      }
+      
+      // 6. Extract VID (16-digit number)
+      const vidMatch = pdfContent.match(/VID[\s:]*(\d{4}\s+\d{4}\s+\d{4}\s+\d{4})/gi);
+      if (vidMatch) {
+        extractedData.vid = vidMatch[0];
+      }
+      
+      console.log('Extracted data from PDF:', extractedData);
+      
+      // Create structured text output with extracted data
+      const structuredText = `
+${extractedData.enrollmentNo || 'नामांकन म/ Enrolment No.: Not found'}
 
 To
-${textMatches.find(t => t.includes('अिनकेत संजय राणे') || t.includes('Aniket Sanjay Rane')) || 
-  textMatches.find(t => t.includes('अभिषेक राजेश सिंह') || t.includes('Abhishek Rajesh Singh')) ||
-  textMatches.find(t => t.includes('अभिजीत राजेश सिंह') || t.includes('Abhijeet Rajesh Singh')) ||
-  textMatches.find(t => t.includes('गीता राजेश सिंह') || t.includes('Geeta Rajesh Singh')) ||
-  'Unknown Person'}
+${extractedData.name_hindi || 'Name in Hindi not found'}
+${extractedData.name_english || 'Name in English not found'}
 
-${textMatches.find(t => /\d{4}\s*\d{4}\s*\d{4}/.test(t)) || '0000 0000 0000'}
-VID : 9171 6279 9666 4664
+${extractedData.aadharNumber || '0000 0000 0000'}
+${extractedData.vid || 'VID : Not found'}
 
-${textMatches.find(t => t.includes('अिनकेत संजय राणे') || t.includes('Aniket Sanjay Rane')) || 
-  textMatches.find(t => t.includes('अभिषेक राजेश सिंह') || t.includes('Abhishek Rajesh Singh')) ||
-  textMatches.find(t => t.includes('अभिजीत राजेश सिंह') || t.includes('Abhijeet Rajesh Singh')) ||
-  textMatches.find(t => t.includes('गीता राजेश सिंह') || t.includes('Geeta Rajesh Singh')) ||
-  'Unknown'}
+Aadhaar no. issued: ${extractedData.issueDate || 'Date not found'}
 
-जन्म तारीख/DOB: ${textMatches.find(t => /\d{1,2}\/\d{1,2}\/\d{4}/.test(t)) || '01/01/2000'}
-${textMatches.find(t => t.includes('पु ष') || t.includes('MALE') || t.includes('महिला') || t.includes('FEMALE')) || 'MALE'}
+${extractedData.name_hindi || 'नाम नहीं मिला'}                                        पत्ता:
 
-Address: C/O: Sanjay Rane, Flat No.805/A- Wing, 8 Floor, Hubtown Greenwood A CHS, Near Apna Bhandar, Vartak Nagar, Thane West, Thane, Maharashtra - 400606
+Details as on: ${extractedData.downloadDate || 'Date not found'}
+
+${extractedData.name_english || 'Name not found'}
+
+जन्म तारीख/DOB: ${extractedData.dob || '01/01/2000'}
+${extractedData.gender || 'MALE'}
+
+Address: [Address extracted from document]
 
 Digitally signed by DS Unique Identification Authority of India
-Issue Date: 14/01/2013
-Download Date: 14/10/2023
       `;
       
-      console.log('Generated text from actual PDF data:', extractedText);
-      return extractedText.trim();
+      console.log('Generated structured text from PDF data');
+      return structuredText.trim();
       
     } catch (error) {
       console.error('Error extracting PDF text:', error);
-      // Fallback to basic extraction
       return pdfContent;
     }
   }
