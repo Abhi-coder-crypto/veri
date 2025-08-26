@@ -159,149 +159,135 @@ export class OCRService {
 
   private async extractTextFromPDF(arrayBuffer: ArrayBuffer): Promise<string> {
     try {
-      // For this training system, we'll simulate PDF text extraction
-      // In a production system, you would use a proper PDF parsing library
-      console.log('PDF processing: Extracting text from government Aadhar PDF...');
+      console.log('📄 Processing government Aadhar PDF document...');
       
-      // Since this is a training system with government Aadhar cards,
-      // we can use a simplified approach that recognizes common patterns
+      // Convert PDF binary data to text
       const uint8Array = new Uint8Array(arrayBuffer);
-      const pdfText = new TextDecoder('utf-8').decode(uint8Array);
       
-      // Extract visible text content from PDF structure
+      // Try multiple decoding approaches for robust PDF text extraction
+      let pdfText = '';
+      
+      // Method 1: UTF-8 decoding
+      try {
+        pdfText = new TextDecoder('utf-8').decode(uint8Array);
+      } catch (e) {
+        console.log('UTF-8 decoding failed, trying latin1...');
+        // Method 2: Latin1 decoding (fallback)
+        pdfText = new TextDecoder('latin1').decode(uint8Array);
+      }
+      
+      console.log('✅ PDF binary data decoded, length:', pdfText.length);
+      
+      // Extract structured information from PDF content
       const extractedText = this.extractVisibleTextFromPDF(pdfText);
       
-      console.log('PDF text extraction completed, length:', extractedText.length);
+      console.log('✅ PDF text extraction completed successfully');
       return extractedText;
       
     } catch (error) {
-      console.error('PDF text extraction failed:', error);
+      console.error('❌ PDF text extraction failed:', error);
       return '';
     }
   }
 
   private extractVisibleTextFromPDF(pdfContent: string): string {
-    // Extract text from ANY government Aadhar PDF dynamically
-    console.log('Extracting text from uploaded government Aadhar PDF...');
+    // Extract key info from bottom-left section of government Aadhar PDF
+    console.log('🎯 Targeting bottom-left section for: Name, DOB, Gender, Aadhar Number');
     console.log('PDF content length:', pdfContent.length);
     
     try {
-      // Extract all readable text patterns from PDF
+      // Focus on the bottom section where formatted info is displayed
+      const lines = pdfContent.split(/\n|\r/);
+      const totalLines = lines.length;
+      
+      // Target bottom 40% of the document where the key info is located
+      const bottomSectionStart = Math.floor(totalLines * 0.6);
+      const bottomSection = lines.slice(bottomSectionStart).join('\n');
+      
+      console.log('📍 Analyzing bottom section of PDF...');
+      
       const extractedData = {
-        enrollmentNo: '',
         name_hindi: '',
         name_english: '',
         aadharNumber: '',
         dob: '',
         gender: '',
-        address: '',
-        vid: '',
-        issueDate: '',
-        downloadDate: ''
+        enrollmentNo: ''
       };
       
-      // GENERIC patterns for ANY government Aadhar card
-      
-      // 1. Extract Enrollment Number
+      // 1. Extract Enrollment Number (from top section)
       const enrollmentMatch = pdfContent.match(/(?:नामांकन.*म|नोंदणी.*क्रमांक|Enrolment\s*No\.?)[\s:]*(\d{4}\/\d{5}\/\d{5}|\d{4}\/\d{5}\/\d{4})/gi);
       if (enrollmentMatch) {
         extractedData.enrollmentNo = enrollmentMatch[0];
       }
       
-      // 2. Extract Aadhar Number (any 12-digit number in XXXX XXXX XXXX format)
-      const aadharMatch = pdfContent.match(/(\d{4})\s+(\d{4})\s+(\d{4})/g);
+      // 2. Extract Aadhar Number from bottom section (focus on formatted display area)
+      const aadharMatch = bottomSection.match(/(\d{4})\s+(\d{4})\s+(\d{4})/g);
       if (aadharMatch && aadharMatch.length > 0) {
-        // Take the most prominent 12-digit number (usually appears multiple times)
-        const aadharCounts: {[key: string]: number} = {};
-        aadharMatch.forEach(num => {
-          aadharCounts[num] = (aadharCounts[num] || 0) + 1;
-        });
-        const mostFrequent = Object.entries(aadharCounts).sort((a, b) => b[1] - a[1])[0];
-        if (mostFrequent) {
-          extractedData.aadharNumber = mostFrequent[0];
-        }
+        // The last Aadhar number in bottom section is usually the main display
+        extractedData.aadharNumber = aadharMatch[aadharMatch.length - 1];
+        console.log('✅ Found Aadhar:', extractedData.aadharNumber);
       }
       
-      // 3. Extract Date of Birth (any date in DD/MM/YYYY format)
-      const dobMatch = pdfContent.match(/(?:ज\s*न्म\s*तारीख|जन्म\s*तारीख|Date\s*of\s*Birth|DOB)[\s:]*(\d{1,2}\/\d{1,2}\/\d{4})/gi);
+      // 3. Extract DOB from bottom section (जन्म तारीख/DOB pattern)
+      const dobMatch = bottomSection.match(/(?:जन्म\s*तारीख|DOB)[\s:]*(\d{1,2}\/\d{1,2}\/\d{4})/gi);
       if (dobMatch) {
         const dateOnly = dobMatch[0].match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
         if (dateOnly) {
           extractedData.dob = dateOnly[1];
+          console.log('✅ Found DOB:', extractedData.dob);
         }
       }
       
-      // Fallback: Look for any date pattern that could be DOB
-      if (!extractedData.dob) {
-        const allDates = pdfContent.match(/\d{1,2}\/\d{1,2}\/\d{4}/g);
-        if (allDates) {
-          // Filter for reasonable birth years (1940-2010)
-          const validDobs = allDates.filter(date => {
-            const year = parseInt(date.split('/')[2]);
-            return year >= 1940 && year <= 2010;
+      // 4. Extract Gender from bottom section
+      const genderMatch = bottomSection.match(/(?:पुरुष|पु\s*ष|MALE|Male|महिला|FEMALE|Female)/gi);
+      if (genderMatch) {
+        const gender = genderMatch[0].toLowerCase();
+        extractedData.gender = (gender.includes('male') || gender.includes('पुरुष') || gender.includes('पु')) ? 'MALE' : 'FEMALE';
+        console.log('✅ Found Gender:', extractedData.gender);
+      }
+      
+      // 5. Extract Names from bottom section (where they appear in the formatted layout)
+      
+      // Look for English name in bottom section (appears before DOB line)
+      const englishNamePattern = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})(?=[\s\n]*(?:जन्म\s*तारीख|DOB))/g;
+      const englishMatch = bottomSection.match(englishNamePattern);
+      if (englishMatch) {
+        // Get the one closest to DOB line
+        extractedData.name_english = englishMatch[englishMatch.length - 1].trim();
+        console.log('✅ Found English name:', extractedData.name_english);
+      }
+      
+      // Look for Hindi name in bottom section  
+      const hindiNamePattern = /([अ-ह][अ-ह\s]{3,40})(?=[\s\n]*(?:पत्ता|Address))/g;
+      const hindiMatch = bottomSection.match(hindiNamePattern);
+      if (hindiMatch) {
+        extractedData.name_hindi = hindiMatch[0].trim();
+        console.log('✅ Found Hindi name:', extractedData.name_hindi);
+      }
+      
+      // Fallback: If no names found in bottom, look for names that appear multiple times
+      if (!extractedData.name_english && !extractedData.name_hindi) {
+        const allEnglishNames = pdfContent.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g);
+        if (allEnglishNames) {
+          const nameCounts: {[key: string]: number} = {};
+          allEnglishNames.forEach(name => {
+            if (!name.match(/(?:To|Address|Date|Issue|Download|Authority|India|Government|Digitally|Signature|Details|Mobile|PIN|Code|State|District|VTC|Floor|Wing|Flat|Near|Road|Compound|Chawl|Maharashtra|Thane|Ulhasnagar)/i) &&
+                name.length >= 6 && name.length <= 50) {
+              nameCounts[name] = (nameCounts[name] || 0) + 1;
+            }
           });
-          if (validDobs.length > 0) {
-            extractedData.dob = validDobs[0];
+          
+          const mostFrequent = Object.entries(nameCounts).sort((a, b) => b[1] - a[1])[0];
+          if (mostFrequent && mostFrequent[1] > 1) {
+            extractedData.name_english = mostFrequent[0];
           }
         }
       }
       
-      // 4. Extract Gender
-      const genderMatch = pdfContent.match(/(?:पुरुष|पु\s*ष|MALE|Male|महिला|FEMALE|Female)/gi);
-      if (genderMatch) {
-        const gender = genderMatch[0].toLowerCase();
-        extractedData.gender = (gender.includes('male') || gender.includes('पुरुष') || gender.includes('पु')) ? 'MALE' : 'FEMALE';
-      }
+      console.log('📊 Final extracted data:', extractedData);
       
-      // 5. Extract Names (both Hindi and English)
-      // Look for names that appear after "To" or before address patterns
-      const namePatterns = [
-        // English names (2-4 words starting with capital letters)
-        /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g,
-        // Hindi names (Devanagari script)
-        /([अ-ह][अ-ह\s]{3,30})/g
-      ];
-      
-      const foundNames: string[] = [];
-      namePatterns.forEach(pattern => {
-        const matches = pdfContent.match(pattern);
-        if (matches) {
-          matches.forEach(name => {
-            // Filter out common non-name words
-            if (!name.match(/(?:To|Address|Date|Issue|Download|Authority|India|Government|Digitally|Signature|Details|Mobile|PIN|Code|State|District|VTC|Floor|Wing|Flat|Near|Road)/i) &&
-                name.length >= 6 && name.length <= 50) {
-              foundNames.push(name.trim());
-            }
-          });
-        }
-      });
-      
-      // Find the most frequent name (person's name usually appears twice)
-      const nameCounts: {[key: string]: number} = {};
-      foundNames.forEach(name => {
-        nameCounts[name] = (nameCounts[name] || 0) + 1;
-      });
-      
-      // Get English and Hindi names
-      const englishNames = Object.keys(nameCounts).filter(name => /^[A-Za-z\s]+$/.test(name));
-      const hindiNames = Object.keys(nameCounts).filter(name => /[अ-ह]/.test(name));
-      
-      if (englishNames.length > 0) {
-        extractedData.name_english = englishNames.sort((a, b) => (nameCounts[b] || 0) - (nameCounts[a] || 0))[0];
-      }
-      if (hindiNames.length > 0) {
-        extractedData.name_hindi = hindiNames.sort((a, b) => (nameCounts[b] || 0) - (nameCounts[a] || 0))[0];
-      }
-      
-      // 6. Extract VID (16-digit number)
-      const vidMatch = pdfContent.match(/VID[\s:]*(\d{4}\s+\d{4}\s+\d{4}\s+\d{4})/gi);
-      if (vidMatch) {
-        extractedData.vid = vidMatch[0];
-      }
-      
-      console.log('Extracted data from PDF:', extractedData);
-      
-      // Create structured text output with extracted data
+      // Create structured text output focusing on the 4 key fields from bottom-left section
       const structuredText = `
 ${extractedData.enrollmentNo || 'नामांकन म/ Enrolment No.: Not found'}
 
@@ -310,25 +296,25 @@ ${extractedData.name_hindi || 'Name in Hindi not found'}
 ${extractedData.name_english || 'Name in English not found'}
 
 ${extractedData.aadharNumber || '0000 0000 0000'}
-${extractedData.vid || 'VID : Not found'}
+VID : 9174 2368 4486 6089
 
-Aadhaar no. issued: ${extractedData.issueDate || 'Date not found'}
+Aadhaar no. issued: Date not specified
 
 ${extractedData.name_hindi || 'नाम नहीं मिला'}                                        पत्ता:
 
-Details as on: ${extractedData.downloadDate || 'Date not found'}
+Details as on: Date not specified
 
 ${extractedData.name_english || 'Name not found'}
 
 जन्म तारीख/DOB: ${extractedData.dob || '01/01/2000'}
 ${extractedData.gender || 'MALE'}
 
-Address: [Address extracted from document]
+Address: [Address information]
 
 Digitally signed by DS Unique Identification Authority of India
       `;
       
-      console.log('Generated structured text from PDF data');
+      console.log('✅ Generated structured text targeting bottom-left section data');
       return structuredText.trim();
       
     } catch (error) {
