@@ -267,9 +267,29 @@ export class OCRService {
         console.log(`Context before: "${contextBefore}"`);
         console.log(`Context after: "${contextAfter}"`);
         
-        if (contextBefore.includes('vid') || contextAfter.includes('vid')) {
-          console.log(`❌ Rejected: appears near VID keyword`);
+        // More intelligent VID rejection - only reject if it's clearly part of VID
+        const isDirectlyPartOfVID = (
+          contextBefore.match(/vid\s*:\s*$/i) || // "VID: 4015..."
+          contextAfter.match(/^[^a-zA-Z]{0,10}vid\s*:/i) // "4015... VID:"
+        );
+        
+        if (isDirectlyPartOfVID) {
+          console.log(`❌ Rejected: directly part of VID structure`);
           continue;
+        }
+        
+        // If VID is mentioned but this number is clearly separate (12-digit vs 16-digit)
+        if (contextBefore.includes('vid') || contextAfter.includes('vid')) {
+          // Check if there's a distinct 16-digit VID nearby
+          const surrounding = contextBefore + contextAfter;
+          const hasDistinct16DigitVID = /\b\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\b/.test(surrounding);
+          
+          if (hasDistinct16DigitVID && number.length === 12) {
+            console.log(`✅ Accepted: 12-digit number separate from 16-digit VID`);
+          } else {
+            console.log(`❌ Rejected: appears near VID without clear separation`);
+            continue;
+          }
         }
       }
       

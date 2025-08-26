@@ -1,0 +1,171 @@
+chunk-RPCDYKBN.js?v=cc72bf72:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+/api/candidates/search:1  Failed to load resource: the server responded with a status of 404 (Not Found)
+ocrService.ts:50 📄 Opening PDF document...
+ocrService.ts:52 📄 PDF opened successfully. Pages: 1
+ocrService.ts:84 📄 Processing page 1/1
+ocrService.ts:87 Found 150 text items on page 1
+ocrService.ts:90 Text item: "नामांकन"
+ocrService.ts:90 Text item: "म"
+ocrService.ts:90 Text item: "/ Enrolment No.: 0855/04021/00568"
+ocrService.ts:90 Text item: "To"
+ocrService.ts:90 Text item: "अिनकेत"
+ocrService.ts:90 Text item: "संजय"
+ocrService.ts:90 Text item: "राणे"
+ocrService.ts:90 Text item: "Aniket Sanjay Rane"
+ocrService.ts:90 Text item: "C/O: Sanjay Rane"
+ocrService.ts:90 Text item: "Flat No.805/A- Wing, 8 Floor, Hubtown Greenwood A CHS"
+ocrService.ts:90 Text item: "Near Apna Bhandar"
+ocrService.ts:90 Text item: "Vartak Nagar, Thane West"
+ocrService.ts:90 Text item: "Thane"
+ocrService.ts:90 Text item: "Thane Maharashtra - 400606"
+ocrService.ts:90 Text item: "7507219775"
+ocrService.ts:90 Text item: "4015 9329 2039"
+ocrService.ts:90 Text item: "VID :"
+ocrService.ts:90 Text item: "VID :"
+ocrService.ts:90 Text item: "9171 6279 9666 4664"
+ocrService.ts:90 Text item: "9171 6279 9666 4664"
+ocrService.ts:90 Text item: "Download Date: 14/10/2023"
+ocrService.ts:90 Text item: "Issue Date: 14/01/2013"
+ocrService.ts:90 Text item: "अिनकेत"
+ocrService.ts:90 Text item: "संजय"
+ocrService.ts:90 Text item: "राणे"
+ocrService.ts:90 Text item: "Aniket Sanjay Rane"
+ocrService.ts:90 Text item: "जम"
+ocrService.ts:90 Text item: "ितिथ"
+ocrService.ts:90 Text item: "/DOB: 23/03/2001"
+ocrService.ts:90 Text item: "पुष"
+ocrService.ts:90 Text item: "/ MALE"
+ocrService.ts:90 Text item: "4015 9329 2039"
+ocrService.ts:90 Text item: "4015 9329 2039"
+ocrService.ts:90 Text item: "VID :"
+ocrService.ts:90 Text item: "VID :"
+ocrService.ts:90 Text item: "9171 6279 9666 4664"
+ocrService.ts:90 Text item: "9171 6279 9666 4664"
+ocrService.ts:90 Text item: "पता"
+ocrService.ts:90 Text item: ":"
+ocrService.ts:90 Text item: ":"
+ocrService.ts:90 Text item: "ारा"
+ocrService.ts:90 Text item: ":"
+ocrService.ts:90 Text item: "संजय"
+ocrService.ts:90 Text item: "राणे"
+ocrService.ts:90 Text item: ","
+ocrService.ts:90 Text item: "लॅट"
+ocrService.ts:90 Text item: "न."
+ocrService.ts:90 Text item: "805/"
+ocrService.ts:90 Text item: "ए"
+ocrService.ts:90 Text item: "-"
+ocrService.ts:90 Text item: "िवंग"
+ocrService.ts:90 Text item: ", 8"
+ocrService.ts:90 Text item: "लोर"
+ocrService.ts:90 Text item: ","
+ocrService.ts:90 Text item: "हुबटाउन"
+ocrService.ts:90 Text item: "ग#ीँवूड़"
+ocrService.ts:90 Text item: "ए"
+ocrService.ts:90 Text item: "सीएचएस"
+ocrService.ts:90 Text item: ","
+ocrService.ts:90 Text item: "अपना"
+ocrService.ts:90 Text item: "भंडार"
+ocrService.ts:90 Text item: "के"
+ocrService.ts:90 Text item: "पास"
+ocrService.ts:90 Text item: ","
+ocrService.ts:90 Text item: "वत+क"
+ocrService.ts:90 Text item: "नगर"
+ocrService.ts:90 Text item: ","
+ocrService.ts:90 Text item: "ठाणे"
+ocrService.ts:90 Text item: "वे-ट"
+ocrService.ts:90 Text item: ","
+ocrService.ts:90 Text item: "ठाणे"
+ocrService.ts:90 Text item: ","
+ocrService.ts:90 Text item: "ठाणे"
+ocrService.ts:90 Text item: ","
+ocrService.ts:90 Text item: "महारा./"
+ocrService.ts:90 Text item: "- 400606"
+ocrService.ts:90 Text item: "Address:"
+ocrService.ts:90 Text item: "Address:"
+ocrService.ts:90 Text item: "C/O: Sanjay Rane, Flat No.805/A- Wing, 8"
+ocrService.ts:90 Text item: "Floor, Hubtown Greenwood A CHS, Near"
+ocrService.ts:90 Text item: "Apna Bhandar, Vartak Nagar, Thane West,"
+ocrService.ts:90 Text item: "Thane, Thane,"
+ocrService.ts:90 Text item: "Maharashtra - 400606"
+ocrService.ts:90 Text item: "4015 9329 2039"
+ocrService.ts:90 Text item: "4015 9329 2039"
+ocrService.ts:90 Text item: "VID :"
+ocrService.ts:90 Text item: "VID :"
+ocrService.ts:90 Text item: "9171 6279 9666 4664"
+ocrService.ts:90 Text item: "9171 6279 9666 4664"
+ocrService.ts:97 Page 1 text sample: नामांकन म / Enrolment No.: 0855/04021/00568 To अिनकेत संजय राणे Aniket Sanjay Rane C/O: Sanjay Rane Flat No.805/A- Wing, 8 Floor, Hubtown Greenwood A CHS Near Apna Bhandar Vartak Nagar, Thane West Th
+ocrService.ts:100 🔍 Final extracted text length: 929
+ocrService.ts:101 🔍 Final text sample: नामांकन म / Enrolment No.: 0855/04021/00568 To अिनकेत संजय राणे Aniket Sanjay Rane C/O: Sanjay Rane Flat No.805/A- Wing, 8 Floor, Hubtown Greenwood A CHS Near Apna Bhandar Vartak Nagar, Thane West Thane Thane Maharashtra - 400606 7507219775 4015 9329 2039 VID : VID : 9171 6279 9666 4664 9171 6279 9666 4664 Download Date: 14/10/2023 Issue Date: 14/01/2013 अिनकेत संजय राणे Aniket Sanjay Rane जम ितिथ /DOB: 23/03/2001 पुष / MALE 4015 9329 2039 4015 9329 2039 VID : VID : 9171 6279 9666 4664 9171 6
+ocrService.ts:112 === Starting Aadhaar extraction ===
+ocrService.ts:113 Text sample: नामांकन म / Enrolment No.: 0855/04021/00568 To अिनकेत संजय राणे Aniket Sanjay Rane C/O: Sanjay Rane Flat No.805/A- Wing, 8 Floor, Hubtown Greenwood A CHS Near Apna Bhandar Vartak Nagar, Thane West Thane Thane Maharashtra - 400606 7507219775 4015 9329 2039 VID : VID : 9171 6279 9666 4664 9171 6279 9666 4664 Download Date: 14/10/2023 Issue Date: 14/01/2013 अिनकेत संजय राणे Aniket Sanjay Rane जम ितिथ /DOB: 23/03/2001 पुष / MALE 4015 9329 2039 4015 9329 2039 VID : VID : 9171 6279 9666 4664 9171 6
+ocrService.ts:148 🔍 Searching for Aadhaar numbers...
+ocrService.ts:167 Found 12-digit number: 401593292039
+ocrService.ts:167 Found 12-digit number: 917162799666
+ocrService.ts:167 Found 12-digit number: 466491716279
+ocrService.ts:167 Found 12-digit number: 401593292039
+ocrService.ts:167 Found 12-digit number: 401593292039
+ocrService.ts:167 Found 12-digit number: 917162799666
+ocrService.ts:167 Found 12-digit number: 466491716279
+ocrService.ts:167 Found 12-digit number: 401593292039
+ocrService.ts:167 Found 12-digit number: 401593292039
+ocrService.ts:167 Found 12-digit number: 917162799666
+ocrService.ts:167 Found 12-digit number: 466491716279
+ocrService.ts:172 All found 12-digit numbers: Array(11)
+ocrService.ts:174 
+--- Validating 401593292039 ---
+ocrService.ts:184 Context before: "- 400606 7507219775 "
+ocrService.ts:185 Context after: "4015 9329 2039 vid : vid : 9171 6279 9666 4664 917"
+ocrService.ts:187 ❌ Rejected: appears near VID keyword
+ocrService.ts:174 
+--- Validating 917162799666 ---
+ocrService.ts:184 Context before: "29 2039 vid : vid : "
+ocrService.ts:185 Context after: "9171 6279 9666 4664 9171 6279 9666 4664 download d"
+ocrService.ts:187 ❌ Rejected: appears near VID keyword
+ocrService.ts:174 
+--- Validating 466491716279 ---
+ocrService.ts:184 Context before: "id : 9171 6279 9666 "
+ocrService.ts:185 Context after: "4664 9171 6279 9666 4664 download date: 14/10/2023"
+ocrService.ts:210 ❌ Rejected: appears near enrollment context
+ocrService.ts:174 
+--- Validating 401593292039 ---
+ocrService.ts:184 Context before: "- 400606 7507219775 "
+ocrService.ts:185 Context after: "4015 9329 2039 vid : vid : 9171 6279 9666 4664 917"
+ocrService.ts:187 ❌ Rejected: appears near VID keyword
+ocrService.ts:174 
+--- Validating 401593292039 ---
+ocrService.ts:184 Context before: "- 400606 7507219775 "
+ocrService.ts:185 Context after: "4015 9329 2039 vid : vid : 9171 6279 9666 4664 917"
+ocrService.ts:187 ❌ Rejected: appears near VID keyword
+ocrService.ts:174 
+--- Validating 917162799666 ---
+ocrService.ts:184 Context before: "29 2039 vid : vid : "
+ocrService.ts:185 Context after: "9171 6279 9666 4664 9171 6279 9666 4664 download d"
+ocrService.ts:187 ❌ Rejected: appears near VID keyword
+ocrService.ts:174 
+--- Validating 466491716279 ---
+ocrService.ts:184 Context before: "id : 9171 6279 9666 "
+ocrService.ts:185 Context after: "4664 9171 6279 9666 4664 download date: 14/10/2023"
+ocrService.ts:210 ❌ Rejected: appears near enrollment context
+ocrService.ts:174 
+--- Validating 401593292039 ---
+ocrService.ts:184 Context before: "- 400606 7507219775 "
+ocrService.ts:185 Context after: "4015 9329 2039 vid : vid : 9171 6279 9666 4664 917"
+ocrService.ts:187 ❌ Rejected: appears near VID keyword
+ocrService.ts:174 
+--- Validating 401593292039 ---
+ocrService.ts:184 Context before: "- 400606 7507219775 "
+ocrService.ts:185 Context after: "4015 9329 2039 vid : vid : 9171 6279 9666 4664 917"
+ocrService.ts:187 ❌ Rejected: appears near VID keyword
+ocrService.ts:174 
+--- Validating 917162799666 ---
+ocrService.ts:184 Context before: "29 2039 vid : vid : "
+ocrService.ts:185 Context after: "9171 6279 9666 4664 9171 6279 9666 4664 download d"
+ocrService.ts:187 ❌ Rejected: appears near VID keyword
+ocrService.ts:174 
+--- Validating 466491716279 ---
+ocrService.ts:184 Context before: "id : 9171 6279 9666 "
+ocrService.ts:185 Context after: "4664 9171 6279 9666 4664 download date: 14/10/2023"
+ocrService.ts:210 ❌ Rejected: appears near enrollment context
+ocrService.ts:221 ❌ No valid Aadhaar number found after filtering
+ocrService.ts:121 Extracted Aadhaar: 
+ocrService.ts:123 ❌ No valid Aadhaar number found
