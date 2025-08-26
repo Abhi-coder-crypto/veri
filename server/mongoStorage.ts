@@ -46,7 +46,14 @@ export class MongoStorage implements IStorage {
       trainer: insertCandidate.trainer ?? null,
       duration: insertCandidate.duration ?? null,
       trained: insertCandidate.trained ?? false,
-      status: insertCandidate.status ?? 'Not Enrolled'
+      status: insertCandidate.status ?? 'Not Enrolled',
+      progress: insertCandidate.progress ?? '0',
+      currentPhase: insertCandidate.currentPhase ?? 'Theory',
+      instructorNotes: insertCandidate.instructorNotes ?? null,
+      medicalCertificate: insertCandidate.medicalCertificate ?? false,
+      profileImage: insertCandidate.profileImage ?? null,
+      joiningDate: insertCandidate.joiningDate ?? null,
+      completionDate: insertCandidate.completionDate ?? null
     };
 
     await this.collection.insertOne(candidate);
