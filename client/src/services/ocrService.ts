@@ -133,9 +133,14 @@ export class OCRService {
       console.log(`Found ${content.items.length} text items on page ${i}`);
       
       // Better text extraction - preserve structure and spacing
+      let itemCount = 0;
       const textItems = content.items.map((item: any) => {
         if ('str' in item && item.str.trim()) {
-          console.log(`Text item: "${item.str}"`);
+          // Only log first few items to avoid console spam
+          if (itemCount < 10) {
+            console.log(`Text item: "${item.str}"`);
+            itemCount++;
+          }
           return item.str;
         }
         return '';
@@ -151,6 +156,17 @@ export class OCRService {
     const finalText = extractedText.trim();
     console.log("🔍 Final extracted text length:", finalText.length);
     console.log("🔍 Final text sample:", finalText.substring(0, 500));
+    
+    // Check if we're getting proper English text
+    const englishChars = finalText.match(/[a-zA-Z]/g) || [];
+    const totalChars = finalText.replace(/\s/g, '').length;
+    const englishRatio = englishChars.length / Math.max(totalChars, 1);
+    
+    console.log(`English text ratio: ${(englishRatio * 100).toFixed(1)}% (${englishChars.length}/${totalChars})`);
+    
+    if (englishRatio < 0.1) {
+      console.warn("⚠️ Very little English text detected - PDF might have encoding issues");
+    }
     
     return finalText;
   }
