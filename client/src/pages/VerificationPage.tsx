@@ -286,12 +286,16 @@ const VerificationPage = () => {
           return dateStr; // Return as-is if format not recognized
         };
         
-        setCurrentCandidate({
+        const candidateData = {
           ...result.data,
           dob: formatDateForInput(result.data.dob),
           aadhar: result.data.aadhar.replace(/\s/g, ''), // Remove spaces from Aadhar number
+          gender: result.data.gender, // Explicitly include gender
           mobile
-        });
+        };
+        
+        console.log("✅ Setting candidate data with gender:", candidateData);
+        setCurrentCandidate(candidateData);
         setSuccess('Aadhar document processed and verified successfully!');
       } else {
         console.log("❌ Processing failed:", result.error);
