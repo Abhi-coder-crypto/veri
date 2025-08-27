@@ -291,12 +291,16 @@ export class OCRService {
     const dobMatch = text.match(dobPattern);
     const dob = dobMatch?.[1] || '';
     
-    // Extract Gender - both Hindi and English, case insensitive
-    const genderPattern = /(MALE|FEMALE|पुरुष|महिला|Male|Female)/i;
-    const genderMatch = text.match(genderPattern);
-    let gender = genderMatch?.[0] || '';
-    if (gender.toLowerCase().includes('male') || gender.toLowerCase() === 'पुरुष') gender = 'Male';
-    if (gender.toLowerCase().includes('female') || gender.toLowerCase() === 'महिला') gender = 'Female';
+    // Extract Gender - both Hindi and English, prioritize Female first
+    const femalePattern = /(FEMALE|Female|महिला)/i;
+    const malePattern = /(^MALE$|^Male$|पुरुष)/i; // Only exact MALE, not FEMALE
+    
+    let gender = '';
+    if (text.match(femalePattern)) {
+      gender = 'Female';
+    } else if (text.match(malePattern)) {
+      gender = 'Male';
+    }
     
     // Extract Name - Find full name, avoid "To" prefix and address parts
     const cleanText = text.replace(/\bTo\b/g, ''); // Remove "To" prefixes
