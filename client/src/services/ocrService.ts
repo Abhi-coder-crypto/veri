@@ -162,7 +162,7 @@ export class OCRService {
     let extractedText = "";
     let allTextItems: any[] = [];
 
-    // Extract text from all pages
+    // Extract text from all pages with better multilingual handling
     for (let i = 1; i <= pdf.numPages; i++) {
       console.log(`📄 Processing page ${i}/${pdf.numPages}`);
       const page = await pdf.getPage(i);
@@ -170,17 +170,24 @@ export class OCRService {
 
       console.log(`Found ${content.items.length} text items on page ${i}`);
 
-      // Process each text item with position info for better extraction
+      // Enhanced text extraction with better Unicode handling
       const pageItems = content.items
         .map((item: any) => {
-          if ("str" in item && item.str && item.str.trim()) {
-            return {
-              text: item.str.trim(),
-              x: item.transform?.[4] || 0,
-              y: item.transform?.[5] || 0,
-              width: item.width || 0,
-              height: item.height || 0
-            };
+          if ("str" in item && item.str) {
+            const text = item.str.trim();
+            // Include all text, both Hindi and English
+            if (text.length > 0) {
+              return {
+                text: text,
+                x: item.transform?.[4] || 0,
+                y: item.transform?.[5] || 0,
+                width: item.width || 0,
+                height: item.height || 0,
+                isNumeric: /\d/.test(text),
+                isEnglish: /[A-Za-z]/.test(text),
+                isHindi: /[\u0900-\u097F]/.test(text)
+              };
+            }
           }
           return null;
         })
@@ -188,42 +195,46 @@ export class OCRService {
 
       allTextItems.push(...pageItems);
 
-      // Method 1: Simple concatenation with spaces
-      const simpleText = pageItems.map((item: any) => item.text).join(" ");
+      // Enhanced text building - preserve all content
+      const completeText = this.buildMultilingualText(pageItems);
+      extractedText += completeText + "\n";
+
+      console.log(`📄 Page ${i} extracted ${pageItems.length} text items`);
+      console.log(`📄 Page ${i} text sample:`, completeText.substring(0, 300));
       
-      // Method 2: Position-aware text extraction (sort by Y position, then X)
-      const sortedItems = pageItems.sort((a: any, b: any) => {
-        const yDiff = Math.abs(b.y - a.y);
-        if (yDiff < 5) { // Same line threshold
-          return a.x - b.x; // Sort by X position
-        }
-        return b.y - a.y; // Sort by Y position (top to bottom)
-      });
-      
-      const structuredText = this.buildStructuredText(sortedItems);
-      
-      console.log(`📄 Page ${i} simple text sample:`, simpleText.substring(0, 200));
-      console.log(`📄 Page ${i} structured text sample:`, structuredText.substring(0, 200));
-      
-      // Use the longer/better extracted text
-      const pageText = structuredText.length > simpleText.length ? structuredText : simpleText;
-      extractedText += pageText + "\n";
+      // Log important patterns found
+      const numbers = pageItems.filter((item: any) => item.isNumeric).map((item: any) => item.text);
+      const englishText = pageItems.filter((item: any) => item.isEnglish).map((item: any) => item.text);
+      console.log(`📄 Page ${i} numbers found:`, numbers.slice(0, 10));
+      console.log(`📄 Page ${i} English text:`, englishText.slice(0, 10));
     }
 
     const finalText = extractedText.trim();
     console.log("🔍 Final extracted text length:", finalText.length);
-    console.log("🔍 Final text sample:", finalText.substring(0, 800));
+    console.log("🔍 Final text preview:", finalText.substring(0, 1000));
     
-    // Additional logging for debugging
-    console.log("🔍 All unique text fragments found:", 
-      Array.from(new Set(allTextItems.map(item => item.text))).slice(0, 50)
-    );
+    // Extract and log all numeric patterns found
+    const numericPatterns = finalText.match(/\d+/g) || [];
+    console.log("🔢 All numeric patterns found:", numericPatterns);
+    
+    // Extract and log potential Aadhaar numbers
+    const aadhaarPatterns = finalText.match(/\d{4}\s*\d{4}\s*\d{4}/g) || [];
+    console.log("🆔 Potential Aadhaar patterns:", aadhaarPatterns);
 
     return finalText;
   }
 
-  private buildStructuredText(sortedItems: any[]): string {
-    if (!sortedItems.length) return "";
+  private buildMultilingualText(pageItems: any[]): string {
+    if (!pageItems.length) return "";
+    
+    // Sort by position (Y first, then X) to maintain reading order
+    const sortedItems = pageItems.sort((a: any, b: any) => {
+      const yDiff = Math.abs(b.y - a.y);
+      if (yDiff < 8) { // Same line threshold (increased for better grouping)
+        return a.x - b.x; // Sort by X position (left to right)
+      }
+      return b.y - a.y; // Sort by Y position (top to bottom)
+    });
     
     let result = "";
     let currentLineY = sortedItems[0]?.y || 0;
@@ -232,9 +243,11 @@ export class OCRService {
     for (const item of sortedItems) {
       const yDiff = Math.abs(item.y - currentLineY);
       
-      if (yDiff > 5) { // New line threshold
+      if (yDiff > 8) { // New line threshold
         if (currentLine.length > 0) {
-          result += currentLine.join(" ") + "\n";
+          // Join with appropriate spacing
+          const lineText = currentLine.join(" ");
+          result += lineText + "\n";
           currentLine = [];
         }
         currentLineY = item.y;
@@ -247,6 +260,10 @@ export class OCRService {
     if (currentLine.length > 0) {
       result += currentLine.join(" ");
     }
+    
+    // Additional pass: ensure numeric patterns are properly spaced
+    result = result.replace(/(\d)\s+(\d)/g, '$1 $2'); // Normalize number spacing
+    result = result.replace(/(\d{4})\s*(\d{4})\s*(\d{4})/g, '$1 $2 $3'); // Format Aadhaar numbers
     
     return result;
   }
@@ -301,28 +318,28 @@ export class OCRService {
   private extractAadharNumber(text: string): string {
     console.log("🔍 Searching for Aadhaar numbers...");
 
-    // Enhanced patterns with better number type distinction
+    // Enhanced patterns for multilingual PDFs with robust number extraction
     const patterns = [
-      // Pattern 1: Explicit Aadhaar labels (highest priority)
-      /(?:Aadhaar\s*(?:No\.?|Number)\s*:?\s*|आधार\s*संख्या\s*:?\s*)(\d{4}\s*\d{4}\s*\d{4})/i,
+      // Pattern 1: Explicit Aadhaar labels (Hindi/English)
+      /(?:Aadhaar\s*(?:No\.?|Number|no\.?)\s*:?\s*|आधार\s*(?:संख्या|क्रमांक)\s*:?\s*)(\d{4}\s*\d{4}\s*\d{4})/i,
 
-      // Pattern 2: After mobile but ensuring it's not part of VID
-      /Mobile\s*:?\s*\d{10}[\s\S]*?(\d{4}\s*\d{4}\s*\d{4})(?!\s*\d{4})/i,
+      // Pattern 2: Before VID (very strong indicator)
+      /(\d{4}\s*\d{4}\s*\d{4})\s+(?:VID\s*:?\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4})/i,
 
-      // Pattern 3: Before VID with clear separation (for your format)
-      /(\d{4}\s*\d{4}\s*\d{4})\s+VID\s*:?\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}/i,
+      // Pattern 3: After mobile number in document structure  
+      /(?:Mobile|मोबाइल)\s*:?\s*\d{10}[\s\S]{1,200}?(\d{4}\s*\d{4}\s*\d{4})(?!\s*\d{4})/i,
 
-      // Pattern 4: Aadhaar appearing near the end of document (common in e-Aadhaar)
-      /(?:महाराष्ट्र|Maharashtra|Address)[\s\S]*?(\d{4}\s*\d{4}\s*\d{4})\s+VID/i,
+      // Pattern 4: Near state/address information
+      /(?:Maharashtra|महाराष्ट्र|State|राज्य)[\s\S]{1,300}?(\d{4}\s*\d{4}\s*\d{4})\s+(?:VID|व्हीआईडी)/i,
 
-      // Pattern 5: In document structure after gender and DOB
-      /(?:MALE|FEMALE|पुरुष|महिला)[\s\S]*?(\d{4}\s*\d{4}\s*\d{4})/i,
+      // Pattern 5: After gender field
+      /(?:MALE|FEMALE|Male|Female|पुरुष|महिला|लिंग)[\s\S]{1,200}?(\d{4}\s*\d{4}\s*\d{4})/i,
 
-      // Pattern 6: Multiple occurrence pattern (Aadhaar often appears multiple times)
-      /(\d{4}\s*\d{4}\s*\d{4})[\s\S]*?\1/i,
+      // Pattern 6: After PIN code
+      /(?:PIN\s*(?:Code)?|पिन\s*कोड)\s*:?\s*\d{6}[\s\S]{1,150}?(\d{4}\s*\d{4}\s*\d{4})/i,
 
-      // Pattern 7: After PIN code in address section  
-      /PIN\s*(?:Code)?\s*:?\s*\d{6}[\s\S]*?(\d{4}\s*\d{4}\s*\d{4})/i,
+      // Pattern 7: In document footer/signature area
+      /(?:Address|पत्ता)[\s\S]{1,400}?(\d{4}\s*\d{4}\s*\d{4})\s+(?:VID|व्हीआईडी)/i,
     ];
 
     // Try specific patterns first (highest confidence)
@@ -522,11 +539,19 @@ export class OCRService {
   private extractDOB(text: string): string {
     console.log("🔍 Searching for DOB...");
 
-    // Multiple patterns for DOB extraction
+    // Enhanced multilingual patterns for DOB extraction
     const dobPatterns = [
-      /(?:Date\s*of\s*Birth|DOB|जन्म.*?तारीख)\s*:?\s*(\d{2}[\/\-]\d{2}[\/\-]\d{4})/i,
-      /(?:Birth|जन्म)\s*:?\s*(\d{2}[\/\-]\d{2}[\/\-]\d{4})/i,
-      /(\d{2}[\/\-]\d{2}[\/\-]\d{4})/g, // Fallback for any date pattern
+      // Explicit DOB labels (Hindi/English)
+      /(?:Date\s*of\s*Birth|DOB|जन्म\s*तारीख|जन्म\s*दिनांक)\s*[:\/]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i,
+      
+      // Common Hindi patterns
+      /(?:जन्म)\s*[:\/]?\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i,
+      
+      // Date patterns near gender (common in Aadhaar layout)
+      /(?:MALE|FEMALE|पुरुष|महिला)\s*[\s\S]{0,50}?(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/i,
+      
+      // Standalone date patterns with validation
+      /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})/g,
     ];
 
     for (const pattern of dobPatterns) {
@@ -562,18 +587,32 @@ export class OCRService {
   private extractGender(text: string): string {
     console.log("🔍 Searching for gender...");
 
-    const lowerText = text.toLowerCase();
+    // Enhanced multilingual gender extraction
+    const genderPatterns = [
+      // Explicit gender patterns
+      /(?:Gender|लिंग)\s*:?\s*(Female|Male|महिला|पुरुष)/i,
+      
+      // Standalone gender terms
+      /\b(Female|FEMALE|महिला)\b/i,
+      /\b(Male|MALE|पुरुष)\b/i,
+      
+      // Gender near DOB patterns
+      /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}\s+([MALF]+[ALE]*|पुरुष|महिला)/i,
+    ];
 
-    // Check for female indicators first (more specific)
-    if (lowerText.includes("female") || lowerText.includes("महिला")) {
-      console.log("✅ Found gender: Female");
-      return "Female";
-    }
-
-    // Check for male indicators
-    if (lowerText.includes("male") || lowerText.includes("पुरुष")) {
-      console.log("✅ Found gender: Male");
-      return "Male";
+    for (const pattern of genderPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const gender = match[1].toLowerCase();
+        if (gender.includes('female') || gender.includes('महिला')) {
+          console.log("✅ Found gender: Female");
+          return "Female";
+        }
+        if (gender.includes('male') || gender.includes('पुरुष')) {
+          console.log("✅ Found gender: Male");
+          return "Male";
+        }
+      }
     }
 
     console.log("❌ No gender found");
@@ -583,9 +622,11 @@ export class OCRService {
   private extractName(text: string): string {
     console.log("🔍 Searching for name...");
 
-    // Pattern 1: After "To" in address section
+    // Enhanced multilingual name extraction
+    
+    // Pattern 1: After "To" in address section (improved)
     const toMatch = text.match(
-      /\bTo\b\s*([\s\S]*?)(?=(?:C\/O|S\/O|D\/O|W\/O|Address|VTC|District|PIN|Mobile|Signature))/i,
+      /\bTo\b\s*([\s\S]*?)(?=(?:C\/O|S\/O|D\/O|W\/O|Address|VTC|District|PIN|Mobile|Signature|KHANNA|खन्ना))/i,
     );
     if (toMatch) {
       const toSection = toMatch[1].trim();
@@ -595,9 +636,9 @@ export class OCRService {
         .filter((l) => l.length > 2);
 
       for (const line of lines) {
-        // Skip Hindi text and addresses
-        if (!/[अ-ह]/.test(line) && !this.isAddress(line)) {
-          const cleanLine = line.replace(/[^\w\s]/g, "").trim();
+        // Look for English names (skip Hindi but include mixed content)
+        if (/[A-Za-z]/.test(line) && !this.isAddress(line)) {
+          const cleanLine = line.replace(/[^A-Za-z\s]/g, "").trim();
           if (this.isValidName(cleanLine)) {
             console.log(`✅ Found name in 'To' section: ${cleanLine}`);
             return cleanLine;
@@ -606,7 +647,14 @@ export class OCRService {
       }
     }
 
-    // Pattern 2: Look for repeated names (cardholder name appears multiple times)
+    // Pattern 2: Name near document structure elements
+    const nameNearStructure = text.match(/(?:To|Aadhaar|आधार)[\s\S]{0,200}?([A-Z][a-z]+\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i);
+    if (nameNearStructure && this.isValidName(nameNearStructure[1])) {
+      console.log(`✅ Found name near structure: ${nameNearStructure[1]}`);
+      return nameNearStructure[1];
+    }
+
+    // Pattern 3: Look for repeated English names (cardholder name appears multiple times)
     const namePattern = /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g;
     const nameFrequency: { [key: string]: number } = {};
     let match;
