@@ -93,7 +93,8 @@ const RegistrationPage = () => {
         name: currentCandidate.name || '',
         dob: currentCandidate.dob || '',
         mobile: verifiedMobile || currentCandidate.mobile || '',
-        aadhar: currentCandidate.aadhar || ''
+        aadhar: currentCandidate.aadhar || '',
+        gender: currentCandidate.gender || ''
       }));
     } else if (verifiedMobile) {
       setFormData(prev => ({

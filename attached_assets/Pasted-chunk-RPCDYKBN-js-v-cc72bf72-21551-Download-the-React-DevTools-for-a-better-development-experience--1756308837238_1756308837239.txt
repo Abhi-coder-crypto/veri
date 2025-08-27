@@ -1,0 +1,33 @@
+chunk-RPCDYKBN.js?v=cc72bf72:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+queryClient.ts:13  POST https://7df42490-9d93-4755-90a4-cf81cfb0c0cc-00-1wf0uf7j4o3qu.janeway.replit.dev/api/candidates/search 404 (Not Found)
+apiRequest @ queryClient.ts:13
+handleSendOTP @ VerificationPage.tsx:136
+callCallback2 @ chunk-RPCDYKBN.js?v=cc72bf72:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=cc72bf72:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=cc72bf72:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=cc72bf72:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=cc72bf72:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=cc72bf72:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=cc72bf72:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=cc72bf72:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=cc72bf72:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=cc72bf72:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=cc72bf72:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=cc72bf72:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=cc72bf72:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=cc72bf72:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=cc72bf72:5449
+VerificationPage.tsx:233 🎯 File input triggered!
+VerificationPage.tsx:236 📎 File selected: {name: 'Abhijeet.pdf', type: 'application/pdf', size: 1302413}
+VerificationPage.tsx:247 🔄 Starting processing workflow...
+VerificationPage.tsx:253 📞 Calling OCR service...
+ocrService.ts:30 🚀 Starting Aadhaar document processing...
+ocrService.ts:31 📁 File details: {name: 'Abhijeet.pdf', type: 'application/pdf', size: 1302413}
+ocrService.ts:44 📋 File type check: {isPDF: true, type: 'application/pdf', name: 'Abhijeet.pdf'}
+ocrService.ts:58 ✅ PDF file accepted, starting text extraction...
+ocrService.ts:121 📄 Opening PDF document...
+ocrService.ts:126 📄 PDF opened successfully. Pages: 1
+ocrService.ts:177 📄 Processing page 1/1
+ocrService.ts:181 Found 277 text items on page 1
+ocrService.ts:212 📄 Page 1 extracted 187 text items
+ocrService.ts:213 📄 Page 1 text sample: न
