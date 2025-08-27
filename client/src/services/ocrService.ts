@@ -31,63 +31,72 @@ export class OCRService {
     console.log("📁 File details:", {
       name: file.name,
       type: file.type,
-      size: file.size
+      size: file.size,
     });
-    
+
     try {
       // Accept PDFs even if browser reports as application/octet-stream
-      const isPDF = file.type.includes('pdf') || 
-                   file.type === 'application/octet-stream' || 
-                   file.name.toLowerCase().endsWith('.pdf');
-      
-      console.log("📋 File type check:", { isPDF, type: file.type, name: file.name });
-      
+      const isPDF =
+        file.type.includes("pdf") ||
+        file.type === "application/octet-stream" ||
+        file.name.toLowerCase().endsWith(".pdf");
+
+      console.log("📋 File type check:", {
+        isPDF,
+        type: file.type,
+        name: file.name,
+      });
+
       if (!isPDF) {
         console.log("❌ File rejected: not a PDF");
         return {
           success: false,
-          error: "Only PDF Aadhaar files are supported."
+          error: "Only PDF Aadhaar files are supported.",
         };
       }
 
       console.log("✅ PDF file accepted, starting text extraction...");
-      
+
       // Extract text from PDF
       const extractedText = await this.processPDF(file);
-      
-      console.log(`📝 Text extraction result: ${extractedText.length} characters extracted`);
-      
+
+      console.log(
+        `📝 Text extraction result: ${extractedText.length} characters extracted`,
+      );
+
       if (!extractedText || extractedText.length < 100) {
         console.log("❌ Text extraction failed or insufficient text");
         return {
           success: false,
-          error: "Unable to extract text from PDF. Please ensure it's a valid UIDAI e-Aadhaar PDF."
+          error:
+            "Unable to extract text from PDF. Please ensure it's a valid UIDAI e-Aadhaar PDF.",
         };
       }
 
       console.log("✅ Text extracted successfully, starting data parsing...");
-      
-      // Parse Aadhaar info with strict validation
+
+      // Parse Aadhaar info with improved validation
       const aadharData = this.extractAadharInfo(extractedText);
-      
+
       if (aadharData) {
         console.log("✅ Aadhaar data extracted successfully:", aadharData);
-        return { 
-          success: true, 
-          data: aadharData 
+        return {
+          success: true,
+          data: aadharData,
         };
       }
 
       console.log("❌ Failed to parse Aadhaar data from extracted text");
       return {
         success: false,
-        error: "Could not extract valid Aadhaar details from PDF. Please ensure all required information is clearly visible."
+        error:
+          "Could not extract valid Aadhaar details from PDF. Please ensure all required information is clearly visible.",
       };
     } catch (err) {
       console.error("💥 Error in processAadharDocument:", err);
       return {
         success: false,
-        error: `Failed to process Aadhaar PDF: ${err instanceof Error ? err.message : 'Unknown error'}`
+        error: `Failed to process Aadhaar PDF: ${err instanceof Error ? err.message : "Unknown error"}`,
       };
     }
   }
@@ -97,56 +106,54 @@ export class OCRService {
     pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
     const arrayBuffer = await file.arrayBuffer();
-    
+
     try {
       console.log("📄 Opening PDF document...");
-      const pdf = await pdfjsLib.getDocument({ 
+      const pdf = await pdfjsLib.getDocument({
         data: arrayBuffer,
-        verbosity: 0  // Reduce PDF.js internal logging
+        verbosity: 0, // Reduce PDF.js internal logging
       }).promise;
       console.log(`📄 PDF opened successfully. Pages: ${pdf.numPages}`);
-      
+
       const text = await this.extractTextFromPDF(pdf);
-      
+
       if (text.length < 10) {
         console.log("⚠️ Very little text extracted:", text.length, "chars");
         throw new Error("No meaningful text extracted from PDF");
       }
-      
+
       console.log("✅ PDF processing completed successfully");
       return text;
-      
     } catch (error) {
       console.error("❌ Error processing PDF:", error);
-      console.error("❌ Error details:", {
-        name: error instanceof Error ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-      
-      // If PDF fails to open normally, try with password
+
+      // Try with common password if PDF fails to open
       const password = prompt(
         "PDF processing failed. If this is a password-protected Aadhaar PDF:\\n\\n" +
-        "Enter the password (first 4 letters of name + birth year, e.g., ABHI1999):\\n\\n" +
-        "Or click Cancel if the PDF should work without password:"
+          "Enter the password (first 4 letters of name + birth year, e.g., ABHI1999):\\n\\n" +
+          "Or click Cancel if the PDF should work without password:",
       );
-      
+
       if (password) {
         console.log(`🔑 Retrying with password...`);
         try {
-          const pdfWithPassword = await pdfjsLib.getDocument({ 
-            data: arrayBuffer, 
-            password: password 
+          const pdfWithPassword = await pdfjsLib.getDocument({
+            data: arrayBuffer,
+            password: password,
           }).promise;
-          
+
           const text = await this.extractTextFromPDF(pdfWithPassword);
           return text;
-          
         } catch (passwordError) {
           console.error("❌ Failed with password:", passwordError);
-          throw new Error("Could not process PDF with or without password. Please check the file.");
+          throw new Error(
+            "Could not process PDF with or without password. Please check the file.",
+          );
         }
       } else {
-        throw new Error(`PDF processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new Error(
+          `PDF processing failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
   }
@@ -159,74 +166,46 @@ export class OCRService {
       console.log(`📄 Processing page ${i}/${pdf.numPages}`);
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
-      
+
       console.log(`Found ${content.items.length} text items on page ${i}`);
-      
+
       // Better text extraction - preserve structure and spacing
-      let itemCount = 0;
-      const textItems = content.items.map((item: any) => {
-        if ('str' in item && item.str.trim()) {
-          // Only log first few items to avoid console spam
-          if (itemCount < 10) {
-            console.log(`Text item: "${item.str}"`);
-            itemCount++;
+      const textItems = content.items
+        .map((item: any) => {
+          if ("str" in item && item.str.trim()) {
+            return item.str.trim();
           }
-          return item.str;
-        }
-        return '';
-      }).filter((str: string) => str.length > 0);
-      
+          return "";
+        })
+        .filter((str: string) => str.length > 0);
+
       // Join with spaces and add line breaks
-      const pageText = textItems.join(' ');
+      const pageText = textItems.join(" ");
       extractedText += pageText + "\n";
-      
+
       console.log(`Page ${i} text sample:`, pageText.substring(0, 200));
     }
 
     const finalText = extractedText.trim();
     console.log("🔍 Final extracted text length:", finalText.length);
     console.log("🔍 Final text sample:", finalText.substring(0, 500));
-    
-    // Check if we're getting proper English text
-    const englishChars = finalText.match(/[a-zA-Z]/g) || [];
-    const totalChars = finalText.replace(/\s/g, '').length;
-    const englishRatio = englishChars.length / Math.max(totalChars, 1);
-    
-    console.log(`English text ratio: ${(englishRatio * 100).toFixed(1)}% (${englishChars.length}/${totalChars})`);
-    
-    if (englishRatio < 0.1) {
-      console.warn("⚠️ Very little English text detected - PDF might have encoding issues");
-    }
-    
-    return finalText;
-  }
 
-  private isTextCorrupted(text: string): boolean {
-    // Check if text contains mostly broken Unicode characters or very little content
-    const meaningfulChars = text.match(/[a-zA-Z0-9]/g) || [];
-    const totalChars = text.replace(/\\s/g, '').length;
-    
-    // If less than 30% of characters are meaningful English/numbers, likely corrupted
-    const meaningfulRatio = meaningfulChars.length / Math.max(totalChars, 1);
-    
-    console.log(`Text analysis: ${meaningfulChars.length}/${totalChars} meaningful chars (${(meaningfulRatio * 100).toFixed(1)}%)`);
-    
-    return meaningfulRatio < 0.3;
+    return finalText;
   }
 
   private extractAadharInfo(text: string): AadharData | null {
     console.log("=== Starting Aadhaar extraction ===");
     console.log("Text sample:", text.substring(0, 500));
-    
+
     const result = {
       name: "",
       dob: "",
       aadhar: "",
-      gender: ""
+      gender: "",
     };
 
-    // Extract valid Aadhaar Number (12 digits only, not phone/VID/enrollment)
-    result.aadhar = this.extractValidAadharNumber(text);
+    // Extract Aadhaar Number using improved logic
+    result.aadhar = this.extractAadharNumber(text);
     console.log("Extracted Aadhaar:", result.aadhar);
     if (!result.aadhar) {
       console.log("❌ No valid Aadhaar number found");
@@ -234,7 +213,7 @@ export class OCRService {
     }
 
     // Extract DOB
-    result.dob = this.extractValidDOB(text);
+    result.dob = this.extractDOB(text);
     console.log("Extracted DOB:", result.dob);
     if (!result.dob) {
       console.log("❌ No valid DOB found");
@@ -249,7 +228,7 @@ export class OCRService {
       return null;
     }
 
-    // Extract Name using context and fallback methods
+    // Extract Name
     result.name = this.extractName(text);
     console.log("Extracted Name:", result.name);
     if (!result.name) {
@@ -261,262 +240,259 @@ export class OCRService {
     return result;
   }
 
-  private extractValidAadharNumber(text: string): string {
+  private extractAadharNumber(text: string): string {
     console.log("🔍 Searching for Aadhaar numbers...");
-    
-    // Find all 12-digit patterns (spaced and unspaced)
+
+    // Look for the most common Aadhaar patterns in UIDAI PDFs
     const patterns = [
-      /\b(\d{4})\s+(\d{4})\s+(\d{4})\b/g,  // 2305 2244 1763
-      /\b(\d{12})\b/g  // 230522441763
+      // Pattern 1: After "Aadhaar No." or similar labels
+      /(?:Aadhaar\s*(?:No\.?|Number)\s*:?\s*|आधार\s*संख्या\s*:?\s*)(\d{4}\s*\d{4}\s*\d{4})/i,
+
+      // Pattern 2: After mobile number (common layout in e-Aadhaar)
+      /Mobile\s*:?\s*\d{10}\s+(\d{4}\s*\d{4}\s*\d{4})/i,
+
+      // Pattern 3: Before VID (Virtual ID) - Aadhaar usually comes before VID
+      /(\d{4}\s*\d{4}\s*\d{4})\s+VID\s*:/i,
+
+      // Pattern 4: In dedicated sections after address
+      /(?:District|State|PIN\s*Code)\s*:.*?(\d{4}\s*\d{4}\s*\d{4})/i,
+
+      // Pattern 5: Stand-alone 12-digit numbers (as fallback)
+      /\b(\d{4})\s*(\d{4})\s*(\d{4})\b/g,
     ];
-    
-    const foundNumbers: string[] = [];
-    
-    for (const pattern of patterns) {
-      let match;
-      while ((match = pattern.exec(text)) !== null) {
-        let number;
-        if (match[2] && match[3]) {
-          // Spaced format: combine all parts
-          number = match[1] + match[2] + match[3];
-        } else {
-          // Unspaced format
-          number = match[1];
-        }
-        
-        if (number.length === 12) {
-          foundNumbers.push(number);
-          console.log("Found 12-digit number:", number);
+
+    // Try patterns in order of reliability
+    for (let i = 0; i < patterns.length - 1; i++) {
+      const match = text.match(patterns[i]);
+      if (match) {
+        let aadhaar = match[1].replace(/\s/g, "");
+        if (this.isValidAadhaarNumber(aadhaar)) {
+          console.log(`✅ Found Aadhaar using pattern ${i + 1}: ${aadhaar}`);
+          return aadhaar;
         }
       }
-      pattern.lastIndex = 0; // Reset regex
     }
-    
-    console.log("All found 12-digit numbers:", foundNumbers);
-    
-    // Filter out invalid numbers
-    for (const number of foundNumbers) {
-      console.log(`\n--- Validating ${number} ---`);
-      
-      // Rule 1: Reject repeated digits (like 000000000000)
-      if (/^(\d)\1+$/.test(number)) {
-        console.log(`❌ Rejected: repeated digits`);
-        continue;
+
+    // Fallback: Find all 12-digit patterns and validate them
+    const fallbackPattern = patterns[patterns.length - 1];
+    const matches: string[] = [];
+    let match;
+
+    while ((match = fallbackPattern.exec(text)) !== null) {
+      const fullMatch = match[1] + match[2] + match[3];
+      if (fullMatch.length === 12) {
+        matches.push(fullMatch);
       }
-      
-      // Rule 2: Check context around this number to reject VIDs
-      const numberIndex = text.indexOf(number.substring(0, 4)); // Find by first 4 digits
-      if (numberIndex !== -1) {
-        const contextBefore = text.substring(Math.max(0, numberIndex - 20), numberIndex).toLowerCase();
-        const contextAfter = text.substring(numberIndex, numberIndex + 50).toLowerCase();
-        
-        console.log(`Context before: "${contextBefore}"`);
-        console.log(`Context after: "${contextAfter}"`);
-        
-        // More intelligent VID rejection - only reject if it's clearly part of VID
-        const isDirectlyPartOfVID = (
-          contextBefore.match(/vid\s*:\s*$/i) || // "VID: 4015..."
-          contextAfter.match(/^[^a-zA-Z]{0,10}vid\s*:/i) // "4015... VID:"
-        );
-        
-        if (isDirectlyPartOfVID) {
-          console.log(`❌ Rejected: directly part of VID structure`);
-          continue;
-        }
-        
-        // If VID is mentioned but this number is clearly separate (12-digit vs 16-digit)
-        if (contextBefore.includes('vid') || contextAfter.includes('vid')) {
-          // Check if there's a distinct 16-digit VID nearby
-          const surrounding = contextBefore + contextAfter;
-          const hasDistinct16DigitVID = /\b\d{4}\s*\d{4}\s*\d{4}\s*\d{4}\b/.test(surrounding);
-          
-          if (hasDistinct16DigitVID && number.length === 12) {
-            console.log(`✅ Accepted: 12-digit number separate from 16-digit VID`);
-          } else {
-            console.log(`❌ Rejected: appears near VID without clear separation`);
-            continue;
-          }
-        }
-      }
-      
-      // Rule 3: Reject phone numbers in mobile context
-      if ((number.startsWith('9') || number.startsWith('8') || 
-           number.startsWith('7') || number.startsWith('6'))) {
-        const mobileContext = text.toLowerCase();
-        const mobileIndex = mobileContext.indexOf(number);
-        if (mobileIndex !== -1) {
-          const surrounding = mobileContext.substring(Math.max(0, mobileIndex - 30), mobileIndex + 50);
-          if (surrounding.includes('mobile') || surrounding.includes('phone')) {
-            console.log(`❌ Rejected: appears in mobile context`);
-            continue;
-          }
-        }
-      }
-      
-      // Rule 4: Reject enrollment numbers
-      const enrollmentContext = text.toLowerCase();
-      if (enrollmentContext.includes('enrolment') || enrollmentContext.includes('नामांकन')) {
-        const enrollmentIndex = Math.max(
-          enrollmentContext.indexOf('enrolment'),
-          enrollmentContext.indexOf('नामांकन')
-        );
-        const numberIndexInText = enrollmentContext.indexOf(number);
-        
-        // If number appears close to enrollment keywords, reject it
-        if (Math.abs(enrollmentIndex - numberIndexInText) < 100) {
-          console.log(`❌ Rejected: appears near enrollment context`);
-          continue;
-        }
-      }
-      
-      // Rule 5: Common VID starting patterns
-      if (number.startsWith('9171') || number.startsWith('9174') || 
-          number.startsWith('9999') || number.startsWith('9666') ||
-          number.startsWith('9174')) {
-        console.log(`❌ Rejected: common VID pattern`);
-        continue;
-      }
-      
-      // If we get here, it's likely a valid Aadhaar number
-      console.log(`✅ Valid Aadhaar number found: ${number}`);
-      return number;
     }
-    
-    console.log("❌ No valid Aadhaar number found after filtering");
+
+    console.log("Found potential Aadhaar numbers:", matches);
+
+    // Filter and validate each match
+    for (const candidate of matches) {
+      if (
+        this.isValidAadhaarNumber(candidate) &&
+        this.isLikelyAadhaarByContext(candidate, text)
+      ) {
+        console.log(`✅ Valid Aadhaar found: ${candidate}`);
+        return candidate;
+      }
+    }
+
+    console.log("❌ No valid Aadhaar number found");
     return "";
   }
 
-  private extractValidDOB(text: string): string {
+  private isValidAadhaarNumber(number: string): boolean {
+    // Basic validation
+    if (number.length !== 12) return false;
+    if (/^0+$/.test(number)) return false; // All zeros
+    if (/^(\d)\1+$/.test(number)) return false; // All same digit
+
+    // Aadhaar numbers don't start with 0 or 1
+    if (number.startsWith("0") || number.startsWith("1")) return false;
+
+    // Apply Verhoeff algorithm check for Aadhaar validation
+    return this.verhoeffCheck(number);
+  }
+
+  private verhoeffCheck(num: string): boolean {
+    // Simplified Verhoeff algorithm for Aadhaar validation
+    const d = [
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      [1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
+      [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
+      [3, 4, 0, 1, 2, 8, 9, 5, 6, 7],
+      [4, 0, 1, 2, 3, 9, 5, 6, 7, 8],
+      [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
+      [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
+      [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
+      [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
+      [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+    ];
+
+    const p = [
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      [1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
+      [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
+      [8, 9, 1, 6, 0, 4, 3, 5, 2, 7],
+      [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
+      [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
+      [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
+      [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
+    ];
+
+    let c = 0;
+    const myArray = num.split("").reverse();
+
+    for (let i = 0; i < myArray.length; i++) {
+      c = d[c][p[(i + 1) % 8][parseInt(myArray[i])]];
+    }
+
+    return c === 0;
+  }
+
+  private isLikelyAadhaarByContext(number: string, text: string): boolean {
+    const numberIndex = text.indexOf(number);
+    if (numberIndex === -1) return true; // If not found directly, assume it's from spaced version
+
+    const contextBefore = text
+      .substring(Math.max(0, numberIndex - 100), numberIndex)
+      .toLowerCase();
+    const contextAfter = text
+      .substring(numberIndex, numberIndex + 100)
+      .toLowerCase();
+
+    // Reject if it's clearly a VID (16 digits total or labeled as VID)
+    if (contextBefore.includes("vid") && contextAfter.includes("vid")) {
+      // Check if this is part of a 16-digit VID
+      const surrounding = contextBefore + number + contextAfter;
+      if (/\d{4}\s*\d{4}\s*\d{4}\s*\d{4}/.test(surrounding)) {
+        return false;
+      }
+    }
+
+    // Reject if it's clearly a phone number
+    if (contextBefore.includes("mobile") || contextBefore.includes("phone")) {
+      return false;
+    }
+
+    // Reject if it's clearly an enrollment number
+    if (contextBefore.includes("enrol") && contextBefore.includes("no")) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private extractDOB(text: string): string {
     console.log("🔍 Searching for DOB...");
-    
-    // Find all date patterns first
-    const dateMatches = text.match(/\d{2}\/\d{2}\/\d{4}/g) || [];
-    console.log("Found date patterns:", dateMatches);
-    
-    // Check each date for birth context
-    for (const date of dateMatches) {
-      const year = parseInt(date.split('/')[2]);
-      if (year >= 1900 && year <= 2030) {
-        console.log(`Checking date ${date} (year ${year})`);
-        
-        // Find this date in text and check surrounding context
-        const dateIndex = text.indexOf(date);
-        if (dateIndex !== -1) {
-          const contextBefore = text.substring(Math.max(0, dateIndex - 60), dateIndex);
-          const contextAfter = text.substring(dateIndex, dateIndex + 30);
-          
-          console.log(`Context before "${date}": "${contextBefore}"`);
-          console.log(`Context after "${date}": "${contextAfter}"`);
-          
-          // Very flexible DOB detection - look for any birth-related indicators
-          const birthIndicators = [
-            'dob', 'birth', 'जन्म', 'ज�म', 'तारीख', 'ितिथ', 'जनम'
-          ];
-          
-          const fullContext = (contextBefore + contextAfter).toLowerCase();
-          const hasBirthContext = birthIndicators.some(indicator => 
-            fullContext.includes(indicator)
-          );
-          
-          if (hasBirthContext) {
+
+    // Multiple patterns for DOB extraction
+    const dobPatterns = [
+      /(?:Date\s*of\s*Birth|DOB|जन्म.*?तारीख)\s*:?\s*(\d{2}[\/\-]\d{2}[\/\-]\d{4})/i,
+      /(?:Birth|जन्म)\s*:?\s*(\d{2}[\/\-]\d{2}[\/\-]\d{4})/i,
+      /(\d{2}[\/\-]\d{2}[\/\-]\d{4})/g, // Fallback for any date pattern
+    ];
+
+    for (const pattern of dobPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const date = match[1];
+        // Validate date format and range
+        const parts = date.split(/[\/\-]/);
+        if (parts.length === 3) {
+          const day = parseInt(parts[0]);
+          const month = parseInt(parts[1]);
+          const year = parseInt(parts[2]);
+
+          if (
+            day >= 1 &&
+            day <= 31 &&
+            month >= 1 &&
+            month <= 12 &&
+            year >= 1900 &&
+            year <= 2025
+          ) {
             console.log(`✅ Found DOB: ${date}`);
             return date;
           }
         }
       }
     }
-    
+
     console.log("❌ No valid DOB found");
     return "";
   }
 
   private extractGender(text: string): string {
     console.log("🔍 Searching for gender...");
-    
-    // Very flexible gender patterns to handle broken characters
-    const maleIndicators = [
-      'male', 'पुरुष', 'पु', 'ष', 'पुरुष', 'male/', '/male', 'पु�ष', 'पुरुष/', '/पुरुष'
-    ];
-    
-    const femaleIndicators = [
-      'female', 'महिला', 'मह', 'ला', 'female/', '/female', 'महिला/', '/महिला'
-    ];
-    
+
     const lowerText = text.toLowerCase();
-    
+
+    // Check for female indicators first (more specific)
+    if (lowerText.includes("female") || lowerText.includes("महिला")) {
+      console.log("✅ Found gender: Female");
+      return "Female";
+    }
+
     // Check for male indicators
-    for (const indicator of maleIndicators) {
-      if (lowerText.includes(indicator.toLowerCase())) {
-        console.log(`✅ Found male indicator: "${indicator}"`);
-        return "Male";
-      }
+    if (lowerText.includes("male") || lowerText.includes("पुरुष")) {
+      console.log("✅ Found gender: Male");
+      return "Male";
     }
-    
-    // Check for female indicators
-    for (const indicator of femaleIndicators) {
-      if (lowerText.includes(indicator.toLowerCase())) {
-        console.log(`✅ Found female indicator: "${indicator}"`);
-        return "Female";
-      }
-    }
-    
+
     console.log("❌ No gender found");
     return "";
   }
 
   private extractName(text: string): string {
     console.log("🔍 Searching for name...");
-    
-    // Method 1: Look for names that appear multiple times (cardholder appears twice)
-    const namePattern = /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){2,3})\b/g;
-    const nameFrequency: { [key: string]: number } = {};
-    let match;
 
-    while ((match = namePattern.exec(text)) !== null) {
-      const candidateName = match[1].trim();
-      if (this.isValidName(candidateName)) {
-        nameFrequency[candidateName] = (nameFrequency[candidateName] || 0) + 1;
-        console.log(`Found name candidate: "${candidateName}" (count: ${nameFrequency[candidateName]})`);
-      }
-    }
-
-    console.log("Name frequencies:", nameFrequency);
-
-    // Prioritize names that appear multiple times
-    const repeatedNames = Object.entries(nameFrequency)
-      .filter(([name, count]) => count >= 2)
-      .sort((a, b) => b[1] - a[1]);
-
-    if (repeatedNames.length > 0) {
-      console.log(`✅ Found repeated name: ${repeatedNames[0][0]} (appeared ${repeatedNames[0][1]} times)`);
-      return repeatedNames[0][0];
-    }
-
-    // Method 2: Extract from "To" section
-    const toMatch = text.match(/\bTo\b\s*([\s\S]*?)(?=(?:C\/O:|Flat|Address|VTC|District|PIN|Mobile|Signature|Digitally))/i);
+    // Pattern 1: After "To" in address section
+    const toMatch = text.match(
+      /\bTo\b\s*([\s\S]*?)(?=(?:C\/O|S\/O|D\/O|W\/O|Address|VTC|District|PIN|Mobile|Signature))/i,
+    );
     if (toMatch) {
-      console.log("Found 'To' section:", toMatch[1]);
       const toSection = toMatch[1].trim();
-      const lines = toSection.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      
-      // Look for English names (skip Hindi text)
+      const lines = toSection
+        .split(/\n/)
+        .map((l) => l.trim())
+        .filter((l) => l.length > 2);
+
       for (const line of lines) {
-        if (!/[अ-ह]/.test(line) && !line.toLowerCase().includes('c/o')) {
-          const nameMatch = line.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+){2,3})/);
-          if (nameMatch && this.isValidName(nameMatch[1])) {
-            console.log(`✅ Found name in 'To' section: ${nameMatch[1]}`);
-            return nameMatch[1].trim();
+        // Skip Hindi text and addresses
+        if (!/[अ-ह]/.test(line) && !this.isAddress(line)) {
+          const cleanLine = line.replace(/[^\w\s]/g, "").trim();
+          if (this.isValidName(cleanLine)) {
+            console.log(`✅ Found name in 'To' section: ${cleanLine}`);
+            return cleanLine;
           }
         }
       }
     }
 
-    // Method 3: Look for the most frequent valid name
-    if (Object.keys(nameFrequency).length > 0) {
-      const mostFrequent = Object.entries(nameFrequency)
-        .sort((a, b) => b[1] - a[1])[0];
-      console.log(`✅ Using most frequent name: ${mostFrequent[0]}`);
-      return mostFrequent[0];
+    // Pattern 2: Look for repeated names (cardholder name appears multiple times)
+    const namePattern = /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\b/g;
+    const nameFrequency: { [key: string]: number } = {};
+    let match;
+
+    while ((match = namePattern.exec(text)) !== null) {
+      const candidateName = match[1].trim();
+      if (this.isValidName(candidateName) && !this.isAddress(candidateName)) {
+        nameFrequency[candidateName] = (nameFrequency[candidateName] || 0) + 1;
+      }
+    }
+
+    // Find the most frequent valid name
+    const sortedNames = Object.entries(nameFrequency)
+      .filter(([name, count]) => count >= 1)
+      .sort((a, b) => b[1] - a[1]);
+
+    if (sortedNames.length > 0) {
+      console.log(
+        `✅ Found name: ${sortedNames[0][0]} (frequency: ${sortedNames[0][1]})`,
+      );
+      return sortedNames[0][0];
     }
 
     console.log("❌ No valid name found");
@@ -524,37 +500,100 @@ export class OCRService {
   }
 
   private isValidName(name: string): boolean {
-    // Filter out common non-name words
+    // Filter out common non-name words and addresses
     const invalidWords = [
-      'Unique', 'Identification', 'Authority', 'India', 'Government',
-      'Compound', 'Chawl', 'Road', 'Near', 'Mandir', 'District', 'State',
-      'Maharashtra', 'Details', 'Address', 'Signature', 'Digitally',
-      'Date', 'Issue', 'Download', 'VTC', 'PIN', 'Code', 'Floor', 'Wing',
-      'CHS', 'Flat', 'Bhandar', 'Nagar', 'West', 'Thane', 'Download',
-      'Enrolment', 'Mobile', 'Khanna', 'Vitthalwadi', 'Ulhasnagar',
-      'Hanuman', 'Greenwood', 'Hubtown'
+      "unique",
+      "identification",
+      "authority",
+      "india",
+      "government",
+      "compound",
+      "chawl",
+      "road",
+      "near",
+      "mandir",
+      "district",
+      "state",
+      "maharashtra",
+      "details",
+      "address",
+      "signature",
+      "digitally",
+      "download",
+      "vtc",
+      "pin",
+      "code",
+      "floor",
+      "wing",
+      "chs",
+      "flat",
+      "society",
+      "nagar",
+      "west",
+      "east",
+      "north",
+      "south",
+      "thane",
+      "enrolment",
+      "mobile",
+      "khanna",
+      "vitthalwadi",
+      "ulhasnagar",
+      "hanuman",
+      "greenwood",
+      "hubtown",
+      "issued",
+      "date",
     ];
 
-    const words = name.split(' ');
+    const words = name.toLowerCase().split(" ");
     for (const word of words) {
-      if (invalidWords.some(invalid => word.toLowerCase().includes(invalid.toLowerCase()))) {
+      if (invalidWords.includes(word)) {
         return false;
       }
     }
 
     // Name should be reasonable length and contain only letters and spaces
-    return name.length >= 6 && 
-           name.length <= 50 && 
-           /^[A-Za-z\s]+$/.test(name) &&
-           words.length >= 2 && 
-           words.length <= 4;
+    return (
+      name.length >= 4 &&
+      name.length <= 50 &&
+      /^[A-Za-z\s]+$/.test(name) &&
+      words.length >= 2 &&
+      words.length <= 4
+    );
   }
 
-  private isParentName(name: string, text: string): boolean {
-    // Check if this name appears only in C/O or parent context
-    const nameIndex = text.indexOf(name);
-    const contextBefore = text.substring(Math.max(0, nameIndex - 30), nameIndex).toLowerCase();
-    return contextBefore.includes('c/o') || contextBefore.includes('c/o:');
+  private isAddress(text: string): boolean {
+    const addressKeywords = [
+      "compound",
+      "chawl",
+      "road",
+      "street",
+      "lane",
+      "plot",
+      "flat",
+      "building",
+      "society",
+      "nagar",
+      "colony",
+      "area",
+      "sector",
+      "phase",
+      "wing",
+      "floor",
+      "room",
+      "house",
+      "pin",
+      "vtc",
+      "district",
+      "state",
+      "near",
+      "opp",
+      "opposite",
+    ];
+
+    const lowerText = text.toLowerCase();
+    return addressKeywords.some((keyword) => lowerText.includes(keyword));
   }
 }
 
