@@ -82,6 +82,11 @@ export interface Candidate {
 **NOTE FOR FUTURE DEPLOYMENTS**: Always set MONGODB_URI secret first before running the application.
 
 ## Recent Changes
+- **2025-08-27**: AADHAR DATA AUTO-FILL FIXED - Registration form now auto-fills with extracted Aadhar data:
+  - Date format conversion from DD/MM/YYYY to YYYY-MM-DD for HTML date input compatibility
+  - Aadhar number formatting by removing spaces for consistent storage
+  - Name and gender auto-filling working properly
+  - Complete verification to registration data flow restored
 - **2025-08-27**: FIXED OCR EXTRACTION - Simplified OCR logic to work with any Aadhaar card format:
   - Generic pattern matching for 12-digit Aadhaar numbers with spaces
   - Universal name extraction for English names (First Middle Last)

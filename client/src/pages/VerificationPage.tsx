@@ -259,8 +259,37 @@ const VerificationPage = () => {
         console.log("✅ Processing successful, updating state...");
         setExtractedAadharData(result.data);
         setAadharUploaded(true);
+        
+        // Format date from DD/MM/YYYY to YYYY-MM-DD for HTML date input
+        const formatDateForInput = (dateStr: string): string => {
+          if (!dateStr) return '';
+          
+          // Handle DD/MM/YYYY format
+          const ddmmyyyy = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+          if (ddmmyyyy) {
+            const [, day, month, year] = ddmmyyyy;
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          }
+          
+          // Handle DD-MM-YYYY format
+          const ddmmyyyy2 = dateStr.match(/(\d{1,2})-(\d{1,2})-(\d{4})/);
+          if (ddmmyyyy2) {
+            const [, day, month, year] = ddmmyyyy2;
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          }
+          
+          // Handle YYYY-MM-DD format (already correct)
+          if (dateStr.match(/\d{4}-\d{2}-\d{2}/)) {
+            return dateStr;
+          }
+          
+          return dateStr; // Return as-is if format not recognized
+        };
+        
         setCurrentCandidate({
           ...result.data,
+          dob: formatDateForInput(result.data.dob),
+          aadhar: result.data.aadhar.replace(/\s/g, ''), // Remove spaces from Aadhar number
           mobile
         });
         setSuccess('Aadhar document processed and verified successfully!');
