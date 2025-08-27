@@ -130,15 +130,22 @@ const VerificationPage = () => {
     
     try {
       // First check if this mobile number is already registered
-      const existingCandidate = await apiRequest('/api/candidates/search', {
-        method: 'POST',
-        body: JSON.stringify({ mobile })
-      }).catch((error) => {
-        if (error.message.includes('not found')) {
-          return null; // No existing candidate, continue with verification
+      let existingCandidate = null;
+      
+      try {
+        existingCandidate = await apiRequest('/api/candidates/search', {
+          method: 'POST',
+          body: JSON.stringify({ mobile })
+        });
+      } catch (searchError: any) {
+        // 404 means candidate not found, which is expected for new registrations
+        if (searchError.status === 404 || searchError.message?.includes('not found') || searchError.message?.includes('Candidate not found')) {
+          existingCandidate = null; // No existing candidate, continue with verification
+        } else {
+          // Some other error occurred during search
+          throw searchError;
         }
-        throw error;
-      });
+      }
 
       if (existingCandidate) {
         setError(`This mobile number is already registered with Candidate ID: ${existingCandidate.candidateId}. Status: ${existingCandidate.status}. You cannot register again with the same mobile number.`);
