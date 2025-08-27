@@ -62,7 +62,18 @@ const RegistrationPage = () => {
   ];
 
   useEffect(() => {
+    console.log("🔍 Registration Page - Current Candidate Data:", currentCandidate);
+    console.log("📱 Registration Page - Verified Mobile:", verifiedMobile);
+    
     if (currentCandidate) {
+      console.log("✅ Setting form data with candidate:", {
+        name: currentCandidate.name,
+        dob: currentCandidate.dob,
+        mobile: verifiedMobile || currentCandidate.mobile,
+        aadhar: currentCandidate.aadhar,
+        gender: currentCandidate.gender
+      });
+      
       setFormData(prev => ({
         ...prev,
         name: currentCandidate.name || '',
@@ -73,6 +84,7 @@ const RegistrationPage = () => {
       }));
     } else if (verifiedMobile) {
       // If no extracted data but we have verified mobile, pre-fill it
+      console.log("📱 Only mobile data available, setting mobile:", verifiedMobile);
       setFormData(prev => ({
         ...prev,
         mobile: verifiedMobile

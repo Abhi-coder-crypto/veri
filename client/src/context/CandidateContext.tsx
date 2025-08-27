@@ -6,6 +6,7 @@ export interface Candidate {
   dob: string;
   mobile: string;
   aadhar: string;
+  gender?: string;
   address?: string;
   program?: string;
   center?: string;
