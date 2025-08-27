@@ -6,7 +6,6 @@ export interface AadharData {
   dob: string;
   aadhar: string;
   gender: string;
-  address: string;
 }
 
 export interface OCRResponse {
@@ -306,35 +305,6 @@ export class OCRService {
       finalGender: gender 
     });
     
-    // Extract Address - look for address after "Address:" or "पत्ता:" label
-    let address = '';
-    const addressPatterns = [
-      // Pattern 1: After "Address:" label
-      /Address:\s*([^0-9]*(?:\d{6})?[^0-9]*)/i,
-      // Pattern 2: After "पत्ता:" label (Hindi)  
-      /पत्ता:\s*([^0-9]*(?:\d{6})?[^0-9]*)/i,
-      // Pattern 3: Look for address structure with PIN code
-      /((?:[A-Za-z\s,]+(?:Road|Mandir|Compound|Chawl|District|State)[A-Za-z\s,]*)+\s*-?\s*\d{6})/i
-    ];
-    
-    for (const pattern of addressPatterns) {
-      const addressMatch = text.match(pattern);
-      if (addressMatch && addressMatch[1]) {
-        address = addressMatch[1]
-          .replace(/\s+/g, ' ')
-          .replace(/,\s*,/g, ',')
-          .trim();
-        if (address.length > 10) { // Valid address should be reasonably long
-          console.log("Address found using pattern:", address);
-          break;
-        }
-      }
-    }
-    
-    console.log("Address extraction debug:", { 
-      foundAddress: address 
-    });
-    
     // Extract Name - Find full name, avoid "To" prefix and address parts
     const cleanText = text.replace(/\bTo\b/g, ''); // Remove "To" prefixes
     const namePatterns = [
@@ -360,7 +330,7 @@ export class OCRService {
       }
     }
     
-    console.log("Found patterns:", { aadhaar, name, dob, gender, address });
+    console.log("Found patterns:", { aadhaar, name, dob, gender });
     
     // Return data if we found essential fields
     if (aadhaar && name && dob) {
@@ -368,8 +338,7 @@ export class OCRService {
         name: name,
         dob: dob,
         aadhar: aadhaar,
-        gender: gender || 'Not specified',
-        address: address || ''
+        gender: gender || 'Not specified'
       };
       console.log("✅ Returning extracted data:", result);
       return result;
@@ -394,8 +363,7 @@ export class OCRService {
         aadhar: allNumbers[0].replace(/\s/g, ''),
         dob: allDates[0],
         name: allNames[0],
-        gender: text.match(/(MALE|FEMALE|Male|Female|पुरुष|महिला)/)?.[0] || 'Not specified',
-        address: ''
+        gender: text.match(/(MALE|FEMALE|Male|Female|पुरुष|महिला)/)?.[0] || 'Not specified'
       };
     }
     
