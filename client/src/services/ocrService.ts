@@ -270,7 +270,17 @@ export class OCRService {
 
   private extractAadharInfo(text: string): AadharData | null {
     console.log("=== Starting Aadhaar extraction ===");
-    console.log("Text sample:", text.substring(0, 500));
+    console.log("Full extracted text:", text);
+
+    // Create comprehensive debug object as requested
+    const debugData = {
+      fullText: text,
+      allNumbers: text.match(/\d+/g),
+      datePatterns: text.match(/\d{2}\/\d{2}\/\d{4}/g),
+      englishNames: text.match(/[A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+/g),
+      genderWords: text.match(/(MALE|FEMALE|पुरुष|महिला)/gi)
+    };
+    console.log('DEBUG_EXTRACTION:', debugData);
 
     const result = {
       name: "",
@@ -279,33 +289,33 @@ export class OCRService {
       gender: "",
     };
 
-    // Extract Aadhaar Number using improved logic
-    result.aadhar = this.extractAadharNumber(text);
-    console.log("Extracted Aadhaar:", result.aadhar);
+    // Extract Aadhaar Number using specific pattern
+    result.aadhar = this.extractAadharNumberSpecific(text);
+    console.log("🆔 Extracted Aadhaar:", result.aadhar);
     if (!result.aadhar) {
       console.log("❌ No valid Aadhaar number found");
       return null;
     }
 
-    // Extract DOB
-    result.dob = this.extractDOB(text);
-    console.log("Extracted DOB:", result.dob);
+    // Extract DOB using specific pattern
+    result.dob = this.extractDOBSpecific(text);
+    console.log("📅 Extracted DOB:", result.dob);
     if (!result.dob) {
       console.log("❌ No valid DOB found");
       return null;
     }
 
-    // Extract Gender
-    result.gender = this.extractGender(text);
-    console.log("Extracted Gender:", result.gender);
+    // Extract Gender using specific pattern
+    result.gender = this.extractGenderSpecific(text);
+    console.log("⚧ Extracted Gender:", result.gender);
     if (!result.gender) {
       console.log("❌ No valid Gender found");
       return null;
     }
 
-    // Extract Name
-    result.name = this.extractName(text);
-    console.log("Extracted Name:", result.name);
+    // Extract Name using specific pattern
+    result.name = this.extractNameSpecific(text);
+    console.log("👤 Extracted Name:", result.name);
     if (!result.name) {
       console.log("❌ No valid Name found");
       return null;
@@ -315,7 +325,141 @@ export class OCRService {
     return result;
   }
 
-  private extractAadharNumber(text: string): string {
+  // Specific extraction methods as requested
+  private extractAadharNumberSpecific(text: string): string {
+    console.log("🔍 AADHAAR EXTRACTION - Looking for 12-digit number appearing 3 times...");
+    
+    // Aadhaar pattern - the 12-digit number that appears 3 times (not VID which is 16 digits)
+    const aadhaarPattern = /(\d{4})\s+(\d{4})\s+(\d{4})/g;
+    const candidates: string[] = [];
+    const frequency: { [key: string]: number } = {};
+    let match;
+    
+    while ((match = aadhaarPattern.exec(text)) !== null) {
+      const fullNumber = match[1] + match[2] + match[3];
+      candidates.push(fullNumber);
+      frequency[fullNumber] = (frequency[fullNumber] || 0) + 1;
+      console.log(`Found 12-digit candidate: ${match[1]} ${match[2]} ${match[3]} = ${fullNumber}`);
+    }
+    
+    console.log("All 12-digit candidates:", candidates);
+    console.log("Frequency count:", frequency);
+    
+    // Find the number that appears most frequently (should be 3 times for Aadhaar)
+    let mostFrequent = "";
+    let maxCount = 0;
+    
+    for (const [number, count] of Object.entries(frequency)) {
+      console.log(`Number ${number} appears ${count} times`);
+      if (count > maxCount && this.isValidAadhaarNumber(number)) {
+        mostFrequent = number;
+        maxCount = count;
+      }
+    }
+    
+    if (mostFrequent && maxCount >= 2) { // Should appear at least twice
+      console.log(`✅ Aadhaar found: ${mostFrequent} (appears ${maxCount} times)`);
+      return mostFrequent;
+    }
+    
+    console.log("❌ No valid Aadhaar number found with sufficient frequency");
+    return "";
+  }
+  
+  private extractDOBSpecific(text: string): string {
+    console.log("📅 DOB EXTRACTION - Looking for DD/MM/YYYY pattern...");
+    
+    // DOB - specific date format
+    const dobPattern = /DOB:\s*(\d{2}\/\d{2}\/\d{4})/i;
+    const generalDatePattern = /(\d{2}\/\d{2}\/\d{4})/g;
+    
+    // Try specific DOB label first
+    let match = text.match(dobPattern);
+    if (match) {
+      console.log(`✅ DOB found with label: ${match[1]}`);
+      return match[1];
+    }
+    
+    // Find all date patterns and validate
+    const allDates = text.match(generalDatePattern) || [];
+    console.log("All date patterns found:", allDates);
+    
+    for (const date of allDates) {
+      const parts = date.split('/');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]);
+        const year = parseInt(parts[2]);
+        
+        if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 1900 && year <= 2025) {
+          console.log(`✅ Valid DOB found: ${date}`);
+          return date;
+        }
+      }
+    }
+    
+    console.log("❌ No valid DOB found");
+    return "";
+  }
+  
+  private extractGenderSpecific(text: string): string {
+    console.log("⚧ GENDER EXTRACTION - Looking for MALE/FEMALE/पुरुष/महिला...");
+    
+    // Gender - either English or Hindi
+    const genderPattern = /(MALE|FEMALE|पुरुष|महिला)/i;
+    
+    const match = text.match(genderPattern);
+    if (match) {
+      const gender = match[1].toUpperCase();
+      console.log(`✅ Gender found: ${gender}`);
+      
+      if (gender === 'MALE' || gender === 'पुरुष') {
+        return 'Male';
+      } else if (gender === 'FEMALE' || gender === 'महिला') {
+        return 'Female';
+      }
+    }
+    
+    console.log("❌ No gender found");
+    return "";
+  }
+  
+  private extractNameSpecific(text: string): string {
+    console.log("👤 NAME EXTRACTION - Looking for English text after 'To'...");
+    
+    // Name - English text after 'To' line
+    const namePattern = /To\s*\n.*?\n([A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+)/;
+    
+    let match = text.match(namePattern);
+    if (match && this.isValidName(match[1])) {
+      console.log(`✅ Name found after 'To': ${match[1]}`);
+      return match[1];
+    }
+    
+    // Alternative pattern - look for 3-word English names near 'To'
+    const alternativePattern = /To[\s\S]{0,200}?([A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+)/i;
+    match = text.match(alternativePattern);
+    if (match && this.isValidName(match[1])) {
+      console.log(`✅ Name found near 'To': ${match[1]}`);
+      return match[1];
+    }
+    
+    // Look for any 3-word English name pattern
+    const allNameMatches = text.match(/[A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+/g) || [];
+    console.log("All 3-word English patterns found:", allNameMatches);
+    
+    for (const candidate of allNameMatches) {
+      if (this.isValidName(candidate)) {
+        console.log(`✅ Valid name found: ${candidate}`);
+        return candidate;
+      }
+    }
+    
+    console.log("❌ No valid name found");
+    return "";
+  }
+
+  private extractAadharNumberOld(text: string): string {
     console.log("🔍 Searching for Aadhaar numbers...");
 
     // Enhanced patterns for multilingual PDFs with robust number extraction
@@ -536,7 +680,7 @@ export class OCRService {
     return { isLikelyAadhaar: true, reason: "No negative indicators found" };
   }
 
-  private extractDOB(text: string): string {
+  private extractDOBOld(text: string): string {
     console.log("🔍 Searching for DOB...");
 
     // Enhanced multilingual patterns for DOB extraction
@@ -584,7 +728,7 @@ export class OCRService {
     return "";
   }
 
-  private extractGender(text: string): string {
+  private extractGenderOld(text: string): string {
     console.log("🔍 Searching for gender...");
 
     // Enhanced multilingual gender extraction
@@ -619,7 +763,7 @@ export class OCRService {
     return "";
   }
 
-  private extractName(text: string): string {
+  private extractNameOld(text: string): string {
     console.log("🔍 Searching for name...");
 
     // Enhanced multilingual name extraction
