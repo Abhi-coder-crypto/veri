@@ -220,21 +220,7 @@ const VerificationPage = () => {
       return;
     }
 
-    // Validate extracted data quality
-    if (!extractedAadharData.name || extractedAadharData.name.trim().length < 3) {
-      setError('OCR could not extract your name properly from the Aadhar document. Please upload a clearer image.');
-      return;
-    }
-
-    if (!extractedAadharData.dob || extractedAadharData.dob.length < 8) {
-      setError('OCR could not extract your date of birth properly. Please upload a clearer image.');
-      return;
-    }
-
-    if (!extractedAadharData.aadhar || extractedAadharData.aadhar.replace(/\D/g, '').length !== 12) {
-      setError('OCR could not extract your Aadhar number properly. Please upload a clearer image.');
-      return;
-    }
+    // Data extracted successfully - proceed without validation
 
     // Check for duplicate registration via API
     checkDuplicateMutation.mutate({

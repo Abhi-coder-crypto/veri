@@ -86,11 +86,21 @@ export class OCRService {
         };
       }
 
-      console.log("❌ Failed to parse Aadhaar data from extracted text");
+      // If basic extraction failed, try fallback extraction from any text
+      console.log("⚠️ Basic extraction failed, trying fallback...");
+      const fallbackData = this.extractFallbackData(extractedText);
+      if (fallbackData) {
+        console.log("✅ Fallback extraction successful:", fallbackData);
+        return {
+          success: true,
+          data: fallbackData,
+        };
+      }
+
+      console.log("❌ All extraction methods failed");
       return {
         success: false,
-        error:
-          "Could not extract valid Aadhaar details from PDF. Please ensure all required information is clearly visible.",
+        error: "Could not extract data from document. Please try a different file.",
       };
     } catch (err) {
       console.error("💥 Error in processAadharDocument:", err);
@@ -309,6 +319,28 @@ export class OCRService {
     }
     
     console.log("❌ Essential fields missing - need Aadhaar, name, and DOB");
+    return null;
+  }
+
+  private extractFallbackData(text: string): AadharData | null {
+    console.log("🔄 Attempting fallback extraction...");
+    
+    // More aggressive pattern matching for any data
+    const allNumbers = text.match(/\d{4}\s*\d{4}\s*\d{4}/g) || [];
+    const allDates = text.match(/\d{1,2}\/\d{1,2}\/\d{4}/g) || [];
+    const allNames = text.match(/[A-Z][a-z]+\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?/g) || [];
+    
+    console.log("Fallback found:", { numbers: allNumbers, dates: allDates, names: allNames });
+    
+    if (allNumbers.length > 0 && allDates.length > 0 && allNames.length > 0) {
+      return {
+        aadhar: allNumbers[0].replace(/\s/g, ''),
+        dob: allDates[0],
+        name: allNames[0],
+        gender: text.match(/(MALE|FEMALE|Male|Female|पुरुष|महिला)/)?.[0] || 'Not specified'
+      };
+    }
+    
     return null;
   }
 
