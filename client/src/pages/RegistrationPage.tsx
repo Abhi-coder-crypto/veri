@@ -10,6 +10,9 @@ const RegistrationPage = () => {
   const [, setLocation] = useLocation();
   const { currentCandidate, verifiedMobile } = useCandidateContext();
   
+  console.log("🏁 RegistrationPage rendered - currentCandidate:", currentCandidate);
+  console.log("🏁 RegistrationPage rendered - verifiedMobile:", verifiedMobile);
+  
   const [formData, setFormData] = useState({
     name: '',
     dob: '',
