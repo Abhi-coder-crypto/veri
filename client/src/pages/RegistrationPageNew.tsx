@@ -18,6 +18,7 @@ const RegistrationPage = () => {
     dob: '',
     gender: '',
     mobile: '',
+    address: '',
     
     // Optional fields from Excel
     religion: '',
@@ -94,7 +95,8 @@ const RegistrationPage = () => {
         dob: currentCandidate.dob || '',
         mobile: verifiedMobile || currentCandidate.mobile || '',
         aadhar: currentCandidate.aadhar || '',
-        gender: currentCandidate.gender || ''
+        gender: currentCandidate.gender || '',
+        address: currentCandidate.address || ''
       }));
     } else if (verifiedMobile) {
       setFormData(prev => ({
@@ -176,7 +178,7 @@ const RegistrationPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.aadhar || !formData.mobile || !formData.location || !formData.gender) {
+    if (!formData.name || !formData.aadhar || !formData.mobile || !formData.location || !formData.gender || !formData.address) {
       setError('Please fill in all required fields');
       return;
     }
@@ -371,6 +373,20 @@ const RegistrationPage = () => {
                     value={formData.mobile}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
                     readOnly
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    placeholder="Enter complete address"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={3}
                   />
                 </div>
 
