@@ -62,18 +62,7 @@ const RegistrationPage = () => {
   ];
 
   useEffect(() => {
-    console.log("🔍 Registration Page - Current Candidate Data:", currentCandidate);
-    console.log("📱 Registration Page - Verified Mobile:", verifiedMobile);
-    
     if (currentCandidate) {
-      console.log("✅ Setting form data with candidate:", {
-        name: currentCandidate.name,
-        dob: currentCandidate.dob,
-        mobile: verifiedMobile || currentCandidate.mobile,
-        aadhar: currentCandidate.aadhar,
-        gender: currentCandidate.gender
-      });
-      
       setFormData(prev => ({
         ...prev,
         name: currentCandidate.name || '',
@@ -84,7 +73,6 @@ const RegistrationPage = () => {
       }));
     } else if (verifiedMobile) {
       // If no extracted data but we have verified mobile, pre-fill it
-      console.log("📱 Only mobile data available, setting mobile:", verifiedMobile);
       setFormData(prev => ({
         ...prev,
         mobile: verifiedMobile
@@ -286,18 +274,14 @@ const RegistrationPage = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Gender <span className="text-red-500">*</span>
                 </label>
-                <select
+                <input
+                  type="text"
                   name="gender"
                   value={formData.gender}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-                  disabled
-                >
-                  <option value="">Select Gender</option>
-                  {genders.map(gender => (
-                    <option key={gender} value={gender}>{gender}</option>
-                  ))}
-                </select>
+                  readOnly
+                />
               </div>
 
               <div>

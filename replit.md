@@ -84,8 +84,8 @@ export interface Candidate {
 ## Recent Changes
 - **2025-08-27**: AADHAR DATA AUTO-FILL FIXED - Registration form now auto-fills with extracted Aadhar data:
   - Added missing gender field to registration form with proper auto-filling
-  - Fixed gender dropdown to show extracted gender value from Aadhar (Male/Female)
-  - Gender field is now disabled to prevent modification like other verified fields
+  - Changed gender from dropdown to text input for consistent auto-fill display
+  - Gender field is now read-only and displays extracted value like other verified fields
   - Date format conversion from DD/MM/YYYY to YYYY-MM-DD for HTML date input compatibility
   - Aadhar number formatting by removing spaces for consistent storage
   - Name and gender auto-filling working properly
