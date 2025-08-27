@@ -15,6 +15,7 @@ const RegistrationPage = () => {
     dob: '',
     mobile: '',
     aadhar: '',
+    gender: '',
     address: '',
     program: '',
     center: '',
@@ -32,6 +33,8 @@ const RegistrationPage = () => {
   const [imageUploading, setImageUploading] = useState(false);
   const [showImageCropper, setShowImageCropper] = useState(false);
   const [originalImageUrl, setOriginalImageUrl] = useState<string>('');
+
+  const genders = ['Male', 'Female', 'Other'];
 
   const programs = [
     { id: 'category1', name: 'Category 1', duration: '3 months' },
@@ -65,7 +68,8 @@ const RegistrationPage = () => {
         name: currentCandidate.name || '',
         dob: currentCandidate.dob || '',
         mobile: verifiedMobile || currentCandidate.mobile || '',
-        aadhar: currentCandidate.aadhar || ''
+        aadhar: currentCandidate.aadhar || '',
+        gender: currentCandidate.gender || ''
       }));
     } else if (verifiedMobile) {
       // If no extracted data but we have verified mobile, pre-fill it
@@ -250,6 +254,38 @@ const RegistrationPage = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
                   readOnly
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Aadhar Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="aadhar"
+                  value={formData.aadhar}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                  readOnly
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Gender <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                  disabled
+                >
+                  <option value="">Select Gender</option>
+                  {genders.map(gender => (
+                    <option key={gender} value={gender}>{gender}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
