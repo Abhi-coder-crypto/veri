@@ -316,10 +316,8 @@ const RegistrationPage = () => {
                     type="text"
                     name="name"
                     value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter full name"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    readOnly
                   />
                 </div>
 
@@ -331,11 +329,8 @@ const RegistrationPage = () => {
                     type="text"
                     name="aadhar"
                     value={formData.aadhar}
-                    onChange={handleInputChange}
-                    required
-                    maxLength={12}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="12-digit Aadhar number"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    readOnly
                   />
                 </div>
 
@@ -347,9 +342,8 @@ const RegistrationPage = () => {
                     type="date"
                     name="dob"
                     value={formData.dob}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    readOnly
                   />
                 </div>
 
@@ -357,18 +351,13 @@ const RegistrationPage = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Gender <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <input
+                    type="text"
                     name="gender"
                     value={formData.gender}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select Gender</option>
-                    {genders.map(gender => (
-                      <option key={gender} value={gender}>{gender}</option>
-                    ))}
-                  </select>
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    readOnly
+                  />
                 </div>
 
                 <div>
@@ -379,10 +368,8 @@ const RegistrationPage = () => {
                     type="tel"
                     name="mobile"
                     value={formData.mobile}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="10-digit mobile number"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
+                    readOnly
                   />
                 </div>
 
