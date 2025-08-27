@@ -62,7 +62,11 @@ const RegistrationPage = () => {
   ];
 
   useEffect(() => {
-    if (currentCandidate) {
+    console.log("🔍 RegistrationPage useEffect - currentCandidate:", currentCandidate);
+    console.log("🔍 RegistrationPage useEffect - verifiedMobile:", verifiedMobile);
+    
+    if (currentCandidate && Object.keys(currentCandidate).length > 0) {
+      console.log("✅ Setting form data from currentCandidate, gender:", currentCandidate.gender);
       setFormData(prev => ({
         ...prev,
         name: currentCandidate.name || '',
@@ -73,6 +77,7 @@ const RegistrationPage = () => {
       }));
     } else if (verifiedMobile) {
       // If no extracted data but we have verified mobile, pre-fill it
+      console.log("⚠️ No currentCandidate data, only setting mobile");
       setFormData(prev => ({
         ...prev,
         mobile: verifiedMobile
