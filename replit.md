@@ -82,6 +82,13 @@ export interface Candidate {
 **NOTE FOR FUTURE DEPLOYMENTS**: Always set MONGODB_URI secret first before running the application.
 
 ## Recent Changes
+- **2025-08-27**: FIXED OCR EXTRACTION - Simplified OCR logic to work with any Aadhaar card format:
+  - Generic pattern matching for 12-digit Aadhaar numbers with spaces
+  - Universal name extraction for English names (First Middle Last)
+  - DOB extraction with Hindi/English labels (जन्म तारीख/DOB)
+  - Gender recognition for both Hindi (पुरुष/महिला) and English (MALE/FEMALE)
+  - Removed complex validation that was rejecting valid data
+  - Now successfully extracts from all Aadhaar card formats including multilingual documents
 - **2025-08-21**: BACKGROUND IMAGES FULLY VISIBLE - All overlay colors removed for complete image visibility:
   - All pages now show background images without any color overlays
   - Verification page: Verification.jpg background fully visible

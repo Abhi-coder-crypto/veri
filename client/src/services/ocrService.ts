@@ -272,27 +272,43 @@ export class OCRService {
     console.log("=== Starting Aadhaar extraction ===");
     console.log("Full extracted text:", text);
     
-    // Just find the patterns - don't validate anything
-    const aadhaar = text.match(/4428\s*7727\s*7219/)?.[0]?.replace(/\s/g, '') || '';
-    const name = text.match(/Geeta\s+Rajesh\s+Singh/)?.[0] || '';
-    const dob = text.match(/05\/07\/1976/)?.[0] || '';
-    const gender = text.match(/Female|FEMALE/)?.[0] || 'Female';
+    // Extract Aadhaar Number - 12 digits with optional spaces/hyphens
+    const aadhaarPattern = /\b\d{4}\s*\d{4}\s*\d{4}\b/g;
+    const aadhaarMatches = text.match(aadhaarPattern);
+    const aadhaar = aadhaarMatches?.[0]?.replace(/\s/g, '') || '';
+    
+    // Extract DOB - various date formats
+    const dobPattern = /(?:जन्म तारीख\/DOB:\s*)?(\d{1,2}\/\d{1,2}\/\d{4})/;
+    const dobMatch = text.match(dobPattern);
+    const dob = dobMatch?.[1] || '';
+    
+    // Extract Gender - both Hindi and English
+    const genderPattern = /(MALE|FEMALE|पुरुष|महिला|Male|Female)/i;
+    const genderMatch = text.match(genderPattern);
+    let gender = genderMatch?.[0] || '';
+    if (gender.toLowerCase() === 'पुरुष' || gender.toLowerCase() === 'male') gender = 'Male';
+    if (gender.toLowerCase() === 'महिला' || gender.toLowerCase() === 'female') gender = 'Female';
+    
+    // Extract Name - English name pattern (First Middle Last)
+    const namePattern = /([A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+)/;
+    const nameMatch = text.match(namePattern);
+    const name = nameMatch?.[0] || '';
     
     console.log("Found patterns:", { aadhaar, name, dob, gender });
     
-    // Return data if we found ANYTHING
-    if (aadhaar || name || dob) {
+    // Return data if we found essential fields
+    if (aadhaar && name && dob) {
       const result = {
-        name: name || 'Geeta Rajesh Singh',
-        dob: dob || '05/07/1976', 
-        aadhar: aadhaar || '442877277219',
-        gender: gender || 'Female'
+        name: name,
+        dob: dob,
+        aadhar: aadhaar,
+        gender: gender || 'Not specified'
       };
       console.log("✅ Returning extracted data:", result);
       return result;
     }
     
-    console.log("❌ No patterns found");
+    console.log("❌ Essential fields missing - need Aadhaar, name, and DOB");
     return null;
   }
 
