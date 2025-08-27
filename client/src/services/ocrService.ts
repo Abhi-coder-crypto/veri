@@ -282,27 +282,46 @@ export class OCRService {
     console.log("=== Starting Aadhaar extraction ===");
     console.log("Full extracted text:", text);
     
-    // Extract Aadhaar Number - 12 digits with optional spaces/hyphens
-    const aadhaarPattern = /\b\d{4}\s*\d{4}\s*\d{4}\b/g;
-    const aadhaarMatches = text.match(aadhaarPattern);
-    const aadhaar = aadhaarMatches?.[0]?.replace(/\s/g, '') || '';
+    // Extract Aadhaar Number - exactly 12 digits, exclude VID (16 digits)
+    const aadhaarMatches = text.match(/\b\d{4}\s*\d{4}\s*\d{4}\b/g) || [];
+    const aadhaar = aadhaarMatches.find(num => num.replace(/\s/g, '').length === 12)?.replace(/\s/g, '') || '';
     
-    // Extract DOB - various date formats
-    const dobPattern = /(?:जन्म तारीख\/DOB:\s*)?(\d{1,2}\/\d{1,2}\/\d{4})/;
+    // Extract DOB - look for date patterns near DOB label
+    const dobPattern = /(?:Date of Birth|DOB|जन्म तारीख)[\/:\s]*(\d{1,2}\/\d{1,2}\/\d{4})/i;
     const dobMatch = text.match(dobPattern);
     const dob = dobMatch?.[1] || '';
     
-    // Extract Gender - both Hindi and English
+    // Extract Gender - both Hindi and English, case insensitive
     const genderPattern = /(MALE|FEMALE|पुरुष|महिला|Male|Female)/i;
     const genderMatch = text.match(genderPattern);
     let gender = genderMatch?.[0] || '';
-    if (gender.toLowerCase() === 'पुरुष' || gender.toLowerCase() === 'male') gender = 'Male';
-    if (gender.toLowerCase() === 'महिला' || gender.toLowerCase() === 'female') gender = 'Female';
+    if (gender.toLowerCase().includes('male') || gender.toLowerCase() === 'पुरुष') gender = 'Male';
+    if (gender.toLowerCase().includes('female') || gender.toLowerCase() === 'महिला') gender = 'Female';
     
-    // Extract Name - English name pattern (First Middle Last)
-    const namePattern = /([A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+)/;
-    const nameMatch = text.match(namePattern);
-    const name = nameMatch?.[0] || '';
+    // Extract Name - Find full name, avoid "To" prefix and address parts
+    const cleanText = text.replace(/\bTo\b/g, ''); // Remove "To" prefixes
+    const namePatterns = [
+      /([A-Z][a-z]+\s+[A-Z][a-z]+\s+[A-Z][a-z]+)/g, // Three names
+      /([A-Z][a-z]+\s+[A-Z][a-z]+)/g // Two names
+    ];
+    
+    let name = '';
+    for (const pattern of namePatterns) {
+      const matches = cleanText.match(pattern) || [];
+      // Find name that's not an address component
+      const validName = matches.find(n => 
+        !n.includes('COMPOUND') && 
+        !n.includes('ROAD') && 
+        !n.includes('MANDIR') &&
+        !n.includes('CHAWL') &&
+        !n.includes('Authority') &&
+        n.length > 5
+      );
+      if (validName) {
+        name = validName.trim();
+        break;
+      }
+    }
     
     console.log("Found patterns:", { aadhaar, name, dob, gender });
     
