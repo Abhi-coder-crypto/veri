@@ -160,6 +160,7 @@ export class OCRService {
 
   private async extractTextFromPDF(pdf: any): Promise<string> {
     let extractedText = "";
+    let allTextItems: any[] = [];
 
     // Extract text from all pages
     for (let i = 1; i <= pdf.numPages; i++) {
@@ -169,28 +170,85 @@ export class OCRService {
 
       console.log(`Found ${content.items.length} text items on page ${i}`);
 
-      // Better text extraction - preserve structure and spacing
-      const textItems = content.items
+      // Process each text item with position info for better extraction
+      const pageItems = content.items
         .map((item: any) => {
-          if ("str" in item && item.str.trim()) {
-            return item.str.trim();
+          if ("str" in item && item.str && item.str.trim()) {
+            return {
+              text: item.str.trim(),
+              x: item.transform?.[4] || 0,
+              y: item.transform?.[5] || 0,
+              width: item.width || 0,
+              height: item.height || 0
+            };
           }
-          return "";
+          return null;
         })
-        .filter((str: string) => str.length > 0);
+        .filter((item: any) => item !== null);
 
-      // Join with spaces and add line breaks
-      const pageText = textItems.join(" ");
+      allTextItems.push(...pageItems);
+
+      // Method 1: Simple concatenation with spaces
+      const simpleText = pageItems.map((item: any) => item.text).join(" ");
+      
+      // Method 2: Position-aware text extraction (sort by Y position, then X)
+      const sortedItems = pageItems.sort((a: any, b: any) => {
+        const yDiff = Math.abs(b.y - a.y);
+        if (yDiff < 5) { // Same line threshold
+          return a.x - b.x; // Sort by X position
+        }
+        return b.y - a.y; // Sort by Y position (top to bottom)
+      });
+      
+      const structuredText = this.buildStructuredText(sortedItems);
+      
+      console.log(`📄 Page ${i} simple text sample:`, simpleText.substring(0, 200));
+      console.log(`📄 Page ${i} structured text sample:`, structuredText.substring(0, 200));
+      
+      // Use the longer/better extracted text
+      const pageText = structuredText.length > simpleText.length ? structuredText : simpleText;
       extractedText += pageText + "\n";
-
-      console.log(`Page ${i} text sample:`, pageText.substring(0, 200));
     }
 
     const finalText = extractedText.trim();
     console.log("🔍 Final extracted text length:", finalText.length);
-    console.log("🔍 Final text sample:", finalText.substring(0, 500));
+    console.log("🔍 Final text sample:", finalText.substring(0, 800));
+    
+    // Additional logging for debugging
+    console.log("🔍 All unique text fragments found:", 
+      Array.from(new Set(allTextItems.map(item => item.text))).slice(0, 50)
+    );
 
     return finalText;
+  }
+
+  private buildStructuredText(sortedItems: any[]): string {
+    if (!sortedItems.length) return "";
+    
+    let result = "";
+    let currentLineY = sortedItems[0]?.y || 0;
+    let currentLine: string[] = [];
+    
+    for (const item of sortedItems) {
+      const yDiff = Math.abs(item.y - currentLineY);
+      
+      if (yDiff > 5) { // New line threshold
+        if (currentLine.length > 0) {
+          result += currentLine.join(" ") + "\n";
+          currentLine = [];
+        }
+        currentLineY = item.y;
+      }
+      
+      currentLine.push(item.text);
+    }
+    
+    // Add the last line
+    if (currentLine.length > 0) {
+      result += currentLine.join(" ");
+    }
+    
+    return result;
   }
 
   private extractAadharInfo(text: string): AadharData | null {
@@ -249,16 +307,22 @@ export class OCRService {
       /(?:Aadhaar\s*(?:No\.?|Number)\s*:?\s*|आधार\s*संख्या\s*:?\s*)(\d{4}\s*\d{4}\s*\d{4})/i,
 
       // Pattern 2: After mobile but ensuring it's not part of VID
-      /Mobile\s*:?\s*\d{10}[\s\n]+(\d{4}\s*\d{4}\s*\d{4})(?!\s*\d{4})/i,
+      /Mobile\s*:?\s*\d{10}[\s\S]*?(\d{4}\s*\d{4}\s*\d{4})(?!\s*\d{4})/i,
 
-      // Pattern 3: Before VID but ensuring it's separate from VID
-      /(\d{4}\s*\d{4}\s*\d{4})\s+(?:VID\s*:?\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4})/i,
+      // Pattern 3: Before VID with clear separation (for your format)
+      /(\d{4}\s*\d{4}\s*\d{4})\s+VID\s*:?\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4}/i,
 
-      // Pattern 4: In document structure after personal details
-      /(?:Gender|लिंग)\s*:?\s*(?:Male|Female|पुरुष|महिला)[\s\S]*?(\d{4}\s*\d{4}\s*\d{4})/i,
+      // Pattern 4: Aadhaar appearing near the end of document (common in e-Aadhaar)
+      /(?:महाराष्ट्र|Maharashtra|Address)[\s\S]*?(\d{4}\s*\d{4}\s*\d{4})\s+VID/i,
 
-      // Pattern 5: After PIN code in address section  
-      /PIN\s*(?:Code)?\s*:?\s*\d{6}[\s\n]+(\d{4}\s*\d{4}\s*\d{4})/i,
+      // Pattern 5: In document structure after gender and DOB
+      /(?:MALE|FEMALE|पुरुष|महिला)[\s\S]*?(\d{4}\s*\d{4}\s*\d{4})/i,
+
+      // Pattern 6: Multiple occurrence pattern (Aadhaar often appears multiple times)
+      /(\d{4}\s*\d{4}\s*\d{4})[\s\S]*?\1/i,
+
+      // Pattern 7: After PIN code in address section  
+      /PIN\s*(?:Code)?\s*:?\s*\d{6}[\s\S]*?(\d{4}\s*\d{4}\s*\d{4})/i,
     ];
 
     // Try specific patterns first (highest confidence)
@@ -291,16 +355,35 @@ export class OCRService {
     console.log(`Found ${candidates.length} potential 12-digit numbers:`, candidates.map(c => c.number));
 
     // Enhanced validation with better context analysis
+    const validCandidates: Array<{ number: string; score: number; reason: string }> = [];
+    
     for (const candidate of candidates) {
       if (this.isValidAadhaarNumber(candidate.number)) {
         const contextResult = this.analyzeNumberContext(candidate.number, candidate.position, text);
         console.log(`Context analysis for ${candidate.number}:`, contextResult);
         
         if (contextResult.isLikelyAadhaar) {
-          console.log(`✅ Valid Aadhaar found: ${candidate.number}`);
-          return candidate.number;
+          // Calculate confidence score
+          let score = 1;
+          if (contextResult.reason.includes("VID")) score += 3;
+          if (contextResult.reason.includes("Aadhaar label")) score += 5;
+          if (contextResult.reason.includes("PIN code")) score += 2;
+          if (contextResult.reason.includes("gender")) score += 2;
+          
+          validCandidates.push({
+            number: candidate.number,
+            score: score,
+            reason: contextResult.reason
+          });
         }
       }
+    }
+    
+    // Return the highest scoring candidate
+    if (validCandidates.length > 0) {
+      const best = validCandidates.sort((a, b) => b.score - a.score)[0];
+      console.log(`✅ Best Aadhaar found: ${best.number} (score: ${best.score}, reason: ${best.reason})`);
+      return best.number;
     }
 
     console.log("❌ No valid Aadhaar number found");
@@ -379,9 +462,10 @@ export class OCRService {
       return { isLikelyAadhaar: true, reason: "Found near Aadhaar label" };
     }
 
-    // Check if this is definitely a VID (16 digits)
-    const vidPattern = new RegExp(`\\d{4}\\s*\\d{4}\\s*${number}\\s*\\d{4}|${number}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}`);
-    if (vidPattern.test(text) || (contextBefore.includes("vid") && contextAfter.includes("vid"))) {
+    // Check if this is definitely a VID (16 digits) - but be more precise
+    const vidPattern = new RegExp(`VID\\s*:?\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}`);
+    const isPartOfVid = text.includes(`VID : ${number.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3')}`);
+    if (isPartOfVid || (contextBefore.includes("vid :") && contextAfter.match(/^\s*\d{4}$/))) {
       return { isLikelyAadhaar: false, reason: "Part of 16-digit VID" };
     }
 
@@ -395,7 +479,20 @@ export class OCRService {
       return { isLikelyAadhaar: false, reason: "Enrollment number" };
     }
 
-    // POSITIVE context indicators
+    // POSITIVE context indicators (specific to your PDF format)
+    
+    // Check if it appears before VID (very strong indicator for your format)
+    if (contextAfter.includes("vid :") || contextAfter.includes("vid:")) {
+      return { isLikelyAadhaar: true, reason: "Found before VID (typical Aadhaar position)" };
+    }
+    
+    // Check if it's repeated multiple times (Aadhaar often appears multiple times)
+    const formattedNumber = number.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3');
+    const occurrences = (text.match(new RegExp(formattedNumber.replace(/\s/g, '\\s*'), 'g')) || []).length;
+    if (occurrences > 1) {
+      return { isLikelyAadhaar: true, reason: `Found multiple times (${occurrences} occurrences)` };
+    }
+
     if (contextBefore.includes("pin") && contextBefore.includes("code")) {
       return { isLikelyAadhaar: true, reason: "Found after PIN code (typical Aadhaar position)" };
     }
@@ -411,6 +508,11 @@ export class OCRService {
     // Check if it appears in document structure after personal details
     if (contextBefore.match(/(male|female|पुरुष|महिला)/i) && !contextBefore.includes("mobile")) {
       return { isLikelyAadhaar: true, reason: "Found after gender information" };
+    }
+
+    // Check if it appears after Maharashtra or state information
+    if (contextBefore.includes("maharashtra") || contextBefore.includes("महाराष्ट्र")) {
+      return { isLikelyAadhaar: true, reason: "Found after state information" };
     }
 
     // Default: likely Aadhaar if no strong negative indicators
