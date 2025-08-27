@@ -243,26 +243,26 @@ export class OCRService {
   private extractAadharNumber(text: string): string {
     console.log("🔍 Searching for Aadhaar numbers...");
 
-    // Look for the most common Aadhaar patterns in UIDAI PDFs
+    // Enhanced patterns with better number type distinction
     const patterns = [
-      // Pattern 1: After "Aadhaar No." or similar labels
+      // Pattern 1: Explicit Aadhaar labels (highest priority)
       /(?:Aadhaar\s*(?:No\.?|Number)\s*:?\s*|आधार\s*संख्या\s*:?\s*)(\d{4}\s*\d{4}\s*\d{4})/i,
 
-      // Pattern 2: After mobile number (common layout in e-Aadhaar)
-      /Mobile\s*:?\s*\d{10}\s+(\d{4}\s*\d{4}\s*\d{4})/i,
+      // Pattern 2: After mobile but ensuring it's not part of VID
+      /Mobile\s*:?\s*\d{10}[\s\n]+(\d{4}\s*\d{4}\s*\d{4})(?!\s*\d{4})/i,
 
-      // Pattern 3: Before VID (Virtual ID) - Aadhaar usually comes before VID
-      /(\d{4}\s*\d{4}\s*\d{4})\s+VID\s*:/i,
+      // Pattern 3: Before VID but ensuring it's separate from VID
+      /(\d{4}\s*\d{4}\s*\d{4})\s+(?:VID\s*:?\s*\d{4}\s*\d{4}\s*\d{4}\s*\d{4})/i,
 
-      // Pattern 4: In dedicated sections after address
-      /(?:District|State|PIN\s*Code)\s*:.*?(\d{4}\s*\d{4}\s*\d{4})/i,
+      // Pattern 4: In document structure after personal details
+      /(?:Gender|लिंग)\s*:?\s*(?:Male|Female|पुरुष|महिला)[\s\S]*?(\d{4}\s*\d{4}\s*\d{4})/i,
 
-      // Pattern 5: Stand-alone 12-digit numbers (as fallback)
-      /\b(\d{4})\s*(\d{4})\s*(\d{4})\b/g,
+      // Pattern 5: After PIN code in address section  
+      /PIN\s*(?:Code)?\s*:?\s*\d{6}[\s\n]+(\d{4}\s*\d{4}\s*\d{4})/i,
     ];
 
-    // Try patterns in order of reliability
-    for (let i = 0; i < patterns.length - 1; i++) {
+    // Try specific patterns first (highest confidence)
+    for (let i = 0; i < patterns.length; i++) {
       const match = text.match(patterns[i]);
       if (match) {
         let aadhaar = match[1].replace(/\s/g, "");
@@ -273,28 +273,33 @@ export class OCRService {
       }
     }
 
-    // Fallback: Find all 12-digit patterns and validate them
-    const fallbackPattern = patterns[patterns.length - 1];
-    const matches: string[] = [];
+    // Fallback: Find all 12-digit patterns and validate with enhanced logic
+    const allNumbersPattern = /\b(\d{4})\s*(\d{4})\s*(\d{4})\b/g;
+    const candidates: Array<{ number: string; position: number }> = [];
     let match;
 
-    while ((match = fallbackPattern.exec(text)) !== null) {
+    while ((match = allNumbersPattern.exec(text)) !== null) {
       const fullMatch = match[1] + match[2] + match[3];
       if (fullMatch.length === 12) {
-        matches.push(fullMatch);
+        candidates.push({
+          number: fullMatch,
+          position: match.index || 0,
+        });
       }
     }
 
-    console.log("Found potential Aadhaar numbers:", matches);
+    console.log(`Found ${candidates.length} potential 12-digit numbers:`, candidates.map(c => c.number));
 
-    // Filter and validate each match
-    for (const candidate of matches) {
-      if (
-        this.isValidAadhaarNumber(candidate) &&
-        this.isLikelyAadhaarByContext(candidate, text)
-      ) {
-        console.log(`✅ Valid Aadhaar found: ${candidate}`);
-        return candidate;
+    // Enhanced validation with better context analysis
+    for (const candidate of candidates) {
+      if (this.isValidAadhaarNumber(candidate.number)) {
+        const contextResult = this.analyzeNumberContext(candidate.number, candidate.position, text);
+        console.log(`Context analysis for ${candidate.number}:`, contextResult);
+        
+        if (contextResult.isLikelyAadhaar) {
+          console.log(`✅ Valid Aadhaar found: ${candidate.number}`);
+          return candidate.number;
+        }
       }
     }
 
@@ -351,37 +356,65 @@ export class OCRService {
     return c === 0;
   }
 
-  private isLikelyAadhaarByContext(number: string, text: string): boolean {
-    const numberIndex = text.indexOf(number);
-    if (numberIndex === -1) return true; // If not found directly, assume it's from spaced version
+  private analyzeNumberContext(number: string, position: number, text: string): { isLikelyAadhaar: boolean; reason: string } {
+    // Find the actual position of the spaced version
+    const spacedNumber = number.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3');
+    let actualIndex = text.indexOf(spacedNumber);
+    if (actualIndex === -1) {
+      actualIndex = text.indexOf(number);
+    }
+    if (actualIndex === -1) {
+      actualIndex = position;
+    }
 
     const contextBefore = text
-      .substring(Math.max(0, numberIndex - 100), numberIndex)
+      .substring(Math.max(0, actualIndex - 150), actualIndex)
       .toLowerCase();
     const contextAfter = text
-      .substring(numberIndex, numberIndex + 100)
+      .substring(actualIndex, actualIndex + number.length + 150)
       .toLowerCase();
 
-    // Reject if it's clearly a VID (16 digits total or labeled as VID)
-    if (contextBefore.includes("vid") && contextAfter.includes("vid")) {
-      // Check if this is part of a 16-digit VID
-      const surrounding = contextBefore + number + contextAfter;
-      if (/\d{4}\s*\d{4}\s*\d{4}\s*\d{4}/.test(surrounding)) {
-        return false;
-      }
+    // POSITIVE indicators (strongly suggest this is Aadhaar)
+    if (contextBefore.includes("aadhaar") || contextBefore.includes("आधार")) {
+      return { isLikelyAadhaar: true, reason: "Found near Aadhaar label" };
     }
 
-    // Reject if it's clearly a phone number
-    if (contextBefore.includes("mobile") || contextBefore.includes("phone")) {
-      return false;
+    // Check if this is definitely a VID (16 digits)
+    const vidPattern = new RegExp(`\\d{4}\\s*\\d{4}\\s*${number}\\s*\\d{4}|${number}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}`);
+    if (vidPattern.test(text) || (contextBefore.includes("vid") && contextAfter.includes("vid"))) {
+      return { isLikelyAadhaar: false, reason: "Part of 16-digit VID" };
     }
 
-    // Reject if it's clearly an enrollment number
-    if (contextBefore.includes("enrol") && contextBefore.includes("no")) {
-      return false;
+    // Check if this is definitely a mobile number (preceded by mobile label)
+    if (contextBefore.match(/mobile\s*:?\s*$/i) || contextBefore.match(/phone\s*:?\s*$/i)) {
+      return { isLikelyAadhaar: false, reason: "Mobile number" };
     }
 
-    return true;
+    // Check if this appears to be an enrollment number
+    if (contextBefore.match(/enrol(?:l)?ment\s*(?:no|number)\s*:?\s*$/i)) {
+      return { isLikelyAadhaar: false, reason: "Enrollment number" };
+    }
+
+    // POSITIVE context indicators
+    if (contextBefore.includes("pin") && contextBefore.includes("code")) {
+      return { isLikelyAadhaar: true, reason: "Found after PIN code (typical Aadhaar position)" };
+    }
+
+    if (contextBefore.includes("gender") || contextBefore.includes("लिंग")) {
+      return { isLikelyAadhaar: true, reason: "Found after gender field" };
+    }
+
+    if (contextBefore.includes("address") && !contextBefore.includes("mobile")) {
+      return { isLikelyAadhaar: true, reason: "Found in address section" };
+    }
+
+    // Check if it appears in document structure after personal details
+    if (contextBefore.match(/(male|female|पुरुष|महिला)/i) && !contextBefore.includes("mobile")) {
+      return { isLikelyAadhaar: true, reason: "Found after gender information" };
+    }
+
+    // Default: likely Aadhaar if no strong negative indicators
+    return { isLikelyAadhaar: true, reason: "No negative indicators found" };
   }
 
   private extractDOB(text: string): string {
