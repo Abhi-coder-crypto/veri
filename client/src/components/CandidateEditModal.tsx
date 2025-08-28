@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { X, Save, Calendar, User, Phone, Award, CheckCircle, Clock, Camera, Upload } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '../lib/queryClient';
@@ -47,8 +47,11 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
   const [imageUploading, setImageUploading] = useState(false);
   const [showImageCropper, setShowImageCropper] = useState(false);
   const [originalImageUrl, setOriginalImageUrl] = useState<string>('');
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Simple state management - only these 3 states
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
+  const submitRef = useRef(false);
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -62,19 +65,22 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
       return response.json();
     },
     onSuccess: () => {
-      setSaveState('saved');
-      setIsSubmitting(false);
+      setIsSaving(false);
+      setShowSaved(true);
       queryClient.invalidateQueries({ queryKey: ['/api/candidates'] });
-      // Show "Saved" for 2 seconds before closing
+      
+      // Show "Saved!" for 2 seconds then close
       setTimeout(() => {
+        setShowSaved(false);
+        submitRef.current = false;
         onClose();
-        setSaveState('idle');
       }, 2000);
     },
     onError: (error: any) => {
       setError(error.message || 'Failed to update candidate');
-      setSaveState('idle');
-      setIsSubmitting(false);
+      setIsSaving(false);
+      setShowSaved(false);
+      submitRef.current = false;
     }
   });
 
@@ -122,16 +128,17 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
     setShowImageCropper(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSaveClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     
-    // Prevent multiple submissions
-    if (isSubmitting || saveState !== 'idle') {
+    // Bulletproof prevention of multiple submissions
+    if (submitRef.current || isSaving || showSaved) {
       return;
     }
     
-    setIsSubmitting(true);
-    setSaveState('saving');
+    submitRef.current = true;
+    setIsSaving(true);
     setError('');
     updateMutation.mutate(formData);
   };
@@ -168,7 +175,7 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
         </div>
 
         <div className="p-6 overflow-y-auto flex-1">
-          <form onSubmit={handleSubmit} className="h-full">
+          <div className="h-full">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-600">{error}</p>
@@ -581,32 +588,33 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
                 Cancel
               </button>
               <button
-                type="submit"
-                disabled={saveState !== 'idle'}
+                type="button"
+                onClick={handleSaveClick}
+                disabled={isSaving || showSaved}
                 className={`px-6 py-3 text-white rounded-lg transition-all duration-300 flex items-center space-x-2 ${
-                  saveState === 'saved'
+                  showSaved
                     ? 'bg-green-600 cursor-not-allowed' 
-                    : saveState === 'saving'
+                    : isSaving
                     ? 'bg-blue-400 cursor-not-allowed'
                     : 'bg-blue-600 hover:bg-blue-700'
                 }`}
               >
-                {saveState === 'saved' ? (
+                {showSaved ? (
                   <CheckCircle className="w-4 h-4" />
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
                 <span>
-                  {saveState === 'saving' 
+                  {isSaving 
                     ? 'Saving...' 
-                    : saveState === 'saved' 
+                    : showSaved 
                     ? 'Saved!' 
                     : 'Save Changes'
                   }
                 </span>
               </button>
             </div>
-          </form>
+          </div>
         </div>
 
         {/* Image Cropper Modal */}
