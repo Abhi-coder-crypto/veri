@@ -548,7 +548,7 @@ const AdminPage = () => {
                     </select>
 
                     <button
-                      onClick={refetch}
+                      onClick={() => refetch()}
                       disabled={isLoading}
                       className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
                     >
@@ -651,7 +651,10 @@ const AdminPage = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex space-x-2">
                                 <button
-                                  onClick={() => setEditingCandidate(candidate)}
+                                  onClick={() => {
+                                    console.log('Edit clicked for:', candidate.name);
+                                    setEditingCandidate(candidate);
+                                  }}
                                   className="text-blue-600 hover:text-blue-900"
                                   title="Edit candidate"
                                 >
@@ -863,11 +866,8 @@ const AdminPage = () => {
       {editingCandidate && (
         <CandidateEditModal
           candidate={editingCandidate}
+          isOpen={!!editingCandidate}
           onClose={() => setEditingCandidate(null)}
-          onSave={() => {
-            setEditingCandidate(null);
-            refetch();
-          }}
         />
       )}
     </div>
