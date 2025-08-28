@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { MongoStorage } from "./mongoStorage";
 import { database } from "./database";
-import { insertCandidateSchema } from "@shared/schema";
+import { insertCandidateSchema, type Candidate } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
