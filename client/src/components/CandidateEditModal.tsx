@@ -47,7 +47,8 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
   const [imageUploading, setImageUploading] = useState(false);
   const [showImageCropper, setShowImageCropper] = useState(false);
   const [originalImageUrl, setOriginalImageUrl] = useState<string>('');
-  const [isClosing, setIsClosing] = useState(false);
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -61,16 +62,19 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
       return response.json();
     },
     onSuccess: () => {
-      setIsClosing(true);
+      setSaveState('saved');
+      setIsSubmitting(false);
       queryClient.invalidateQueries({ queryKey: ['/api/candidates'] });
-      // Show "Saved" for 1.5 seconds before closing
+      // Show "Saved" for 2 seconds before closing
       setTimeout(() => {
         onClose();
-        setIsClosing(false);
-      }, 1500);
+        setSaveState('idle');
+      }, 2000);
     },
     onError: (error: any) => {
       setError(error.message || 'Failed to update candidate');
+      setSaveState('idle');
+      setIsSubmitting(false);
     }
   });
 
@@ -122,10 +126,12 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
     e.preventDefault();
     
     // Prevent multiple submissions
-    if (updateMutation.isPending || isClosing) {
+    if (isSubmitting || saveState !== 'idle') {
       return;
     }
     
+    setIsSubmitting(true);
+    setSaveState('saving');
     setError('');
     updateMutation.mutate(formData);
   };
@@ -576,24 +582,24 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
               </button>
               <button
                 type="submit"
-                disabled={updateMutation.isPending || isClosing}
+                disabled={saveState !== 'idle'}
                 className={`px-6 py-3 text-white rounded-lg transition-all duration-300 flex items-center space-x-2 ${
-                  isClosing
+                  saveState === 'saved'
                     ? 'bg-green-600 cursor-not-allowed' 
-                    : updateMutation.isPending
+                    : saveState === 'saving'
                     ? 'bg-blue-400 cursor-not-allowed'
                     : 'bg-blue-600 hover:bg-blue-700'
                 }`}
               >
-                {isClosing ? (
+                {saveState === 'saved' ? (
                   <CheckCircle className="w-4 h-4" />
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
                 <span>
-                  {updateMutation.isPending 
+                  {saveState === 'saving' 
                     ? 'Saving...' 
-                    : isClosing 
+                    : saveState === 'saved' 
                     ? 'Saved!' 
                     : 'Save Changes'
                   }
