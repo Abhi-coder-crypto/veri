@@ -43,12 +43,11 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
     profileImage: candidate.profileImage || null
   });
 
-  const [loading, setLoading] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [error, setError] = useState('');
   const [imageUploading, setImageUploading] = useState(false);
   const [showImageCropper, setShowImageCropper] = useState(false);
   const [originalImageUrl, setOriginalImageUrl] = useState<string>('');
+  const [isClosing, setIsClosing] = useState(false);
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -62,17 +61,16 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
       return response.json();
     },
     onSuccess: () => {
-      setSaveStatus('saved');
+      setIsClosing(true);
       queryClient.invalidateQueries({ queryKey: ['/api/candidates'] });
-      // Show "Saved" for 1 second before closing
+      // Show "Saved" for 1.5 seconds before closing
       setTimeout(() => {
         onClose();
-        setSaveStatus('idle');
-      }, 1000);
+        setIsClosing(false);
+      }, 1500);
     },
     onError: (error: any) => {
       setError(error.message || 'Failed to update candidate');
-      setSaveStatus('idle');
     }
   });
 
@@ -123,7 +121,6 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSaveStatus('saving');
     updateMutation.mutate(formData);
   };
 
@@ -573,24 +570,24 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
               </button>
               <button
                 type="submit"
-                disabled={saveStatus === 'saving' || saveStatus === 'saved'}
+                disabled={updateMutation.isPending || isClosing}
                 className={`px-6 py-3 text-white rounded-lg transition-colors flex items-center space-x-2 ${
-                  saveStatus === 'saved' 
+                  isClosing
                     ? 'bg-green-600 hover:bg-green-700' 
-                    : saveStatus === 'saving'
+                    : updateMutation.isPending
                     ? 'bg-blue-400 cursor-not-allowed'
                     : 'bg-blue-600 hover:bg-blue-700'
                 }`}
               >
-                {saveStatus === 'saved' ? (
+                {isClosing ? (
                   <CheckCircle className="w-4 h-4" />
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
                 <span>
-                  {saveStatus === 'saving' 
+                  {updateMutation.isPending 
                     ? 'Saving...' 
-                    : saveStatus === 'saved' 
+                    : isClosing 
                     ? 'Saved!' 
                     : 'Save Changes'
                   }
