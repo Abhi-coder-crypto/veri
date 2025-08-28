@@ -53,36 +53,6 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
   const [showSaved, setShowSaved] = useState(false);
   const submitRef = useRef(false);
 
-  const updateMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const response = await apiRequest(`/api/candidates/${candidate.id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data)
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update candidate');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      setIsSaving(false);
-      setShowSaved(true);
-      queryClient.invalidateQueries({ queryKey: ['/api/candidates'] });
-      
-      // Show "Saved!" for 2 seconds then close
-      setTimeout(() => {
-        setShowSaved(false);
-        submitRef.current = false;
-        onClose();
-      }, 2000);
-    },
-    onError: (error: any) => {
-      setError(error.message || 'Failed to update candidate');
-      setIsSaving(false);
-      setShowSaved(false);
-      submitRef.current = false;
-    }
-  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -128,7 +98,7 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
     setShowImageCropper(false);
   };
 
-  const handleSaveClick = (e: React.MouseEvent) => {
+  const handleSaveClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -140,7 +110,35 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
     submitRef.current = true;
     setIsSaving(true);
     setError('');
-    updateMutation.mutate(formData);
+    
+    try {
+      const response = await apiRequest(`/api/candidates/${candidate.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(formData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update candidate');
+      }
+      
+      // Show "Saved!" immediately
+      setIsSaving(false);
+      setShowSaved(true);
+      queryClient.invalidateQueries({ queryKey: ['/api/candidates'] });
+      
+      // Close modal after showing "Saved!" for 2 seconds
+      setTimeout(() => {
+        setShowSaved(false);
+        submitRef.current = false;
+        onClose();
+      }, 2000);
+      
+    } catch (error: any) {
+      setError(error.message || 'Failed to update candidate');
+      setIsSaving(false);
+      setShowSaved(false);
+      submitRef.current = false;
+    }
   };
 
   if (!isOpen) return null;
