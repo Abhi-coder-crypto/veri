@@ -120,6 +120,12 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (updateMutation.isPending || isClosing) {
+      return;
+    }
+    
     setError('');
     updateMutation.mutate(formData);
   };
@@ -571,9 +577,9 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
               <button
                 type="submit"
                 disabled={updateMutation.isPending || isClosing}
-                className={`px-6 py-3 text-white rounded-lg transition-colors flex items-center space-x-2 ${
+                className={`px-6 py-3 text-white rounded-lg transition-all duration-300 flex items-center space-x-2 ${
                   isClosing
-                    ? 'bg-green-600 hover:bg-green-700' 
+                    ? 'bg-green-600 cursor-not-allowed' 
                     : updateMutation.isPending
                     ? 'bg-blue-400 cursor-not-allowed'
                     : 'bg-blue-600 hover:bg-blue-700'
