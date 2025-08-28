@@ -495,9 +495,13 @@ const AdminPage = () => {
                         <td className="px-6 py-4">
                           <div className="flex space-x-2">
                             <button
-                              onClick={() => setEditingCandidate(candidate)}
+                              onClick={() => {
+                                console.log('Edit button clicked for candidate:', candidate.name);
+                                setEditingCandidate(candidate);
+                              }}
                               className="text-blue-600 hover:text-blue-900 transition-colors duration-200 p-2 hover:bg-blue-50 rounded-lg"
                               title="Edit Candidate"
+                              data-testid={`edit-candidate-${candidate.id}`}
                             >
                               <Edit className="w-4 h-4" />
                             </button>
@@ -665,11 +669,14 @@ const AdminPage = () => {
 
       {/* Edit Modal */}
       {editingCandidate && (
-        <CandidateEditModal
-          candidate={editingCandidate}
-          isOpen={!!editingCandidate}
-          onClose={() => setEditingCandidate(null)}
-        />
+        <>
+          {console.log('Rendering edit modal for:', editingCandidate.name)}
+          <CandidateEditModal
+            candidate={editingCandidate}
+            isOpen={!!editingCandidate}
+            onClose={() => setEditingCandidate(null)}
+          />
+        </>
       )}
     </div>
   );
