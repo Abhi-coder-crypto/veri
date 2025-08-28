@@ -55,17 +55,29 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
 
 
   const validateDrivingLicense = (dlNumber: string): boolean => {
-    // Indian DL format: AA-XX-XXXX-XXXXXXX (15 characters including hyphens)
-    // AA = 2 letter state code, XX = 2 digit RTO code, XXXX = 4 digit year, XXXXXXX = 7 digit unique number
+    // Indian DL format: AA-NN-NNNN-NNNNNNN (16 characters including hyphens)
+    // AA = 2 letter state code, NN = 2 digit RTO code, NNNN = 4 digit year, NNNNNNN = 7 digit unique number
     const dlPattern = /^[A-Z]{2}-\d{2}-\d{4}-\d{7}$/;
     return dlPattern.test(dlNumber);
+  };
+
+  const validateAbhaNumber = (abhaNumber: string): boolean => {
+    // ABHA number: 14-digit number
+    const abhaPattern = /^\d{14}$/;
+    return abhaPattern.test(abhaNumber.replace(/\s|-/g, ''));
+  };
+
+  const validateJobCode = (jobCode: string): boolean => {
+    // Job codes: 2-8 characters (digits or alphanumeric for Indian classification systems)
+    const jobCodePattern = /^[A-Za-z0-9\/]{2,12}$/;
+    return jobCodePattern.test(jobCode);
   };
 
   const formatDrivingLicense = (value: string): string => {
     // Remove all non-alphanumeric characters
     const cleaned = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
     
-    // Apply formatting: AA-XX-XXXX-XXXXXXX
+    // Apply formatting: AA-NN-NNNN-NNNNNNN
     if (cleaned.length <= 2) {
       return cleaned;
     } else if (cleaned.length <= 4) {
@@ -80,12 +92,26 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
     }
   };
 
+  const formatAbhaNumber = (value: string): string => {
+    // Remove all non-numeric characters
+    const cleaned = value.replace(/[^0-9]/g, '');
+    // Limit to 14 digits
+    return cleaned.slice(0, 14);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     
     // Special handling for driving license number
     if (name === 'dlNo') {
       const formattedValue = formatDrivingLicense(value);
+      setFormData(prev => ({ ...prev, [name]: formattedValue }));
+      return;
+    }
+
+    // Special handling for ABHA number
+    if (name === 'abhaNo') {
+      const formattedValue = formatAbhaNumber(value);
       setFormData(prev => ({ ...prev, [name]: formattedValue }));
       return;
     }
@@ -514,12 +540,12 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
                       ? 'border-red-300 bg-red-50' 
                       : 'border-gray-300'
                   }`}
-                  placeholder="AA-XX-XXXX-XXXXXXX (e.g., MH-12-2020-1234567)"
-                  maxLength={17}
+                  placeholder="AA-NN-NNNN-NNNNNNN (e.g., MH-12-2020-1234567)"
+                  maxLength={18}
                 />
                 {formData.dlNo && !validateDrivingLicense(formData.dlNo) && (
                   <p className="text-red-500 text-sm mt-1">
-                    Please enter a valid Indian driving license format: AA-XX-XXXX-XXXXXXX
+                    Please enter a valid Indian driving license format: AA-NN-NNNN-NNNNNNN
                   </p>
                 )}
                 <p className="text-gray-500 text-xs mt-1">

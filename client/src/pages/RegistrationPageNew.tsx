@@ -105,17 +105,29 @@ const RegistrationPage = () => {
   }, [currentCandidate, verifiedMobile]);
 
   const validateDrivingLicense = (dlNumber: string): boolean => {
-    // Indian DL format: AA-XX-XXXX-XXXXXXX (15 characters including hyphens)
-    // AA = 2 letter state code, XX = 2 digit RTO code, XXXX = 4 digit year, XXXXXXX = 7 digit unique number
+    // Indian DL format: AA-NN-NNNN-NNNNNNN (16 characters including hyphens)
+    // AA = 2 letter state code, NN = 2 digit RTO code, NNNN = 4 digit year, NNNNNNN = 7 digit unique number
     const dlPattern = /^[A-Z]{2}-\d{2}-\d{4}-\d{7}$/;
     return dlPattern.test(dlNumber);
+  };
+
+  const validateAbhaNumber = (abhaNumber: string): boolean => {
+    // ABHA number: 14-digit number
+    const abhaPattern = /^\d{14}$/;
+    return abhaPattern.test(abhaNumber.replace(/\s|-/g, ''));
+  };
+
+  const validateJobCode = (jobCode: string): boolean => {
+    // Job codes: 2-8 characters (digits or alphanumeric for Indian classification systems)
+    const jobCodePattern = /^[A-Za-z0-9\/]{2,12}$/;
+    return jobCodePattern.test(jobCode);
   };
 
   const formatDrivingLicense = (value: string): string => {
     // Remove all non-alphanumeric characters
     const cleaned = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
     
-    // Apply formatting: AA-XX-XXXX-XXXXXXX
+    // Apply formatting: AA-NN-NNNN-NNNNNNN
     if (cleaned.length <= 2) {
       return cleaned;
     } else if (cleaned.length <= 4) {
@@ -130,6 +142,13 @@ const RegistrationPage = () => {
     }
   };
 
+  const formatAbhaNumber = (value: string): string => {
+    // Remove all non-numeric characters
+    const cleaned = value.replace(/[^0-9]/g, '');
+    // Limit to 14 digits
+    return cleaned.slice(0, 14);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
@@ -142,6 +161,13 @@ const RegistrationPage = () => {
       if (error && error.includes('driving license')) {
         setError('');
       }
+      return;
+    }
+
+    // Special handling for ABHA number
+    if (name === 'abhaNo') {
+      const formattedValue = formatAbhaNumber(value);
+      setFormData(prev => ({ ...prev, [name]: formattedValue }));
       return;
     }
     
@@ -496,12 +522,12 @@ const RegistrationPage = () => {
                         ? 'border-red-300 bg-red-50' 
                         : 'border-gray-300'
                     }`}
-                    placeholder="AA-XX-XXXX-XXXXXXX (e.g., MH-12-2020-1234567)"
-                    maxLength={17}
+                    placeholder="AA-NN-NNNN-NNNNNNN (e.g., MH-12-2020-1234567)"
+                    maxLength={18}
                   />
                   {formData.dlNo && !validateDrivingLicense(formData.dlNo) && (
                     <p className="text-red-500 text-sm mt-1">
-                      Please enter a valid Indian driving license format: AA-XX-XXXX-XXXXXXX
+                      Please enter a valid Indian driving license format: AA-NN-NNNN-NNNNNNN
                     </p>
                   )}
                   <p className="text-gray-500 text-xs mt-1">
@@ -569,9 +595,22 @@ const RegistrationPage = () => {
                     name="abhaNo"
                     value={formData.abhaNo}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="ABHA Number"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      formData.abhaNo && !validateAbhaNumber(formData.abhaNo) 
+                        ? 'border-red-300 bg-red-50' 
+                        : 'border-gray-300'
+                    }`}
+                    placeholder="14-digit ABHA Number (e.g., 12345678901234)"
+                    maxLength={14}
                   />
+                  {formData.abhaNo && !validateAbhaNumber(formData.abhaNo) && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Please enter a valid 14-digit ABHA number
+                    </p>
+                  )}
+                  <p className="text-gray-500 text-xs mt-1">
+                    Ayushman Bharat Health Account number (14 digits)
+                  </p>
                 </div>
 
                 <div>
@@ -596,9 +635,22 @@ const RegistrationPage = () => {
                     name="jobCode"
                     value={formData.jobCode}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Job Code"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      formData.jobCode && !validateJobCode(formData.jobCode) 
+                        ? 'border-red-300 bg-red-50' 
+                        : 'border-gray-300'
+                    }`}
+                    placeholder="Job Code (e.g., ASC/Q9703, 12345678)"
+                    maxLength={12}
                   />
+                  {formData.jobCode && !validateJobCode(formData.jobCode) && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Please enter a valid job code (2-12 characters)
+                    </p>
+                  )}
+                  <p className="text-gray-500 text-xs mt-1">
+                    NIC/NCO classification code (2-8 digits or alphanumeric)
+                  </p>
                 </div>
 
                 <div>
