@@ -15,19 +15,31 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
   const [formData, setFormData] = useState({
     name: candidate.name || '',
     mobile: candidate.mobile || '',
-    address: candidate.address || '',
-    program: candidate.program || '',
-    center: candidate.center || '',
-    trainer: candidate.trainer || '',
-    duration: candidate.duration || '',
+    location: candidate.location || '',
+    emailAddress: candidate.emailAddress || '',
+    personalEmailAddress: candidate.personalEmailAddress || '',
+    jobRole: candidate.jobRole || '',
+    jobCode: candidate.jobCode || '',
     status: candidate.status || 'Not Enrolled',
-    progress: candidate.progress || '0',
-    currentPhase: candidate.currentPhase || 'Theory',
-    instructorNotes: candidate.instructorNotes || '',
-    emergencyContact: (candidate as any).emergencyContact || '',
-    medicalCertificate: candidate.medicalCertificate || false,
-    joiningDate: candidate.joiningDate ? new Date(candidate.joiningDate).toISOString().split('T')[0] : '',
-    completionDate: candidate.completionDate ? new Date(candidate.completionDate).toISOString().split('T')[0] : '',
+    aadhar: candidate.aadhar || '',
+    dob: candidate.dob || '',
+    gender: candidate.gender || '',
+    religion: candidate.religion || '',
+    vulnerability: candidate.vulnerability || '',
+    annualIncome: candidate.annualIncome || '',
+    educationalQualification: candidate.educationalQualification || '',
+    assessmentDate: candidate.assessmentDate || '',
+    dlNo: candidate.dlNo || '',
+    dlType: candidate.dlType || '',
+    licenseExpiryDate: candidate.licenseExpiryDate || '',
+    dependentFamilyMembers: candidate.dependentFamilyMembers || '',
+    ownerDriver: candidate.ownerDriver || '',
+    abhaNo: candidate.abhaNo || '',
+    youTube: candidate.youTube || '',
+    facebook: candidate.facebook || '',
+    instagram: candidate.instagram || '',
+    ekycStatus: candidate.ekycStatus || '',
+    trained: candidate.trained || false,
     profileImage: candidate.profileImage || null
   });
 
@@ -111,15 +123,12 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
   if (!isOpen) return null;
 
   const statusOptions = ['Not Enrolled', 'Enrolled', 'In Progress', 'Completed', 'Suspended'];
-  const phaseOptions = ['Theory', 'Practical', 'Road Test', 'Final Assessment'];
-  const programs = ['Category 1', 'Category 2', 'Category 3', 'Category 4'];
-  const centers = [
-    'Delhi Training Center',
-    'Mumbai Training Center',
-    'Chennai Training Center',
-    'Kolkata Training Center',
-    'Bangalore Training Center'
-  ];
+  const genderOptions = ['Male', 'Female', 'Other'];
+  const religionOptions = ['Hindu', 'Muslim', 'Christian', 'Sikh', 'Buddhist', 'Jain', 'Other'];
+  const vulnerabilityOptions = ['General', 'OBC', 'SC', 'ST', 'EWS', 'Other'];
+  const dlTypeOptions = ['LMV', 'HMV', 'MCWG', 'MCWOG', 'Others'];
+  const ownerDriverOptions = ['Owner', 'Driver', 'Both'];
+  const ekycOptions = ['Completed', 'Pending', 'Failed', 'Not Started'];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -152,7 +161,7 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Profile Image Section */}
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg col-span-2">
               <h3 className="text-lg font-semibold text-gray-900 border-b pb-2 mb-4">Profile Photo</h3>
               <div className="flex items-center space-x-6">
                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden shadow-sm">
@@ -223,93 +232,193 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Aadhar Number</label>
                 <input
                   type="text"
-                  name="address"
-                  value={formData.address}
+                  name="aadhar"
+                  value={formData.aadhar}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
                 <input
-                  type="tel"
-                  name="emergencyContact"
-                  value={formData.emergencyContact}
+                  type="text"
+                  name="dob"
+                  value={formData.dob}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  name="medicalCertificate"
-                  checked={formData.medicalCertificate}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                <select
+                  name="gender"
+                  value={formData.gender}
                   onChange={handleInputChange}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label className="text-sm font-medium text-gray-700">Medical Certificate Verified</label>
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {genderOptions.map(gender => (
+                    <option key={gender} value={gender}>{gender}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Religion</label>
+                <select
+                  name="religion"
+                  value={formData.religion}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Religion</option>
+                  {religionOptions.map(religion => (
+                    <option key={religion} value={religion}>{religion}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select
+                  name="vulnerability"
+                  value={formData.vulnerability}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Category</option>
+                  {vulnerabilityOptions.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            {/* Training Information */}
+            {/* Contact & Location */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Training Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Contact & Location</h3>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Training Program</label>
-                <select
-                  name="program"
-                  value={formData.program}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select Program</option>
-                  {programs.map(program => (
-                    <option key={program} value={program}>{program}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Training Center</label>
-                <select
-                  name="center"
-                  value={formData.center}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select Center</option>
-                  {centers.map(center => (
-                    <option key={center} value={center}>{center}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Assigned Trainer</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
                 <input
                   type="text"
-                  name="trainer"
-                  value={formData.trainer}
+                  name="location"
+                  value={formData.location}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                 <input
-                  type="text"
-                  name="duration"
-                  value={formData.duration}
+                  type="email"
+                  name="emailAddress"
+                  value={formData.emailAddress}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Personal Email</label>
+                <input
+                  type="email"
+                  name="personalEmailAddress"
+                  value={formData.personalEmailAddress}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Annual Income</label>
+                <input
+                  type="text"
+                  name="annualIncome"
+                  value={formData.annualIncome}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Educational Qualification</label>
+                <input
+                  type="text"
+                  name="educationalQualification"
+                  value={formData.educationalQualification}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Dependent Family Members</label>
+                <input
+                  type="text"
+                  name="dependentFamilyMembers"
+                  value={formData.dependentFamilyMembers}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Job Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Job Information</h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Job Role</label>
+                <input
+                  type="text"
+                  name="jobRole"
+                  value={formData.jobRole}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Job Code</label>
+                <input
+                  type="text"
+                  name="jobCode"
+                  value={formData.jobCode}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Assessment Date</label>
+                <input
+                  type="text"
+                  name="assessmentDate"
+                  value={formData.assessmentDate}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Owner/Driver</label>
+                <select
+                  name="ownerDriver"
+                  value={formData.ownerDriver}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Type</option>
+                  {ownerDriverOptions.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -325,76 +434,124 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
                   ))}
                 </select>
               </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="trained"
+                  checked={formData.trained}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label className="text-sm font-medium text-gray-700">Training Completed</label>
+              </div>
             </div>
 
-            {/* Progress Information */}
+            {/* License & Documents */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Progress Tracking</h3>
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">License & Documents</h3>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Progress (%)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">DL Number</label>
                 <input
-                  type="number"
-                  name="progress"
-                  value={formData.progress}
+                  type="text"
+                  name="dlNo"
+                  value={formData.dlNo}
                   onChange={handleInputChange}
-                  min="0"
-                  max="100"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Current Phase</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">DL Type</label>
                 <select
-                  name="currentPhase"
-                  value={formData.currentPhase}
+                  name="dlType"
+                  value={formData.dlType}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {phaseOptions.map(phase => (
-                    <option key={phase} value={phase}>{phase}</option>
+                  <option value="">Select DL Type</option>
+                  {dlTypeOptions.map(type => (
+                    <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Joining Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">License Expiry Date</label>
                 <input
-                  type="date"
-                  name="joiningDate"
-                  value={formData.joiningDate}
+                  type="text"
+                  name="licenseExpiryDate"
+                  value={formData.licenseExpiryDate}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Expected Completion Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">ABHA Number</label>
                 <input
-                  type="date"
-                  name="completionDate"
-                  value={formData.completionDate}
+                  type="text"
+                  name="abhaNo"
+                  value={formData.abhaNo}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">eKYC Status</label>
+                <select
+                  name="ekycStatus"
+                  value={formData.ekycStatus}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Status</option>
+                  {ekycOptions.map(status => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            {/* Instructor Notes */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Instructor Notes</h3>
+            {/* Social Media */}
+            <div className="space-y-4 col-span-2">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Social Media</h3>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Notes & Remarks</label>
-                <textarea
-                  name="instructorNotes"
-                  value={formData.instructorNotes}
-                  onChange={handleInputChange}
-                  rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Add instructor notes, performance remarks, areas of improvement, etc."
-                />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">YouTube</label>
+                  <input
+                    type="text"
+                    name="youTube"
+                    value={formData.youTube}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Facebook</label>
+                  <input
+                    type="text"
+                    name="facebook"
+                    value={formData.facebook}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Instagram</label>
+                  <input
+                    type="text"
+                    name="instagram"
+                    value={formData.instagram}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
             </div>
           </div>

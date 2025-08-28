@@ -84,7 +84,8 @@ const AdminPage = () => {
         candidate.candidateId.toLowerCase().includes(term) ||
         candidate.mobile.includes(term) ||
         candidate.aadhar.includes(term) ||
-        (candidate.program && candidate.program.toLowerCase().includes(term))
+        (candidate.jobRole && candidate.jobRole.toLowerCase().includes(term)) ||
+        (candidate.location && candidate.location.toLowerCase().includes(term))
       );
     }
     
@@ -160,7 +161,7 @@ const AdminPage = () => {
   const exportToCSV = () => {
     if (!filteredCandidates.length) return;
 
-    const headers = ['Candidate ID', 'Name', 'DOB', 'Mobile', 'Aadhar', 'Program', 'Center', 'Trainer', 'Status', 'Trained', 'Created At'];
+    const headers = ['Candidate ID', 'Name', 'DOB', 'Mobile', 'Aadhar', 'Job Role', 'Location', 'Email', 'Status', 'Trained', 'Created At'];
     const csvContent = [
       headers.join(','),
       ...filteredCandidates.map(candidate => [
@@ -169,9 +170,9 @@ const AdminPage = () => {
         candidate.dob,
         candidate.mobile,
         candidate.aadhar,
-        `"${candidate.program || ''}"`,
-        `"${candidate.center || ''}"`,
-        `"${candidate.trainer || ''}"`,
+        `"${candidate.jobRole || ''}"`,
+        `"${candidate.location || ''}"`,
+        `"${candidate.emailAddress || ''}"`,
         candidate.status,
         candidate.trained ? 'Yes' : 'No',
         new Date(candidate.createdAt).toLocaleDateString()
@@ -444,7 +445,7 @@ const AdminPage = () => {
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Program</th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Info</th>
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
@@ -479,9 +480,9 @@ const AdminPage = () => {
                           <div className="text-sm text-gray-500">{candidate.aadhar}</div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">{candidate.program || 'Not assigned'}</div>
-                          <div className="text-sm text-gray-500">{candidate.center || 'No center'}</div>
-                          <div className="text-sm text-gray-500">{candidate.trainer || 'No trainer'}</div>
+                          <div className="text-sm text-gray-900">{candidate.jobRole || 'No job role'}</div>
+                          <div className="text-sm text-gray-500">{candidate.location || 'No location'}</div>
+                          <div className="text-sm text-gray-500">{candidate.emailAddress || 'No email'}</div>
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(candidate.status)}`}>
@@ -599,16 +600,22 @@ const AdminPage = () => {
                         {statusSearchResult.status}
                       </span>
                     </div>
-                    {statusSearchResult.program && (
+                    {statusSearchResult.jobRole && (
                       <div>
-                        <p className="text-sm text-gray-600">Program</p>
-                        <p className="font-medium text-gray-800">{statusSearchResult.program}</p>
+                        <p className="text-sm text-gray-600">Job Role</p>
+                        <p className="font-medium text-gray-800">{statusSearchResult.jobRole}</p>
                       </div>
                     )}
-                    {statusSearchResult.center && (
+                    {statusSearchResult.location && (
                       <div>
-                        <p className="text-sm text-gray-600">Training Center</p>
-                        <p className="font-medium text-gray-800">{statusSearchResult.center}</p>
+                        <p className="text-sm text-gray-600">Location</p>
+                        <p className="font-medium text-gray-800">{statusSearchResult.location}</p>
+                      </div>
+                    )}
+                    {statusSearchResult.emailAddress && (
+                      <div>
+                        <p className="text-sm text-gray-600">Email</p>
+                        <p className="font-medium text-gray-800">{statusSearchResult.emailAddress}</p>
                       </div>
                     )}
                   </div>
