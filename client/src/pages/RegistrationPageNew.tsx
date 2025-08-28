@@ -104,8 +104,47 @@ const RegistrationPage = () => {
     }
   }, [currentCandidate, verifiedMobile]);
 
+  const validateDrivingLicense = (dlNumber: string): boolean => {
+    // Indian DL format: AA-XX-XXXX-XXXXXXX (15 characters including hyphens)
+    // AA = 2 letter state code, XX = 2 digit RTO code, XXXX = 4 digit year, XXXXXXX = 7 digit unique number
+    const dlPattern = /^[A-Z]{2}-\d{2}-\d{4}-\d{7}$/;
+    return dlPattern.test(dlNumber);
+  };
+
+  const formatDrivingLicense = (value: string): string => {
+    // Remove all non-alphanumeric characters
+    const cleaned = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    
+    // Apply formatting: AA-XX-XXXX-XXXXXXX
+    if (cleaned.length <= 2) {
+      return cleaned;
+    } else if (cleaned.length <= 4) {
+      return `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`;
+    } else if (cleaned.length <= 8) {
+      return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 4)}-${cleaned.slice(4)}`;
+    } else if (cleaned.length <= 15) {
+      return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 4)}-${cleaned.slice(4, 8)}-${cleaned.slice(8)}`;
+    } else {
+      // Truncate if too long
+      return `${cleaned.slice(0, 2)}-${cleaned.slice(2, 4)}-${cleaned.slice(4, 8)}-${cleaned.slice(8, 15)}`;
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // Special handling for driving license number
+    if (name === 'dlNo') {
+      const formattedValue = formatDrivingLicense(value);
+      setFormData(prev => ({ ...prev, [name]: formattedValue }));
+      
+      // Clear any previous DL validation errors
+      if (error && error.includes('driving license')) {
+        setError('');
+      }
+      return;
+    }
+    
     setFormData(prev => ({ ...prev, [name]: value }));
 
     // Auto-set job code based on job role
@@ -452,9 +491,22 @@ const RegistrationPage = () => {
                     name="dlNo"
                     value={formData.dlNo}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="DL Number"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      formData.dlNo && !validateDrivingLicense(formData.dlNo) 
+                        ? 'border-red-300 bg-red-50' 
+                        : 'border-gray-300'
+                    }`}
+                    placeholder="AA-XX-XXXX-XXXXXXX (e.g., MH-12-2020-1234567)"
+                    maxLength={17}
                   />
+                  {formData.dlNo && !validateDrivingLicense(formData.dlNo) && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Please enter a valid Indian driving license format: AA-XX-XXXX-XXXXXXX
+                    </p>
+                  )}
+                  <p className="text-gray-500 text-xs mt-1">
+                    Format: State Code-RTO Code-Year-Unique Number
+                  </p>
                 </div>
 
                 <div>
