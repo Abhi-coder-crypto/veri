@@ -44,6 +44,7 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
   });
 
   const [loading, setLoading] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [error, setError] = useState('');
   const [imageUploading, setImageUploading] = useState(false);
   const [showImageCropper, setShowImageCropper] = useState(false);
@@ -61,11 +62,17 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
       return response.json();
     },
     onSuccess: () => {
+      setSaveStatus('saved');
       queryClient.invalidateQueries({ queryKey: ['/api/candidates'] });
-      onClose();
+      // Show "Saved" for 1 second before closing
+      setTimeout(() => {
+        onClose();
+        setSaveStatus('idle');
+      }, 1000);
     },
     onError: (error: any) => {
       setError(error.message || 'Failed to update candidate');
+      setSaveStatus('idle');
     }
   });
 
@@ -116,7 +123,7 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    setSaveStatus('saving');
     updateMutation.mutate(formData);
   };
 
@@ -566,11 +573,28 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
               </button>
               <button
                 type="submit"
-                disabled={loading}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-colors flex items-center space-x-2"
+                disabled={saveStatus === 'saving' || saveStatus === 'saved'}
+                className={`px-6 py-3 text-white rounded-lg transition-colors flex items-center space-x-2 ${
+                  saveStatus === 'saved' 
+                    ? 'bg-green-600 hover:bg-green-700' 
+                    : saveStatus === 'saving'
+                    ? 'bg-blue-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
               >
-                <Save className="w-4 h-4" />
-                <span>{loading ? 'Saving...' : 'Save Changes'}</span>
+                {saveStatus === 'saved' ? (
+                  <CheckCircle className="w-4 h-4" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                <span>
+                  {saveStatus === 'saving' 
+                    ? 'Saving...' 
+                    : saveStatus === 'saved' 
+                    ? 'Saved!' 
+                    : 'Save Changes'
+                  }
+                </span>
               </button>
             </div>
           </form>
