@@ -117,10 +117,6 @@ const CandidateEditModal = ({ candidate, isOpen, onClose }: CandidateEditModalPr
         body: JSON.stringify(formData)
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to update candidate');
-      }
-      
       // Show "Saved!" immediately
       setIsSaving(false);
       setShowSaved(true);
